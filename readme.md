@@ -1,5 +1,5 @@
 # smtp-burst
-Simple python script that sends smtp email in bursts using a independent processes for each send. Used to test smtp capacity, handling and possible attack scenarios. Depends on `smtplib` and `multiprocessing`.
+Simple python script that sends smtp email in bursts using independent processes for each mail sent out. Used to test smtp capacity, handling and possible attack scenarios. Depends on `smtplib` and `multiprocessing`.
 
 ## Quick Start
 
