@@ -19,7 +19,7 @@ def appendMessage() :
 
 # Get human readable size from sizeof
 # num 		integer, size in bytes
-# suffix 	integer, suffix to append
+# suffix        string, suffix to append
 def sizeof_fmt(num, suffix='B'):
     for unit in ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']:
         if abs(num) < 1024.0:
