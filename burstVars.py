@@ -1,4 +1,8 @@
-from burstGen import *
+# Size constants
+SZ_KILOBYTE = 1024
+SZ_MEGABYTE = 1024 * SZ_KILOBYTE
+SZ_GIGABYTE = 1024 * SZ_MEGABYTE
+SZ_TERABYTE = 1024 * SZ_GIGABYTE
 
 #SB_SGEMAILS		integer, Emails per segment
 #SB_SGEMAILSPSEC	integer, Time between emails
