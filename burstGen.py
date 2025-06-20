@@ -17,7 +17,7 @@ def genData(size):
 def appendMessage() :
 	return (SB_MESSAGEC + genData(SB_SIZE)).encode('ascii', 'ignore')
 
-# Get human reable size from sizeof
+# Get human readable size from sizeof
 # num 		integer, size in bytes
 # suffix 	integer, suffix to append
 def sizeof_fmt(num, suffix='B'):
@@ -33,7 +33,7 @@ def sizeof_fmt(num, suffix='B'):
 # SB_FAILCOUNT 	integer, 	Current send fail count
 # SB_MESSAGE	string, 	Message string to send
 def sendmail(number, burst, SB_FAILCOUNT, SB_MESSAGE):
-	if SB_FAILCOUNT.value >= SB_STOPFQNT and SB_STOPFAIL:
+	if SB_FAILCOUNT.value >= SB_STOPFQNT and SB_STOPFAIL == True :
 		pass
 
 	print("%s/%s, Burst %s : Sending Email" % (number, SB_TOTAL, burst))

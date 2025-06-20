@@ -21,10 +21,11 @@ if __name__ == '__main__':
 		quantity = range(1, SB_SGEMAILS + 1)
 		procs = []
 		
-		if SB_FAILCOUNT.value >= SB_STOPFQNT and SB_STOPFAIL:
+
+		if SB_FAILCOUNT.value >= SB_STOPFQNT and SB_STOPFAIL == True :
 			break
 		for index, number in enumerate(quantity):
-			if SB_FAILCOUNT.value >= SB_STOPFQNT and SB_STOPFAIL:
+			if SB_FAILCOUNT.value >= SB_STOPFQNT and SB_STOPFAIL == True :
 				break
 			time.sleep(SB_SGEMAILSPSEC)
 			process = Process(target=sendmail, args=(number + (x * SB_SGEMAILS), x + 1, SB_FAILCOUNT, SB_MESSAGE))
