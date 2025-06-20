@@ -10,6 +10,14 @@ Simple python script that sends smtp email in bursts using independent processes
      $ python ./burstMain.py
      ```
 
+## Running Tests
+
+Execute the unit tests with `pytest` from the repository root:
+
+```bash
+$ pytest
+```
+
 ## License
 
 Distributed under MIT License. See `license.md` for more information.
