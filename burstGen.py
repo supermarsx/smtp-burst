@@ -33,7 +33,7 @@ def sizeof_fmt(num, suffix='B'):
 # SB_FAILCOUNT 	integer, 	Current send fail count
 # SB_MESSAGE	string, 	Message string to send
 def sendmail(number, burst, SB_FAILCOUNT, SB_MESSAGE):
-	if SB_FAILCOUNT.value >= SB_STOPFQNT && SB_STOPFAIL == True :
+	if SB_FAILCOUNT.value >= SB_STOPFQNT and SB_STOPFAIL:
 		pass
 
 	print("%s/%s, Burst %s : Sending Email" % (number, SB_TOTAL, burst))
