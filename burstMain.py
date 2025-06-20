@@ -21,6 +21,7 @@ if __name__ == '__main__':
 		quantity = range(1, SB_SGEMAILS + 1)
 		procs = []
 		
+
 		if SB_FAILCOUNT.value >= SB_STOPFQNT and SB_STOPFAIL == True :
 			break
 		for index, number in enumerate(quantity):
