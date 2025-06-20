@@ -17,7 +17,7 @@ def genData(size):
 def appendMessage() :
 	return (SB_MESSAGEC + genData(SB_SIZE)).encode('ascii', 'ignore')
 
-# Get human reable size from sizeof
+# Get human readable size from sizeof
 # num 		integer, size in bytes
 # suffix 	integer, suffix to append
 def sizeof_fmt(num, suffix='B'):
