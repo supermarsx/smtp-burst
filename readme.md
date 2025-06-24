@@ -16,10 +16,14 @@ Simple python script that sends smtp email in bursts using independent processes
 
 ## Running Tests
 
-Execute the unit tests using the helper script:
+Execute the unit tests using the helper scripts:
 
 ```bash
-$ ./scripts/run_tests.sh
+$ ./scripts/run_tests.sh     # Unix-like systems
+```
+
+```batch
+C:\> scripts\run_tests.bat   # Windows
 ```
 
 The script simply invokes `pytest --cov` and collects coverage information.
