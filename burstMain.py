@@ -1,5 +1,6 @@
-import time, os, sys
-from multiprocessing import Process, current_process, Manager, Value
+import time
+import sys
+from multiprocessing import Process, Manager
 
 from burstVars import *
 from burstGen import *
