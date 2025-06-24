@@ -10,6 +10,12 @@ import burst_cli
 if __name__ == '__main__':
     args = burst_cli.parse_args()
 
+    if args.open_sockets:
+        host, srv_port = burstGen.parse_server(args.server)
+        port = srv_port if ":" in args.server else args.port
+        burstGen.open_sockets(host, args.open_sockets, port)
+        sys.exit(0)
+
     burstVars.SB_SERVER = args.server
     burstVars.SB_SENDER = args.sender
     burstVars.SB_RECEIVERS = args.receivers

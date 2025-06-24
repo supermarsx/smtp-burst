@@ -35,3 +35,37 @@ def test_sendmail_exits_when_failcount_exceeded(monkeypatch):
     sendmail(1, 1, fail_counter, b"msg")
 
     assert not smtp_mock.called
+
+
+def test_parse_server_default_port():
+    host, port = burstGen.parse_server("example.com")
+    assert host == "example.com"
+    assert port == 25
+
+
+def test_parse_server_with_port():
+    host, port = burstGen.parse_server("example.com:2525")
+    assert host == "example.com"
+    assert port == 2525
+
+
+def test_open_sockets_creates_connections(monkeypatch):
+    connections = []
+
+    class DummySocket:
+        def close(self):
+            pass
+
+    def fake_create_connection(addr):
+        connections.append(addr)
+        return DummySocket()
+
+    def fake_sleep(_):
+        raise KeyboardInterrupt
+
+    monkeypatch.setattr(burstGen.socket, "create_connection", fake_create_connection)
+    monkeypatch.setattr(burstGen.time, "sleep", fake_sleep)
+
+    burstGen.open_sockets("host", 3, port=123)
+
+    assert connections == [("host", 123)] * 3

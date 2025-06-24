@@ -34,3 +34,8 @@ def test_yaml_config_parsing(tmp_path):
 
     args = burst_cli.parse_args(["--config", str(cfg_path)])
     assert args.server == "yaml.example.com"
+
+
+def test_open_sockets_option():
+    args = burst_cli.parse_args(["--open-sockets", "5"])
+    assert args.open_sockets == 5

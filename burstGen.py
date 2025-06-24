@@ -1,5 +1,10 @@
-import random, smtplib
+import random
+import smtplib
+import socket
+import time
 from smtplib import *
+from typing import Tuple
+
 from burstVars import *
 
 # Generate random data
@@ -47,3 +52,38 @@ def sendmail(number, burst, SB_FAILCOUNT, SB_MESSAGE):
     except SMTPDataError:
         SB_FAILCOUNT.value += 1
         print("%s/%s, Burst %s : Failure %s/%s, Data Error" % (number, SB_TOTAL, burst, SB_BURSTS, SB_FAILCOUNT.value, SB_STOPFQNT))
+
+
+def parse_server(server: str) -> Tuple[str, int]:
+    """Return (host, port) parsed from server string."""
+    if ":" in server:
+        host, port_str = server.rsplit(":", 1)
+        try:
+            port = int(port_str)
+        except ValueError:
+            host = server
+            port = 25
+    else:
+        host = server
+        port = 25
+    return host, port
+
+
+def open_sockets(host: str, count: int, port: int = 25):
+    """Open ``count`` TCP sockets to ``host`` and keep them open."""
+    sockets = []
+    for _ in range(count):
+        s = socket.create_connection((host, port))
+        sockets.append(s)
+    print(f"Opened {len(sockets)} sockets to {host}:{port}. Press Ctrl+C to exit.")
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        for s in sockets:
+            try:
+                s.close()
+            except Exception:
+                pass

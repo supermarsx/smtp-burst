@@ -73,6 +73,18 @@ def build_parser():
         help="Delay in seconds between bursts",
     )
     parser.add_argument(
+        "--open-sockets",
+        type=int,
+        default=0,
+        help="Open N TCP sockets and hold them open instead of sending email",
+    )
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=25,
+        help="TCP port to use for socket mode",
+    )
+    parser.add_argument(
         "--size",
         type=int,
         default=burstVars.SB_SIZE,
