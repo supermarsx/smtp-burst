@@ -3,16 +3,16 @@ from smtplib import *
 from burstVars import *
 
 # Generate random data
-# size 		integer, size in bytes
+# size      integer, size in bytes
 def genData(size):
-	return bytearray(random.getrandbits(8) for i in range(size)).decode("utf-8", "ignore")
+    return bytearray(random.getrandbits(8) for i in range(size)).decode("utf-8", "ignore")
 
 # Append message with generated data
 def appendMessage() :
-	return (SB_MESSAGEC + genData(SB_SIZE)).encode('ascii', 'ignore')
+    return (SB_MESSAGEC + genData(SB_SIZE)).encode('ascii', 'ignore')
 
 # Get human readable size from sizeof
-# num 		integer, size in bytes
+# num       integer, size in bytes
 # suffix        string, suffix to append
 def sizeof_fmt(num, suffix='B'):
     for unit in ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']:
@@ -20,15 +20,15 @@ def sizeof_fmt(num, suffix='B'):
             return "%3.1f%s%s" % (num, unit, suffix)
         num /= 1024.0
     return "%.1f%s%s" % (num, 'Yi', suffix)
-	
+    
 # Send email
-# number 		integer, 	Email number
-# burst			integer, 	Burst round
-# SB_FAILCOUNT 	integer, 	Current send fail count
-# SB_MESSAGE	string, 	Message string to send
+# number        integer,    Email number
+# burst         integer,    Burst round
+# SB_FAILCOUNT  integer,    Current send fail count
+# SB_MESSAGE    string,     Message string to send
 def sendmail(number, burst, SB_FAILCOUNT, SB_MESSAGE):
-	if SB_FAILCOUNT.value >= SB_STOPFQNT and SB_STOPFAIL == True :
-		return
+    if SB_FAILCOUNT.value >= SB_STOPFQNT and SB_STOPFAIL == True :
+        return
 
     print("%s/%s, Burst %s : Sending Email" % (number, SB_TOTAL, burst))
     try:
