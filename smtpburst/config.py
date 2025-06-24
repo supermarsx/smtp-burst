@@ -25,3 +25,8 @@ Subject: SUBJECT
 MESSAGE DATA
 
 """
+
+# Proxy and authentication defaults
+SB_PROXIES = []
+SB_USERLIST = []
+SB_PASSLIST = []

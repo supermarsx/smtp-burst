@@ -68,3 +68,34 @@ def test_open_sockets_creates_connections(monkeypatch):
     burstGen.open_sockets("host", 3, port=123)
 
     assert connections == [("host", 123)] * 3
+
+
+def test_sendmail_reports_auth_success(monkeypatch, capsys):
+    class DummySMTP:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def login(self, user, pwd):
+            if user == "u" and pwd == "p":
+                return
+            raise burstGen.SMTPException
+
+        def sendmail(self, *args, **kwargs):
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            pass
+
+    monkeypatch.setattr(burstGen.smtplib, "SMTP", DummySMTP)
+
+    class DummyCounter:
+        def __init__(self, value=0):
+            self.value = value
+
+    counter = DummyCounter()
+    sendmail(1, 1, counter, b"msg", server="s", users=["u"], passwords=["p"])
+    captured = capsys.readouterr().out
+    assert "Auth success: u:p" in captured
