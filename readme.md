@@ -14,6 +14,9 @@ Simple python script that sends smtp email in bursts using independent processes
 
    Use `-h`/`--help` to see all available options.
 
+An optional `--config` flag can load settings from a JSON or YAML file.
+See `examples/config.yaml` for a reference.
+
 ## Running Tests
 
 Execute the unit tests using the helper script:
