@@ -2,12 +2,6 @@ import random, smtplib
 from smtplib import *
 from burstVars import *
 
-# Size constants
-SZ_KILOBYTE = 1024
-SZ_MEGABYTE = 1024 * SZ_KILOBYTE
-SZ_GIGABYTE = 1024 * SZ_MEGABYTE
-SZ_TERABYTE = 1024 * SZ_GIGABYTE
-
 # Generate random data
 # size 		integer, size in bytes
 def genData(size):
