@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=67", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "smtpburst"
+version = "0.1.0"
+description = "Send bursts of SMTP emails for testing"
+authors = [{name="supermarsx"}]
+readme = "readme.md"
+requires-python = ">=3.11"
+dependencies = ["PyYAML"]
+
+[project.scripts]
+smtp-burst = "smtpburst.__main__:main"

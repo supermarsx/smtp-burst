@@ -19,4 +19,4 @@ case "$PLATFORM" in
         ;;
 esac
 
-pyinstaller --onefile burstMain.py --distpath "$OUTDIR"
+pyinstaller --onefile -n smtp-burst smtpburst/__main__.py --distpath "$OUTDIR"
