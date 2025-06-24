@@ -11,6 +11,17 @@ Simple python script that sends smtp email in bursts using independent processes
 - Random payload data appended to each message
 - Helper scripts for packaging and running tests
 
+## Installation
+
+Python 3.11 or newer is required. Install the library directly from the
+repository source:
+
+```bash
+$ pip install .
+```
+
+This will install the `smtp-burst` console entry point.
+
 ## Quick Start
 
 1. Edit `smtpburst/config.py` as needed for your tests or override values on the
@@ -44,13 +55,20 @@ The script simply invokes `pytest --cov` and collects coverage information.
 ## Packaging
 
 Build standalone executables with [PyInstaller](https://www.pyinstaller.org/).
-Run the packaging script on the target platform (Linux, macOS or Windows):
+Use the platform specific build scripts located in `scripts/` to create a
+standalone binary using PyInstaller:
 
 ```bash
-$ ./scripts/package.sh
+$ ./scripts/build_ubuntu.sh   # Linux
+$ ./scripts/build_macos.sh    # macOS
 ```
 
-The resulting binaries will be placed in `dist/<platform>`.
+```batch
+C:\> scripts\build_windows.bat  % Windows
+```
+
+The resulting binaries will be placed in `dist/linux`, `dist/macos` or
+`dist/windows` depending on the platform.
 
 ## License
 
