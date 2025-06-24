@@ -38,3 +38,10 @@ def test_yaml_config_parsing(tmp_path):
 def test_open_sockets_option():
     args = burst_cli.parse_args(["--open-sockets", "5"])
     assert args.open_sockets == 5
+
+
+def test_proxy_file_option(tmp_path):
+    proxy_file = tmp_path / "proxies.txt"
+    proxy_file.write_text("127.0.0.1:1080\n")
+    args = burst_cli.parse_args(["--proxy-file", str(proxy_file)])
+    assert args.proxy_file == str(proxy_file)

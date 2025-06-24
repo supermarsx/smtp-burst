@@ -28,6 +28,16 @@ def main(argv=None):
     cfg.SB_STOPFQNT = args.stop_fail_count
     cfg.SB_TOTAL = cfg.SB_SGEMAILS * cfg.SB_BURSTS
 
+    if args.proxy_file:
+        with open(args.proxy_file, "r", encoding="utf-8") as fh:
+            cfg.SB_PROXIES = [line.strip() for line in fh if line.strip()]
+    if args.userlist:
+        with open(args.userlist, "r", encoding="utf-8") as fh:
+            cfg.SB_USERLIST = [line.strip() for line in fh if line.strip()]
+    if args.passlist:
+        with open(args.passlist, "r", encoding="utf-8") as fh:
+            cfg.SB_PASSLIST = [line.strip() for line in fh if line.strip()]
+
     print("Starting smtp-burst")
     manager = Manager()
     SB_FAILCOUNT = manager.Value('i', 0)
@@ -51,9 +61,22 @@ def main(argv=None):
             if SB_FAILCOUNT.value >= cfg.SB_STOPFQNT and cfg.SB_STOPFAIL:
                 break
             time.sleep(cfg.SB_SGEMAILSPSEC)
+            proxy = None
+            if cfg.SB_PROXIES:
+                idx = (number + (x * cfg.SB_SGEMAILS) - 1) % len(cfg.SB_PROXIES)
+                proxy = cfg.SB_PROXIES[idx]
             process = Process(
                 target=send.sendmail,
-                args=(number + (x * cfg.SB_SGEMAILS), x + 1, SB_FAILCOUNT, SB_MESSAGE),
+                args=(
+                    number + (x * cfg.SB_SGEMAILS),
+                    x + 1,
+                    SB_FAILCOUNT,
+                    SB_MESSAGE,
+                    cfg.SB_SERVER,
+                    proxy,
+                    cfg.SB_USERLIST,
+                    cfg.SB_PASSLIST,
+                ),
             )
             procs.append(process)
             process.start()

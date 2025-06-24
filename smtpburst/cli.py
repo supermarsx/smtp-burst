@@ -42,6 +42,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--size", type=int, default=cfg.SB_SIZE, help="Random data size in bytes appended to each message")
     parser.add_argument("--stop-on-fail", action="store_true", default=cfg.SB_STOPFAIL, help="Stop execution when --stop-fail-count failures occur")
     parser.add_argument("--stop-fail-count", type=int, default=cfg.SB_STOPFQNT, help="Number of failed emails that triggers stopping")
+    parser.add_argument("--proxy-file", help="File containing SOCKS proxies to rotate through")
+    parser.add_argument("--userlist", help="Username wordlist for SMTP AUTH")
+    parser.add_argument("--passlist", help="Password wordlist for SMTP AUTH")
     return parser
 
 
