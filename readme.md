@@ -27,6 +27,16 @@ Simple python script that sends smtp email in bursts using independent processes
 An optional `--config` flag can load settings from a JSON or YAML file.
 See `examples/config.yaml` for a reference.
 
+## Installation
+
+Install the library from source using **Python 3.11** or newer:
+
+```bash
+$ pip install .
+```
+
+This installs the `smtp-burst` command provided by the package.
+
 ## Running Tests
 
 Execute the unit tests using the helper scripts:
@@ -44,13 +54,18 @@ The script simply invokes `pytest --cov` and collects coverage information.
 ## Packaging
 
 Build standalone executables with [PyInstaller](https://www.pyinstaller.org/).
-Run the packaging script on the target platform (Linux, macOS or Windows):
+Use the script matching your platform:
 
 ```bash
-$ ./scripts/package.sh
+$ ./scripts/build_ubuntu.sh   # Ubuntu/Linux
+$ ./scripts/build_macos.sh    # macOS
 ```
 
-The resulting binaries will be placed in `dist/<platform>`.
+```batch
+C:\> scripts\build_windows.bat
+```
+
+The resulting binaries are placed in `dist/<platform>`.
 
 ## License
 
