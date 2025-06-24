@@ -45,6 +45,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--proxy-file", help="File containing SOCKS proxies to rotate through")
     parser.add_argument("--userlist", help="Username wordlist for SMTP AUTH")
     parser.add_argument("--passlist", help="Password wordlist for SMTP AUTH")
+    parser.add_argument("--ssl", action="store_true", default=cfg.SB_SSL, help="Use SMTPS (SSL/TLS) connection")
+    parser.add_argument("--starttls", action="store_true", default=cfg.SB_STARTTLS, help="Issue STARTTLS after connecting")
     return parser
 
 

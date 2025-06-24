@@ -27,6 +27,8 @@ def main(argv=None):
     cfg.SB_STOPFAIL = args.stop_on_fail
     cfg.SB_STOPFQNT = args.stop_fail_count
     cfg.SB_TOTAL = cfg.SB_SGEMAILS * cfg.SB_BURSTS
+    cfg.SB_SSL = args.ssl
+    cfg.SB_STARTTLS = args.starttls
 
     if args.proxy_file:
         with open(args.proxy_file, "r", encoding="utf-8") as fh:
@@ -76,6 +78,8 @@ def main(argv=None):
                     proxy,
                     cfg.SB_USERLIST,
                     cfg.SB_PASSLIST,
+                    cfg.SB_SSL,
+                    cfg.SB_STARTTLS,
                 ),
             )
             procs.append(process)

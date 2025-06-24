@@ -36,8 +36,13 @@ def sendmail(
     proxy: str | None = None,
     users=None,
     passwords=None,
+    use_ssl: bool = False,
+    start_tls: bool = False,
 ):
-    """Send a single email if failure threshold not reached."""
+    """Send a single email if failure threshold not reached.
+
+    Parameters ``use_ssl`` and ``start_tls`` control the connection security.
+    """
     if SB_FAILCOUNT.value >= SB_STOPFQNT and SB_STOPFAIL:
         return
 
@@ -54,7 +59,10 @@ def sendmail(
         except Exception:
             pass
     try:
-        with smtplib.SMTP(host, port) as smtpObj:
+        smtp_cls = smtplib.SMTP_SSL if use_ssl else smtplib.SMTP
+        with smtp_cls(host, port) as smtpObj:
+            if start_tls and not use_ssl:
+                smtpObj.starttls()
             if users and passwords:
                 success = False
                 for user in users:

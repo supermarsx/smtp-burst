@@ -30,3 +30,7 @@ MESSAGE DATA
 SB_PROXIES = []
 SB_USERLIST = []
 SB_PASSLIST = []
+
+# Security options
+SB_SSL = False
+SB_STARTTLS = False

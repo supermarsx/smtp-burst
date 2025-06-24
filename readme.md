@@ -8,6 +8,7 @@ Simple python script that sends smtp email in bursts using independent processes
 - Stop automatically after a number of failed sends
 - Optional JSON/YAML configuration file
 - Open-only socket mode for connection tests
+- Optional SSL or STARTTLS connections via CLI flags
 - Random payload data appended to each message
 - Helper scripts for packaging and running tests
 
@@ -33,6 +34,7 @@ This will install the `smtp-burst` console entry point.
        --sender from@example.com --receivers to@example.com other@example.com
    ```
 
+   Use `--ssl` for SMTPS or `--starttls` to upgrade the connection.
    Use `-h`/`--help` to see all available options.
 
 An optional `--config` flag can load settings from a JSON or YAML file.
