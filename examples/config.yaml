@@ -1,0 +1,12 @@
+server: smtp.example.com
+sender: from@example.com
+receivers:
+  - to1@example.com
+  - to2@example.com
+emails_per_burst: 10
+bursts: 5
+email_delay: 0.5
+burst_delay: 1
+size: 1024
+stop_on_fail: true
+stop_fail_count: 5

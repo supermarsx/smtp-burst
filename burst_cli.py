@@ -1,11 +1,37 @@
 import argparse
+import json
+from typing import Any, Dict
+
 import burstVars
+
+try:
+    import yaml
+except ImportError:  # pragma: no cover - library may not be installed
+    yaml = None
+
+
+def load_config(path: str) -> Dict[str, Any]:
+    """Load configuration from JSON or YAML file."""
+    with open(path, "r", encoding="utf-8") as fh:
+        if path.endswith((".yaml", ".yml")):
+            if yaml is None:
+                raise RuntimeError("PyYAML not installed")
+            data = yaml.safe_load(fh) or {}
+        else:
+            data = json.load(fh)
+    if not isinstance(data, dict):
+        raise ValueError("Config file must define a mapping of options")
+    return data
 
 
 def build_parser():
     """Return argument parser for smtp-burst."""
     parser = argparse.ArgumentParser(
         description="Send bursts of SMTP emails for testing purposes"    )
+    parser.add_argument(
+        "--config",
+        help="Path to JSON/YAML config file",
+    )
     parser.add_argument(
         "--server",
         default=burstVars.SB_SERVER,
@@ -68,7 +94,17 @@ def build_parser():
 
 
 def parse_args(args=None):
-    """Parse command line arguments."""
+    """Parse command line arguments, optionally merging a config file."""
+    config_parser = argparse.ArgumentParser(add_help=False)
+    config_parser.add_argument("--config")
+    config_args, _ = config_parser.parse_known_args(args)
+
     parser = build_parser()
+    if config_args.config:
+        try:
+            config_data = load_config(config_args.config)
+        except FileNotFoundError:
+            raise SystemExit(f"Config file not found: {config_args.config}")
+        parser.set_defaults(**config_data)
     return parser.parse_args(args)
 
