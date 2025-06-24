@@ -33,6 +33,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--server", default=cfg.SB_SERVER, help="SMTP server to connect to")
     parser.add_argument("--sender", default=cfg.SB_SENDER, help="Envelope sender address")
     parser.add_argument("--receivers", nargs="+", default=cfg.SB_RECEIVERS, help="Space separated list of recipient addresses")
+    parser.add_argument("--subject", default=cfg.SB_SUBJECT, help="Email subject line")
+    parser.add_argument("--body-file", help="File containing email body text")
     parser.add_argument("--emails-per-burst", type=int, default=cfg.SB_SGEMAILS, help="Number of emails per burst")
     parser.add_argument("--bursts", type=int, default=cfg.SB_BURSTS, help="Number of bursts to send")
     parser.add_argument("--email-delay", type=float, default=cfg.SB_SGEMAILSPSEC, help="Delay in seconds between individual emails")

@@ -18,6 +18,8 @@ SB_FAILCOUNT = 0
 SB_SENDER = 'from@sender.com'
 SB_RECEIVERS = ['to@receiver.com']
 SB_SERVER = 'smtp.mail.com'
+SB_SUBJECT = 'smtp-burst test'
+SB_BODY = 'smtp-burst message body'
 SB_MESSAGEC = """From: SENDER <from@sender.com>
 To: RECEIVER <to@receiver.com>
 Subject: SUBJECT

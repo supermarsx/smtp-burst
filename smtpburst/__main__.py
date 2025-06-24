@@ -19,6 +19,7 @@ def main(argv=None):
     cfg.SB_SERVER = args.server
     cfg.SB_SENDER = args.sender
     cfg.SB_RECEIVERS = args.receivers
+    cfg.SB_SUBJECT = args.subject
     cfg.SB_SGEMAILS = args.emails_per_burst
     cfg.SB_BURSTS = args.bursts
     cfg.SB_SGEMAILSPSEC = args.email_delay
@@ -39,6 +40,9 @@ def main(argv=None):
     if args.passlist:
         with open(args.passlist, "r", encoding="utf-8") as fh:
             cfg.SB_PASSLIST = [line.strip() for line in fh if line.strip()]
+    if args.body_file:
+        with open(args.body_file, "r", encoding="utf-8") as fh:
+            cfg.SB_BODY = fh.read()
 
     print("Starting smtp-burst")
     manager = Manager()
