@@ -5,10 +5,9 @@ import pytest
 # Ensure the project root is on sys.path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from burstGen import sizeof_fmt
-from burstGen import sendmail
-import burstGen
-import burstVars
+from smtpburst.send import sizeof_fmt, sendmail
+from smtpburst import send as burstGen
+from smtpburst import config as burstVars
 from unittest.mock import MagicMock
 
 

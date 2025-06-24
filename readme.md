@@ -3,12 +3,12 @@ Simple python script that sends smtp email in bursts using independent processes
 
 ## Quick Start
 
-1. Edit `burstVars.py` as needed for your tests or override values on the
+1. Edit `smtpburst/config.py` as needed for your tests or override values on the
    command line.
-2. Start testing by executing `burstMain.py` with optional CLI flags.
+2. Start testing by executing the package with optional CLI flags.
 
    ```bash
-   $ python ./burstMain.py --server smtp.example.com \
+   $ python -m smtpburst --server smtp.example.com \
        --sender from@example.com --receivers to@example.com other@example.com
    ```
 
