@@ -55,3 +55,15 @@ def test_ssl_flag():
 def test_starttls_flag():
     args = burst_cli.parse_args(["--starttls"])
     assert args.starttls
+
+
+def test_subject_option():
+    args = burst_cli.parse_args(["--subject", "MySub"])
+    assert args.subject == "MySub"
+
+
+def test_body_file_option(tmp_path):
+    body_file = tmp_path / "body.txt"
+    body_file.write_text("hello")
+    args = burst_cli.parse_args(["--body-file", str(body_file)])
+    assert args.body_file == str(body_file)

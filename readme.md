@@ -10,6 +10,7 @@ Simple python script that sends smtp email in bursts using independent processes
 - Open-only socket mode for connection tests
 - Optional SSL or STARTTLS connections via CLI flags
 - Random payload data appended to each message
+- Customizable subject and message body via CLI options
 - Helper scripts for packaging and running tests
 
 ## Installation
@@ -32,6 +33,7 @@ This will install the `smtp-burst` console entry point.
    ```bash
    $ python -m smtpburst --server smtp.example.com \
        --sender from@example.com --receivers to@example.com other@example.com
+       --subject "Test" --body-file body.txt
    ```
 
    Use `--ssl` for SMTPS or `--starttls` to upgrade the connection.

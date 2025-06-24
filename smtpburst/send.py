@@ -5,7 +5,7 @@ import time
 from smtplib import SMTPException, SMTPSenderRefused, SMTPRecipientsRefused, SMTPDataError
 from typing import Tuple
 
-from .config import *
+from . import config
 
 
 def genData(size: int) -> str:
@@ -14,8 +14,15 @@ def genData(size: int) -> str:
 
 
 def appendMessage() -> bytes:
-    """Return the base message plus random data."""
-    return (SB_MESSAGEC + genData(SB_SIZE)).encode('ascii', 'ignore')
+    """Construct the message using config values and append random data."""
+    receivers = ", ".join(config.SB_RECEIVERS)
+    base = (
+        f"From: {config.SB_SENDER}\n"
+        f"To: {receivers}\n"
+        f"Subject: {config.SB_SUBJECT}\n\n"
+        f"{config.SB_BODY}\n\n"
+    )
+    return (base + genData(config.SB_SIZE)).encode("ascii", "ignore")
 
 
 def sizeof_fmt(num: int, suffix: str = 'B') -> str:
@@ -32,7 +39,7 @@ def sendmail(
     burst: int,
     SB_FAILCOUNT,
     SB_MESSAGE: bytes,
-    server: str = SB_SERVER,
+    server: str = config.SB_SERVER,
     proxy: str | None = None,
     users=None,
     passwords=None,
@@ -43,10 +50,10 @@ def sendmail(
 
     Parameters ``use_ssl`` and ``start_tls`` control the connection security.
     """
-    if SB_FAILCOUNT.value >= SB_STOPFQNT and SB_STOPFAIL:
+    if SB_FAILCOUNT.value >= config.SB_STOPFQNT and config.SB_STOPFAIL:
         return
 
-    print(f"{number}/{SB_TOTAL}, Burst {burst} : Sending Email")
+    print(f"{number}/{config.SB_TOTAL}, Burst {burst} : Sending Email")
     host, port = parse_server(server)
     orig_socket = socket.socket
     if proxy:
@@ -76,27 +83,27 @@ def sendmail(
                             continue
                     if success:
                         break
-            smtpObj.sendmail(SB_SENDER, SB_RECEIVERS, SB_MESSAGE)
-        print(f"{number}/{SB_TOTAL}, Burst {burst} : Email Sent")
+            smtpObj.sendmail(config.SB_SENDER, config.SB_RECEIVERS, SB_MESSAGE)
+        print(f"{number}/{config.SB_TOTAL}, Burst {burst} : Email Sent")
     except SMTPException:
         SB_FAILCOUNT.value += 1
         print(
-            f"{number}/{SB_TOTAL}, Burst {burst}/{SB_BURSTS} : Failure {SB_FAILCOUNT.value}/{SB_STOPFQNT}, Unable to send email"
+            f"{number}/{config.SB_TOTAL}, Burst {burst}/{config.SB_BURSTS} : Failure {SB_FAILCOUNT.value}/{config.SB_STOPFQNT}, Unable to send email"
         )
     except SMTPSenderRefused:
         SB_FAILCOUNT.value += 1
         print(
-            f"{number}/{SB_TOTAL}, Burst {burst} : Failure {SB_FAILCOUNT.value}/{SB_STOPFQNT}, Sender refused"
+            f"{number}/{config.SB_TOTAL}, Burst {burst} : Failure {SB_FAILCOUNT.value}/{config.SB_STOPFQNT}, Sender refused"
         )
     except SMTPRecipientsRefused:
         SB_FAILCOUNT.value += 1
         print(
-            f"{number}/{SB_TOTAL}, Burst {burst} : Failure {SB_FAILCOUNT.value}/{SB_STOPFQNT}, Recipients refused"
+            f"{number}/{config.SB_TOTAL}, Burst {burst} : Failure {SB_FAILCOUNT.value}/{config.SB_STOPFQNT}, Recipients refused"
         )
     except SMTPDataError:
         SB_FAILCOUNT.value += 1
         print(
-            f"{number}/{SB_TOTAL}, Burst {burst} : Failure {SB_FAILCOUNT.value}/{SB_STOPFQNT}, Data Error"
+            f"{number}/{config.SB_TOTAL}, Burst {burst} : Failure {SB_FAILCOUNT.value}/{config.SB_STOPFQNT}, Data Error"
         )
     finally:
         if proxy:

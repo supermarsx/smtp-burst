@@ -167,3 +167,15 @@ def test_sendmail_calls_starttls(monkeypatch):
     counter = DummyCounter()
     sendmail(1, 1, counter, b"msg", start_tls=True)
     assert called.get('starttls')
+
+
+def test_append_message_uses_subject_and_body(monkeypatch):
+    burstVars.SB_SENDER = 'a@b.com'
+    burstVars.SB_RECEIVERS = ['c@d.com']
+    burstVars.SB_SUBJECT = 'Sub'
+    burstVars.SB_BODY = 'Body'
+    burstVars.SB_SIZE = 0
+    msg = burstGen.appendMessage()
+    assert b'Subject: Sub' in msg
+    assert b'Body' in msg
+
