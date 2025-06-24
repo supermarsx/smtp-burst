@@ -22,6 +22,24 @@ if __name__ == '__main__':
     burstVars.SB_STOPFQNT = args.stop_fail_count
     burstVars.SB_TOTAL = burstVars.SB_SGEMAILS * burstVars.SB_BURSTS
 
+    burstGen.SB_SERVER = burstVars.SB_SERVER
+    burstGen.SB_SENDER = burstVars.SB_SENDER
+    burstGen.SB_RECEIVERS = burstVars.SB_RECEIVERS
+    burstGen.SB_SGEMAILS = burstVars.SB_SGEMAILS
+    burstGen.SB_BURSTS = burstVars.SB_BURSTS
+    burstGen.SB_SGEMAILSPSEC = burstVars.SB_SGEMAILSPSEC
+    burstGen.SB_BURSTSPSEC = burstVars.SB_BURSTSPSEC
+    burstGen.SB_SIZE = burstVars.SB_SIZE
+    burstGen.SB_STOPFAIL = burstVars.SB_STOPFAIL
+    burstGen.SB_STOPFQNT = burstVars.SB_STOPFQNT
+    burstGen.SB_TOTAL = burstVars.SB_TOTAL
+    if args.proxy_list:
+        with open(args.proxy_list) as f:
+            burstVars.SB_PROXIES = [line.strip() for line in f if line.strip()]
+    burstGen.SB_PROXIES = burstVars.SB_PROXIES
+    burstVars.SB_ROTATE_PROXIES = args.rotate_proxies
+    burstGen.SB_ROTATE_PROXIES = burstVars.SB_ROTATE_PROXIES
+
     print("Starting smtp-burst")
     manager = Manager()
     SB_FAILCOUNT = manager.Value('i', 0)

@@ -35,3 +35,39 @@ def test_sendmail_exits_when_failcount_exceeded(monkeypatch):
     sendmail(1, 1, fail_counter, b"msg")
 
     assert not smtp_mock.called
+
+
+def test_sendmail_retries_with_proxies(monkeypatch):
+    class DummyCounter:
+        def __init__(self, value=0):
+            self.value = value
+
+    burstVars.SB_PROXIES = ["p1", "p2"]
+    burstVars.SB_ROTATE_PROXIES = True
+    burstGen.SB_PROXIES = burstVars.SB_PROXIES
+    burstGen.SB_ROTATE_PROXIES = burstVars.SB_ROTATE_PROXIES
+    counter = DummyCounter()
+    calls = []
+
+    def open_mock(server, proxy=None):
+        class Ctx:
+            def __enter__(self_inner):
+                calls.append(proxy)
+                if proxy == "p1":
+                    raise OSError("fail")
+                return MagicMock()
+
+            def __exit__(self_inner, exc_type, exc, tb):
+                return False
+
+        return Ctx()
+
+    monkeypatch.setattr(burstGen, "open_smtp", open_mock)
+
+    sendmail(1, 1, counter, b"msg")
+
+    assert calls == ["p1", "p2"]
+    burstVars.SB_PROXIES = []
+    burstVars.SB_ROTATE_PROXIES = False
+    burstGen.SB_PROXIES = []
+    burstGen.SB_ROTATE_PROXIES = False

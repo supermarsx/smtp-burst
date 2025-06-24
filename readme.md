@@ -1,5 +1,6 @@
 # smtp-burst
 Simple python script that sends smtp email in bursts using independent processes for each mail sent out. Used to test smtp capacity, handling and possible attack scenarios. Depends on `smtplib` and `multiprocessing`.
+Optional proxy support requires installing `PySocks`.
 
 ## Quick Start
 
@@ -11,6 +12,9 @@ Simple python script that sends smtp email in bursts using independent processes
    $ python ./burstMain.py --server smtp.example.com \
        --sender from@example.com --receivers to@example.com other@example.com
    ```
+
+   Use `--proxy-list FILE` to read SOCKS proxies from `FILE`. Add
+   `--rotate-proxies` to cycle through them for each connection.
 
    Use `-h`/`--help` to see all available options.
 

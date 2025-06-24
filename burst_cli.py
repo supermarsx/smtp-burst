@@ -64,6 +64,16 @@ def build_parser():
         default=burstVars.SB_STOPFQNT,
         help="Number of failed emails that triggers stopping",
     )
+    parser.add_argument(
+        "--proxy-list",
+        help="Path to file containing SOCKS proxy addresses",
+    )
+    parser.add_argument(
+        "--rotate-proxies",
+        action="store_true",
+        default=burstVars.SB_ROTATE_PROXIES,
+        help="Rotate through proxies for each connection",
+    )
     return parser
 
 

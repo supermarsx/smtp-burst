@@ -37,3 +37,9 @@ Subject: SUBJECT
 MESSAGE DATA
 
 """
+
+# Proxy settings
+# SB_PROXIES          list of SOCKS proxy addresses ("host:port")
+# SB_ROTATE_PROXIES   boolean, Rotate through proxies for each connection
+SB_PROXIES            = []
+SB_ROTATE_PROXIES     = False
