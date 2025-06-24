@@ -110,7 +110,6 @@ def parse_server(server: str) -> Tuple[str, int]:
         try:
             port = int(port_str)
         except ValueError:
-            host = server
             port = 25
     else:
         host = server

@@ -48,6 +48,12 @@ def test_parse_server_with_port():
     assert port == 2525
 
 
+def test_parse_server_bad_port():
+    host, port = burstGen.parse_server("example.com:bad")
+    assert host == "example.com"
+    assert port == 25
+
+
 def test_open_sockets_creates_connections(monkeypatch):
     connections = []
 
