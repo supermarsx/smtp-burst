@@ -45,3 +45,13 @@ def test_proxy_file_option(tmp_path):
     proxy_file.write_text("127.0.0.1:1080\n")
     args = burst_cli.parse_args(["--proxy-file", str(proxy_file)])
     assert args.proxy_file == str(proxy_file)
+
+
+def test_ssl_flag():
+    args = burst_cli.parse_args(["--ssl"])
+    assert args.ssl
+
+
+def test_starttls_flag():
+    args = burst_cli.parse_args(["--starttls"])
+    assert args.starttls

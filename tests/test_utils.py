@@ -99,3 +99,65 @@ def test_sendmail_reports_auth_success(monkeypatch, capsys):
     sendmail(1, 1, counter, b"msg", server="s", users=["u"], passwords=["p"])
     captured = capsys.readouterr().out
     assert "Auth success: u:p" in captured
+
+
+def test_sendmail_uses_ssl(monkeypatch):
+    calls = {}
+
+    class DummySSL:
+        def __init__(self, *args, **kwargs):
+            calls['ssl'] = True
+
+        def sendmail(self, *args, **kwargs):
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            pass
+
+    class DummySMTP:
+        def __init__(self, *args, **kwargs):
+            calls['smtp'] = True
+
+    monkeypatch.setattr(burstGen.smtplib, "SMTP_SSL", DummySSL)
+    monkeypatch.setattr(burstGen.smtplib, "SMTP", DummySMTP)
+
+    class DummyCounter:
+        def __init__(self, value=0):
+            self.value = value
+
+    counter = DummyCounter()
+    sendmail(1, 1, counter, b"msg", use_ssl=True)
+    assert calls.get('ssl') and not calls.get('smtp')
+
+
+def test_sendmail_calls_starttls(monkeypatch):
+    called = {}
+
+    class DummySMTP:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def starttls(self):
+            called['starttls'] = True
+
+        def sendmail(self, *args, **kwargs):
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            pass
+
+    monkeypatch.setattr(burstGen.smtplib, "SMTP", DummySMTP)
+
+    class DummyCounter:
+        def __init__(self, value=0):
+            self.value = value
+
+    counter = DummyCounter()
+    sendmail(1, 1, counter, b"msg", start_tls=True)
+    assert called.get('starttls')
