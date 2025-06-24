@@ -46,10 +46,10 @@ def sendmail(number, burst, SB_FAILCOUNT, SB_MESSAGE):
 		print("%s/%s, Burst %s/%s : Failure %s/%s, Unable to send email" % (number, SB_TOTAL, burst, SB_BURSTS, SB_FAILCOUNT.value, SB_STOPFQNT))
 	except SMTPSenderRefused:
 		SB_FAILCOUNT.value += 1
-		print("%s/%s, Burst %s : Failure %s/%s, Sender refused" % (number, SB_TOTAL, burst, SB_BURSTS, SB_FAILCOUNT.value, SB_STOPFQNT))
+		print("%s/%s, Burst %s/%s : Failure %s/%s, Sender refused" % (number, SB_TOTAL, burst, SB_BURSTS, SB_FAILCOUNT.value, SB_STOPFQNT))
 	except SMTPRecipientsRefused:
 		SB_FAILCOUNT.value += 1
-		print("%s/%s, Burst %s : Failure %s/%s, Recipients refused" % (number, SB_TOTAL, burst, SB_BURSTS, SB_FAILCOUNT.value, SB_STOPFQNT))
+		print("%s/%s, Burst %s/%s : Failure %s/%s, Recipients refused" % (number, SB_TOTAL, burst, SB_BURSTS, SB_FAILCOUNT.value, SB_STOPFQNT))
 	except SMTPDataError:
 		SB_FAILCOUNT.value += 1
-		print("%s/%s, Burst %s : Failure %s/%s, Data Error" % (number, SB_TOTAL, burst, SB_BURSTS, SB_FAILCOUNT.value, SB_STOPFQNT))
+		print("%s/%s, Burst %s/%s : Failure %s/%s, Data Error" % (number, SB_TOTAL, burst, SB_BURSTS, SB_FAILCOUNT.value, SB_STOPFQNT))
