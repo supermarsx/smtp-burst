@@ -36,20 +36,20 @@ def sendmail(number, burst, SB_FAILCOUNT, SB_MESSAGE):
 	if SB_FAILCOUNT.value >= SB_STOPFQNT and SB_STOPFAIL == True :
 		return
 
-	print("%s/%s, Burst %s : Sending Email" % (number, SB_TOTAL, burst))
-	try:
-	   smtpObj = smtplib.SMTP(SB_SERVER)
-	   smtpObj.sendmail(SB_SENDER, SB_RECEIVERS, SB_MESSAGE)         
-	   print("%s/%s, Burst %s : Email Sent" % (number, SB_TOTAL, burst))
-	except SMTPException:
-		SB_FAILCOUNT.value += 1
-		print("%s/%s, Burst %s/%s : Failure %s/%s, Unable to send email" % (number, SB_TOTAL, burst, SB_BURSTS, SB_FAILCOUNT.value, SB_STOPFQNT))
-	except SMTPSenderRefused:
-		SB_FAILCOUNT.value += 1
-		print("%s/%s, Burst %s : Failure %s/%s, Sender refused" % (number, SB_TOTAL, burst, SB_BURSTS, SB_FAILCOUNT.value, SB_STOPFQNT))
-	except SMTPRecipientsRefused:
-		SB_FAILCOUNT.value += 1
-		print("%s/%s, Burst %s : Failure %s/%s, Recipients refused" % (number, SB_TOTAL, burst, SB_BURSTS, SB_FAILCOUNT.value, SB_STOPFQNT))
-	except SMTPDataError:
-		SB_FAILCOUNT.value += 1
-		print("%s/%s, Burst %s : Failure %s/%s, Data Error" % (number, SB_TOTAL, burst, SB_BURSTS, SB_FAILCOUNT.value, SB_STOPFQNT))
+    print("%s/%s, Burst %s : Sending Email" % (number, SB_TOTAL, burst))
+    try:
+        with smtplib.SMTP(SB_SERVER) as smtpObj:
+            smtpObj.sendmail(SB_SENDER, SB_RECEIVERS, SB_MESSAGE)
+        print("%s/%s, Burst %s : Email Sent" % (number, SB_TOTAL, burst))
+    except SMTPException:
+        SB_FAILCOUNT.value += 1
+        print("%s/%s, Burst %s/%s : Failure %s/%s, Unable to send email" % (number, SB_TOTAL, burst, SB_BURSTS, SB_FAILCOUNT.value, SB_STOPFQNT))
+    except SMTPSenderRefused:
+        SB_FAILCOUNT.value += 1
+        print("%s/%s, Burst %s : Failure %s/%s, Sender refused" % (number, SB_TOTAL, burst, SB_BURSTS, SB_FAILCOUNT.value, SB_STOPFQNT))
+    except SMTPRecipientsRefused:
+        SB_FAILCOUNT.value += 1
+        print("%s/%s, Burst %s : Failure %s/%s, Recipients refused" % (number, SB_TOTAL, burst, SB_BURSTS, SB_FAILCOUNT.value, SB_STOPFQNT))
+    except SMTPDataError:
+        SB_FAILCOUNT.value += 1
+        print("%s/%s, Burst %s : Failure %s/%s, Data Error" % (number, SB_TOTAL, burst, SB_BURSTS, SB_FAILCOUNT.value, SB_STOPFQNT))
