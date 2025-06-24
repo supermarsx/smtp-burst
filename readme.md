@@ -16,11 +16,24 @@ Simple python script that sends smtp email in bursts using independent processes
 
 ## Running Tests
 
-Execute the unit tests with `pytest` from the repository root:
+Execute the unit tests using the helper script:
 
 ```bash
-$ pytest
+$ ./scripts/run_tests.sh
 ```
+
+The script simply invokes `pytest --cov` and collects coverage information.
+
+## Packaging
+
+Build standalone executables with [PyInstaller](https://www.pyinstaller.org/).
+Run the packaging script on the target platform (Linux, macOS or Windows):
+
+```bash
+$ ./scripts/package.sh
+```
+
+The resulting binaries will be placed in `dist/<platform>`.
 
 ## License
 
