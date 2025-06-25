@@ -36,3 +36,11 @@ SB_PASSLIST = []
 # Security options
 SB_SSL = False
 SB_STARTTLS = False
+
+# Data generation options
+SB_DATA_MODE = 'ascii'
+SB_DICT_WORDS = []
+SB_REPEAT_STRING = ''
+SB_PER_BURST_DATA = False
+SB_SECURE_RANDOM = False
+SB_RAND_STREAM = None

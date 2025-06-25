@@ -25,11 +25,20 @@ def main(argv=None):
     cfg.SB_SGEMAILSPSEC = args.email_delay
     cfg.SB_BURSTSPSEC = args.burst_delay
     cfg.SB_SIZE = args.size
+    cfg.SB_DATA_MODE = args.data_mode
+    cfg.SB_REPEAT_STRING = args.repeat_string
+    cfg.SB_PER_BURST_DATA = args.per_burst_data
+    cfg.SB_SECURE_RANDOM = args.secure_random
     cfg.SB_STOPFAIL = args.stop_on_fail
     cfg.SB_STOPFQNT = args.stop_fail_count
     cfg.SB_TOTAL = cfg.SB_SGEMAILS * cfg.SB_BURSTS
     cfg.SB_SSL = args.ssl
     cfg.SB_STARTTLS = args.starttls
+
+    if args.dict_file:
+        cfg.SB_DICT_WORDS = send.datagen.compile_wordlist(args.dict_file)
+    if args.rand_stream:
+        cfg.SB_RAND_STREAM = open(args.rand_stream, "rb")
 
     if args.proxy_file:
         with open(args.proxy_file, "r", encoding="utf-8") as fh:
@@ -58,6 +67,8 @@ def main(argv=None):
     )
 
     for x in range(0, cfg.SB_BURSTS):
+        if cfg.SB_PER_BURST_DATA:
+            SB_MESSAGE = send.appendMessage()
         quantity = range(1, cfg.SB_SGEMAILS + 1)
         procs = []
 
@@ -92,6 +103,12 @@ def main(argv=None):
         for process in procs:
             process.join()
         time.sleep(cfg.SB_BURSTSPSEC)
+
+    if cfg.SB_RAND_STREAM:
+        try:
+            cfg.SB_RAND_STREAM.close()
+        except Exception:
+            pass
 
 
 if __name__ == "__main__":

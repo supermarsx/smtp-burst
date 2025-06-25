@@ -7,6 +7,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from smtpburst.send import sizeof_fmt, sendmail
 from smtpburst import send as burstGen
+from smtpburst import datagen
 from smtpburst import config as burstVars
 from unittest.mock import MagicMock
 
@@ -182,5 +183,5 @@ def test_append_message_uses_subject_and_body(monkeypatch):
 
 def test_genData_length():
     for n in [0, 1, 10, 100]:
-        assert len(burstGen.genData(n)) == n
+        assert len(datagen.generate(n, mode="ascii")) == n
 
