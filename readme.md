@@ -67,6 +67,7 @@ Additional CLI flags provide extended functionality:
 - `--port-scan HOST PORT [PORT ...]` scan ports on HOST
 - `--probe-honeypot HOST` probe HOST for SMTP honeypot
 - `--tls-discovery HOST` discover supported TLS versions on HOST
+- `--ssl-discovery HOST` discover supported legacy SSL versions on HOST
 - `--blacklist-check IP ZONE [ZONE ...]` check IP against DNSBL zones
 - `--open-relay-test` test if the target SMTP server is an open relay
 - `--ping-test HOST` run ping for HOST
@@ -101,6 +102,17 @@ tls               : {'TLSv1': False, 'TLSv1_2': True}
 +-----------------+
 ```
 
+Running legacy SSL discovery works similarly:
+
+```
+$ python -m smtpburst --ssl-discovery smtp.example.com
++-----------------+
+| Test Report     |
++-----------------+
+ssl               : {'SSLv3': False}
++-----------------+
+```
+
 Results are printed to standard output and can be redirected to a file if
 required.
 
@@ -112,7 +124,7 @@ The following flags perform DNS and network checks using the utilities in
 - `--check-dmarc`, `--check-spf`, `--check-dkim`
 - `--check-srv`, `--check-soa`, `--check-txt`, `--lookup-mx`
 - `--smtp-extensions`, `--cert-check`, `--port-scan`, `--probe-honeypot`,
-  `--tls-discovery`
+  `--tls-discovery`, `--ssl-discovery`
 - `--blacklist-check`
 - `--open-relay-test`, `--ping-test`, `--traceroute-test`
 
