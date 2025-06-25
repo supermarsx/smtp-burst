@@ -1,38 +1,48 @@
+"""Configuration utilities for smtp-burst."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+
 # Size constants
 SZ_KILOBYTE = 1024
 SZ_MEGABYTE = 1024 * SZ_KILOBYTE
 SZ_GIGABYTE = 1024 * SZ_MEGABYTE
 SZ_TERABYTE = 1024 * SZ_GIGABYTE
 
-# Default runtime parameters
-SB_SGEMAILS = 5
-SB_SGEMAILSPSEC = 1
-SB_BURSTS = 3
-SB_BURSTSPSEC = 3
-SB_TOTAL = SB_SGEMAILS * SB_BURSTS
-SB_SIZE = 5 * SZ_MEGABYTE * 2
-SB_STOPFAIL = True
-SB_STOPFQNT = 3
-SB_FAILCOUNT = 0
 
-SB_SENDER = 'from@sender.com'
-SB_RECEIVERS = ['to@receiver.com']
-SB_SERVER = 'smtp.mail.com'
-SB_SUBJECT = 'smtp-burst test'
-SB_BODY = 'smtp-burst message body'
-SB_MESSAGEC = """From: SENDER <from@sender.com>
-To: RECEIVER <to@receiver.com>
-Subject: SUBJECT
+@dataclass
+class Config:
+    """Runtime configuration values."""
 
-MESSAGE DATA
+    # Message options
+    server: str = "smtp.mail.com"
+    sender: str = "from@sender.com"
+    receivers: list[str] = field(default_factory=lambda: ["to@receiver.com"])
+    subject: str = "smtp-burst test"
+    body: str = "smtp-burst message body"
 
-"""
+    # Burst behaviour
+    emails_per_burst: int = 5
+    email_delay: float = 1.0
+    bursts: int = 3
+    burst_delay: float = 3.0
 
-# Proxy and authentication defaults
-SB_PROXIES = []
-SB_USERLIST = []
-SB_PASSLIST = []
+    # Message size and failure handling
+    size: int = 5 * SZ_MEGABYTE * 2
+    stop_on_fail: bool = True
+    stop_fail_count: int = 3
 
-# Security options
-SB_SSL = False
-SB_STARTTLS = False
+    # Proxy and authentication settings
+    proxies: list[str] = field(default_factory=list)
+    userlist: list[str] = field(default_factory=list)
+    passlist: list[str] = field(default_factory=list)
+
+    # Security options
+    ssl: bool = False
+    starttls: bool = False
+
+    @property
+    def total(self) -> int:
+        """Total number of emails that will be sent."""
+        return self.emails_per_burst * self.bursts

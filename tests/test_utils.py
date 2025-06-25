@@ -7,7 +7,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from smtpburst.send import sizeof_fmt, sendmail
 from smtpburst import send as burstGen
-from smtpburst import config as burstVars
+from smtpburst.config import Config
 from unittest.mock import MagicMock
 
 
@@ -26,12 +26,13 @@ def test_sendmail_exits_when_failcount_exceeded(monkeypatch):
         def __init__(self, value):
             self.value = value
 
-    fail_counter = DummyCounter(burstVars.SB_STOPFQNT)
+    cfg = Config()
+    fail_counter = DummyCounter(cfg.stop_fail_count)
 
     smtp_mock = MagicMock()
     monkeypatch.setattr(burstGen.smtplib, "SMTP", smtp_mock)
 
-    sendmail(1, 1, fail_counter, b"msg")
+    sendmail(1, 1, fail_counter, b"msg", cfg)
 
     assert not smtp_mock.called
 
@@ -102,7 +103,8 @@ def test_sendmail_reports_auth_success(monkeypatch, capsys):
             self.value = value
 
     counter = DummyCounter()
-    sendmail(1, 1, counter, b"msg", server="s", users=["u"], passwords=["p"])
+    cfg = Config()
+    sendmail(1, 1, counter, b"msg", cfg, server="s", users=["u"], passwords=["p"])
     captured = capsys.readouterr().out
     assert "Auth success: u:p" in captured
 
@@ -135,7 +137,8 @@ def test_sendmail_uses_ssl(monkeypatch):
             self.value = value
 
     counter = DummyCounter()
-    sendmail(1, 1, counter, b"msg", use_ssl=True)
+    cfg = Config()
+    sendmail(1, 1, counter, b"msg", cfg, use_ssl=True)
     assert calls.get('ssl') and not calls.get('smtp')
 
 
@@ -165,17 +168,19 @@ def test_sendmail_calls_starttls(monkeypatch):
             self.value = value
 
     counter = DummyCounter()
-    sendmail(1, 1, counter, b"msg", start_tls=True)
+    cfg = Config()
+    sendmail(1, 1, counter, b"msg", cfg, start_tls=True)
     assert called.get('starttls')
 
 
 def test_append_message_uses_subject_and_body(monkeypatch):
-    burstVars.SB_SENDER = 'a@b.com'
-    burstVars.SB_RECEIVERS = ['c@d.com']
-    burstVars.SB_SUBJECT = 'Sub'
-    burstVars.SB_BODY = 'Body'
-    burstVars.SB_SIZE = 0
-    msg = burstGen.appendMessage()
+    cfg = Config()
+    cfg.sender = 'a@b.com'
+    cfg.receivers = ['c@d.com']
+    cfg.subject = 'Sub'
+    cfg.body = 'Body'
+    cfg.size = 0
+    msg = burstGen.appendMessage(cfg)
     assert b'Subject: Sub' in msg
     assert b'Body' in msg
 

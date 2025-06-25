@@ -5,7 +5,7 @@ import time
 from smtplib import SMTPException, SMTPSenderRefused, SMTPRecipientsRefused, SMTPDataError
 from typing import Tuple
 
-from . import config
+from .config import Config
 
 
 def genData(size: int) -> str:
@@ -13,16 +13,16 @@ def genData(size: int) -> str:
     return bytearray(random.getrandbits(8) for _ in range(size)).decode("utf-8", "ignore")
 
 
-def appendMessage() -> bytes:
-    """Construct the message using config values and append random data."""
-    receivers = ", ".join(config.SB_RECEIVERS)
+def appendMessage(cfg: Config) -> bytes:
+    """Construct the message using ``cfg`` values and append random data."""
+    receivers = ", ".join(cfg.receivers)
     base = (
-        f"From: {config.SB_SENDER}\n"
+        f"From: {cfg.sender}\n"
         f"To: {receivers}\n"
-        f"Subject: {config.SB_SUBJECT}\n\n"
-        f"{config.SB_BODY}\n\n"
+        f"Subject: {cfg.subject}\n\n"
+        f"{cfg.body}\n\n"
     )
-    return (base + genData(config.SB_SIZE)).encode("ascii", "ignore")
+    return (base + genData(cfg.size)).encode("ascii", "ignore")
 
 
 def sizeof_fmt(num: int, suffix: str = 'B') -> str:
@@ -39,22 +39,24 @@ def sendmail(
     burst: int,
     SB_FAILCOUNT,
     SB_MESSAGE: bytes,
-    server: str = config.SB_SERVER,
+    cfg: Config,
+    server: str | None = None,
     proxy: str | None = None,
     users=None,
     passwords=None,
-    use_ssl: bool = False,
-    start_tls: bool = False,
+    use_ssl: bool | None = None,
+    start_tls: bool | None = None,
 ):
     """Send a single email if failure threshold not reached.
 
     Parameters ``use_ssl`` and ``start_tls`` control the connection security.
     """
-    if SB_FAILCOUNT.value >= config.SB_STOPFQNT and config.SB_STOPFAIL:
+    if SB_FAILCOUNT.value >= cfg.stop_fail_count and cfg.stop_on_fail:
         return
 
-    print(f"{number}/{config.SB_TOTAL}, Burst {burst} : Sending Email")
-    host, port = parse_server(server)
+    total = cfg.total
+    print(f"{number}/{total}, Burst {burst} : Sending Email")
+    host, port = parse_server(server or cfg.server)
     orig_socket = socket.socket
     if proxy:
         try:  # pragma: no cover - depends on PySocks
@@ -83,27 +85,27 @@ def sendmail(
                             continue
                     if success:
                         break
-            smtpObj.sendmail(config.SB_SENDER, config.SB_RECEIVERS, SB_MESSAGE)
-        print(f"{number}/{config.SB_TOTAL}, Burst {burst} : Email Sent")
+            smtpObj.sendmail(cfg.sender, cfg.receivers, SB_MESSAGE)
+        print(f"{number}/{total}, Burst {burst} : Email Sent")
     except SMTPException:
         SB_FAILCOUNT.value += 1
         print(
-            f"{number}/{config.SB_TOTAL}, Burst {burst}/{config.SB_BURSTS} : Failure {SB_FAILCOUNT.value}/{config.SB_STOPFQNT}, Unable to send email"
+            f"{number}/{total}, Burst {burst}/{cfg.bursts} : Failure {SB_FAILCOUNT.value}/{cfg.stop_fail_count}, Unable to send email"
         )
     except SMTPSenderRefused:
         SB_FAILCOUNT.value += 1
         print(
-            f"{number}/{config.SB_TOTAL}, Burst {burst} : Failure {SB_FAILCOUNT.value}/{config.SB_STOPFQNT}, Sender refused"
+            f"{number}/{total}, Burst {burst} : Failure {SB_FAILCOUNT.value}/{cfg.stop_fail_count}, Sender refused"
         )
     except SMTPRecipientsRefused:
         SB_FAILCOUNT.value += 1
         print(
-            f"{number}/{config.SB_TOTAL}, Burst {burst} : Failure {SB_FAILCOUNT.value}/{config.SB_STOPFQNT}, Recipients refused"
+            f"{number}/{total}, Burst {burst} : Failure {SB_FAILCOUNT.value}/{cfg.stop_fail_count}, Recipients refused"
         )
     except SMTPDataError:
         SB_FAILCOUNT.value += 1
         print(
-            f"{number}/{config.SB_TOTAL}, Burst {burst} : Failure {SB_FAILCOUNT.value}/{config.SB_STOPFQNT}, Data Error"
+            f"{number}/{total}, Burst {burst} : Failure {SB_FAILCOUNT.value}/{cfg.stop_fail_count}, Data Error"
         )
     finally:
         if proxy:

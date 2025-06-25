@@ -2,13 +2,14 @@ import sys
 import time
 from multiprocessing import Manager, Process
 
-from smtpburst import config as cfg
 from smtpburst import send
 from smtpburst import cli
+from smtpburst.config import Config
 
 
 def main(argv=None):
-    args = cli.parse_args(argv)
+    cfg = Config()
+    args = cli.parse_args(argv, cfg)
 
     if args.open_sockets:
         host, srv_port = send.parse_server(args.server)
@@ -16,74 +17,69 @@ def main(argv=None):
         send.open_sockets(host, args.open_sockets, port)
         return
 
-    cfg.SB_SERVER = args.server
-    cfg.SB_SENDER = args.sender
-    cfg.SB_RECEIVERS = args.receivers
-    cfg.SB_SUBJECT = args.subject
-    cfg.SB_SGEMAILS = args.emails_per_burst
-    cfg.SB_BURSTS = args.bursts
-    cfg.SB_SGEMAILSPSEC = args.email_delay
-    cfg.SB_BURSTSPSEC = args.burst_delay
-    cfg.SB_SIZE = args.size
-    cfg.SB_STOPFAIL = args.stop_on_fail
-    cfg.SB_STOPFQNT = args.stop_fail_count
-    cfg.SB_TOTAL = cfg.SB_SGEMAILS * cfg.SB_BURSTS
-    cfg.SB_SSL = args.ssl
-    cfg.SB_STARTTLS = args.starttls
+    cfg.server = args.server
+    cfg.sender = args.sender
+    cfg.receivers = args.receivers
+    cfg.subject = args.subject
+    cfg.emails_per_burst = args.emails_per_burst
+    cfg.bursts = args.bursts
+    cfg.email_delay = args.email_delay
+    cfg.burst_delay = args.burst_delay
+    cfg.size = args.size
+    cfg.stop_on_fail = args.stop_on_fail
+    cfg.stop_fail_count = args.stop_fail_count
+    cfg.ssl = args.ssl
+    cfg.starttls = args.starttls
 
     if args.proxy_file:
         with open(args.proxy_file, "r", encoding="utf-8") as fh:
-            cfg.SB_PROXIES = [line.strip() for line in fh if line.strip()]
+            cfg.proxies = [line.strip() for line in fh if line.strip()]
     if args.userlist:
         with open(args.userlist, "r", encoding="utf-8") as fh:
-            cfg.SB_USERLIST = [line.strip() for line in fh if line.strip()]
+            cfg.userlist = [line.strip() for line in fh if line.strip()]
     if args.passlist:
         with open(args.passlist, "r", encoding="utf-8") as fh:
-            cfg.SB_PASSLIST = [line.strip() for line in fh if line.strip()]
+            cfg.passlist = [line.strip() for line in fh if line.strip()]
     if args.body_file:
         with open(args.body_file, "r", encoding="utf-8") as fh:
-            cfg.SB_BODY = fh.read()
+            cfg.body = fh.read()
 
     print("Starting smtp-burst")
     manager = Manager()
     SB_FAILCOUNT = manager.Value('i', 0)
 
-    print(f"Generating {send.sizeof_fmt(cfg.SB_SIZE)} of data to append to message")
-    SB_MESSAGE = send.appendMessage()
+    print(f"Generating {send.sizeof_fmt(cfg.size)} of data to append to message")
+    SB_MESSAGE = send.appendMessage(cfg)
     print(f"Message using {send.sizeof_fmt(sys.getsizeof(SB_MESSAGE))} of random data")
 
     print(
         "Sending %s messages from %s to %s through %s"
-        % (cfg.SB_TOTAL, cfg.SB_SENDER, cfg.SB_RECEIVERS, cfg.SB_SERVER)
+        % (cfg.total, cfg.sender, cfg.receivers, cfg.server)
     )
 
-    for x in range(0, cfg.SB_BURSTS):
-        quantity = range(1, cfg.SB_SGEMAILS + 1)
+    for x in range(0, cfg.bursts):
+        quantity = range(1, cfg.emails_per_burst + 1)
         procs = []
 
-        if SB_FAILCOUNT.value >= cfg.SB_STOPFQNT and cfg.SB_STOPFAIL:
+        if SB_FAILCOUNT.value >= cfg.stop_fail_count and cfg.stop_on_fail:
             break
         for number in quantity:
-            if SB_FAILCOUNT.value >= cfg.SB_STOPFQNT and cfg.SB_STOPFAIL:
+            if SB_FAILCOUNT.value >= cfg.stop_fail_count and cfg.stop_on_fail:
                 break
-            time.sleep(cfg.SB_SGEMAILSPSEC)
+            time.sleep(cfg.email_delay)
             proxy = None
-            if cfg.SB_PROXIES:
-                idx = (number + (x * cfg.SB_SGEMAILS) - 1) % len(cfg.SB_PROXIES)
-                proxy = cfg.SB_PROXIES[idx]
+            if cfg.proxies:
+                idx = (number + (x * cfg.emails_per_burst) - 1) % len(cfg.proxies)
+                proxy = cfg.proxies[idx]
             process = Process(
                 target=send.sendmail,
                 args=(
-                    number + (x * cfg.SB_SGEMAILS),
+                    number + (x * cfg.emails_per_burst),
                     x + 1,
                     SB_FAILCOUNT,
                     SB_MESSAGE,
-                    cfg.SB_SERVER,
+                    cfg,
                     proxy,
-                    cfg.SB_USERLIST,
-                    cfg.SB_PASSLIST,
-                    cfg.SB_SSL,
-                    cfg.SB_STARTTLS,
                 ),
             )
             procs.append(process)
@@ -91,7 +87,7 @@ def main(argv=None):
 
         for process in procs:
             process.join()
-        time.sleep(cfg.SB_BURSTSPSEC)
+        time.sleep(cfg.burst_delay)
 
 
 if __name__ == "__main__":
