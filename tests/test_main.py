@@ -32,9 +32,10 @@ def test_main_spawns_processes(monkeypatch):
     started = []
     joined = []
     class DummyProcess:
-        def __init__(self, target=None, args=()):
+        def __init__(self, target=None, args=(), kwargs=None):
             self.target = target
             self.args = args
+            self.kwargs = kwargs or {}
         def start(self):
             started.append(self.args)
         def join(self):
@@ -42,7 +43,7 @@ def test_main_spawns_processes(monkeypatch):
     monkeypatch.setattr(main_mod, 'Process', DummyProcess)
 
     monkeypatch.setattr(main_mod, 'time', type('T', (), {'sleep': lambda *a, **k: None}))
-    monkeypatch.setattr(send, 'appendMessage', lambda: b'msg')
+    monkeypatch.setattr(send, 'appendMessage', lambda cfg: b'msg')
     monkeypatch.setattr(send, 'sizeof_fmt', lambda n: str(n))
 
     main_mod.main(['--emails-per-burst', '2', '--bursts', '3'])
