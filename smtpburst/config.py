@@ -25,6 +25,7 @@ class Config:
     SB_SERVER: str = "smtp.mail.com"
     SB_SUBJECT: str = "smtp-burst test"
     SB_BODY: str = "smtp-burst message body"
+    SB_TEMPLATE: str = ""
 
     # Proxy and authentication defaults
     SB_PROXIES: List[str] = field(default_factory=list)
@@ -48,6 +49,7 @@ class Config:
     SB_PER_BURST_DATA: bool = False
     SB_SECURE_RANDOM: bool = False
     SB_RAND_STREAM: Optional[TextIO] = None
+    SB_ENUM_LIST: List[str] = field(default_factory=list)
 
     @property
     def SB_TOTAL(self) -> int:

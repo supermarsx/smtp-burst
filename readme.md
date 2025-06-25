@@ -55,6 +55,11 @@ Additional CLI flags provide extended functionality:
 - `--proxy-file FILE` rotate through SOCKS proxies in FILE
 - `--userlist FILE` username wordlist for SMTP AUTH
 - `--passlist FILE` password wordlist for SMTP AUTH
+- `--template-file FILE` phishing template with `{sender}` tags
+- `--enum-list FILE` addresses for directory harvest
+- `--vrfy-enum` enumerate users with VRFY
+- `--expn-enum` enumerate lists with EXPN
+- `--rcpt-enum` enumerate via RCPT TO
 - `--ssl` connect using SMTPS
 - `--starttls` upgrade the connection with STARTTLS
 - `--check-dmarc DOMAIN` query DMARC record for DOMAIN

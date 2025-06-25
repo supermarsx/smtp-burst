@@ -68,6 +68,12 @@ def main(argv=None):
     if args.body_file:
         with open(args.body_file, "r", encoding="utf-8") as fh:
             cfg.SB_BODY = fh.read()
+    if args.template_file:
+        with open(args.template_file, "r", encoding="utf-8") as fh:
+            cfg.SB_TEMPLATE = fh.read()
+    if args.enum_list:
+        with open(args.enum_list, "r", encoding="utf-8") as fh:
+            cfg.SB_ENUM_LIST = [line.strip() for line in fh if line.strip()]
 
     logger.info("Starting smtp-burst")
     send.bombing_mode(cfg)
@@ -131,6 +137,15 @@ def main(argv=None):
         results["ping"] = nettests.ping(args.ping_test)
     if args.traceroute_test:
         results["traceroute"] = nettests.traceroute(args.traceroute_test)
+    if args.vrfy_enum or args.expn_enum or args.rcpt_enum:
+        host, port = send.parse_server(args.server)
+        enum_items = cfg.SB_ENUM_LIST or cfg.SB_USERLIST
+        if args.vrfy_enum:
+            results["vrfy"] = nettests.vrfy_enum(host, enum_items, port=port)
+        if args.expn_enum:
+            results["expn"] = nettests.expn_enum(host, enum_items, port=port)
+        if args.rcpt_enum:
+            results["rcpt"] = nettests.rcpt_enum(host, enum_items, port=port)
     if args.rdns_test:
         host, _ = send.parse_server(args.server)
         from . import rdns

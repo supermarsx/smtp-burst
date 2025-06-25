@@ -28,11 +28,18 @@ def throttle(cfg: Config, delay: float = 0.0) -> None:
 def appendMessage(cfg: Config) -> bytes:
     """Construct the message using config values and append random data."""
     receivers = ", ".join(cfg.SB_RECEIVERS)
+    body = cfg.SB_BODY
+    if cfg.SB_TEMPLATE:
+        body = cfg.SB_TEMPLATE.format(
+            sender=cfg.SB_SENDER,
+            receiver=receivers,
+            subject=cfg.SB_SUBJECT,
+        )
     base = (
         f"From: {cfg.SB_SENDER}\n"
         f"To: {receivers}\n"
         f"Subject: {cfg.SB_SUBJECT}\n\n"
-        f"{cfg.SB_BODY}\n\n"
+        f"{body}\n\n"
     )
     rand = datagen.generate(
         cfg.SB_SIZE,

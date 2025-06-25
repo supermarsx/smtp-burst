@@ -151,6 +151,11 @@ def build_parser(cfg: Config) -> argparse.ArgumentParser:
     )
     parser.add_argument("--userlist", help="Username wordlist for SMTP AUTH")
     parser.add_argument("--passlist", help="Password wordlist for SMTP AUTH")
+    parser.add_argument("--template-file", help="Phishing template file")
+    parser.add_argument("--enum-list", help="Wordlist for enumeration")
+    parser.add_argument("--vrfy-enum", action="store_true", help="Use VRFY to enumerate users")
+    parser.add_argument("--expn-enum", action="store_true", help="Use EXPN to enumerate lists")
+    parser.add_argument("--rcpt-enum", action="store_true", help="Use RCPT TO to enumerate users")
     parser.add_argument(
         "--ssl",
         action="store_true",
