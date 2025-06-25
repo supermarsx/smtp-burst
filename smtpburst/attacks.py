@@ -12,7 +12,13 @@ def open_sockets(host: str, count: int, port: int = 25):
     """Open ``count`` TCP sockets to ``host`` and keep them open."""
     sockets: List[socket.socket] = []
     for _ in range(count):
-        s = socket.create_connection((host, port))
+        try:
+            s = socket.create_connection((host, port))
+        except Exception as exc:  # pragma: no cover - logging path tested separately
+            logger.warning(
+                "Failed to open socket to %s:%s: %s", host, port, exc
+            )
+            continue
         sockets.append(s)
     logger.info(
         "Opened %s sockets to %s:%s. Press Ctrl+C to exit.", len(sockets), host, port

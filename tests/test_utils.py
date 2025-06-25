@@ -79,6 +79,32 @@ def test_open_sockets_creates_connections(monkeypatch):
     assert connections == [("host", 123)] * 3
 
 
+def test_open_sockets_continues_on_errors(monkeypatch, caplog):
+    attempts = []
+
+    class DummySocket:
+        def close(self):
+            pass
+
+    def fake_create_connection(addr):
+        attempts.append(addr)
+        if len(attempts) == 1:
+            raise OSError("boom")
+        return DummySocket()
+
+    def fake_sleep(_):
+        raise KeyboardInterrupt
+
+    monkeypatch.setattr(burstGen.socket, "create_connection", fake_create_connection)
+    monkeypatch.setattr(burstGen.time, "sleep", fake_sleep)
+
+    with caplog.at_level(logging.WARNING, logger="smtpburst.attacks"):
+        burstGen.open_sockets("host", 3, port=123)
+
+    assert attempts == [("host", 123)] * 3
+    assert any("Failed to open socket" in r.getMessage() for r in caplog.records)
+
+
 def test_sendmail_reports_auth_success(monkeypatch, caplog):
     class DummySMTP:
         def __init__(self, *args, **kwargs):
