@@ -19,6 +19,23 @@ def test_main_open_sockets(monkeypatch):
     assert called["args"] == ("host.example", 2, 2525)
 
 
+def test_main_outbound_test(monkeypatch):
+    calls = []
+
+    def fake_send(cfg):
+        calls.append("test")
+
+    def fake_bomb(cfg):
+        calls.append("bomb")
+
+    monkeypatch.setattr(send, "send_test_email", fake_send)
+    monkeypatch.setattr(send, "bombing_mode", fake_bomb)
+
+    main_mod.main(["--outbound-test"])
+
+    assert calls == ["test"]
+
+
 def test_main_spawns_processes(monkeypatch):
     # Dummy Manager/Value implementation
     class DummyValue:

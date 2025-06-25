@@ -95,6 +95,11 @@ def main(argv=None):
         with open(args.enum_list, "r", encoding="utf-8") as fh:
             cfg.SB_ENUM_LIST = [line.strip() for line in fh if line.strip()]
 
+    if args.outbound_test:
+        logger.info("Sending outbound test message")
+        send.send_test_email(cfg)
+        return
+
     logger.info("Starting smtp-burst")
     send.bombing_mode(cfg)
 

@@ -260,6 +260,11 @@ def build_parser(cfg: Config) -> argparse.ArgumentParser:
         action="store_true",
         help="Verify reverse DNS for the configured server",
     )
+    parser.add_argument(
+        "--outbound-test",
+        action="store_true",
+        help="Send one test email and exit",
+    )
     level_group = parser.add_mutually_exclusive_group()
     level_group.add_argument(
         "--silent", action="store_true", help="Suppress all log output"

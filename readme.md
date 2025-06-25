@@ -82,6 +82,7 @@ Additional CLI flags provide extended functionality:
 - `--ping-test HOST` run ping for HOST
 - `--traceroute-test HOST` run traceroute to HOST
 - `--rdns-test` verify reverse DNS for the configured server
+- `--outbound-test` send one test email and exit
 - `--silent` suppress all output
 - `--errors-only` show only error messages
 - `--warnings` show warnings and errors only
@@ -159,6 +160,12 @@ Silent mode suppresses all logs:
 
 ```bash
 $ python -m smtpburst --silent --server smtp.example.com
+```
+
+Send a quick outbound test email and exit:
+
+```bash
+$ python -m smtpburst --outbound-test --server smtp.example.com
 ```
 
 Run a DNS check and save the report:
