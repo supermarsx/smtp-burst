@@ -29,16 +29,27 @@ def appendMessage(cfg: Config) -> bytes:
     """Construct the message using config values and append random data."""
     receivers = ", ".join(cfg.SB_RECEIVERS)
     body = cfg.SB_BODY
+    if cfg.SB_TEST_CONTROL:
+        body = "\x01\x02" + body
     if cfg.SB_TEMPLATE:
         body = cfg.SB_TEMPLATE.format(
             sender=cfg.SB_SENDER,
             receiver=receivers,
             subject=cfg.SB_SUBJECT,
         )
+    if cfg.SB_TEST_UNICODE:
+        from_hdr = f"FrOm: {cfg.SB_SENDER}"
+        to_hdr = f"tO: {receivers}"
+    else:
+        from_hdr = f"From: {cfg.SB_SENDER}"
+        to_hdr = f"To: {receivers}"
+    subject_hdr = f"Subject: {cfg.SB_SUBJECT}"
+    if cfg.SB_TEST_TUNNEL:
+        subject_hdr += "\nX-Orig: overlap"
     base = (
-        f"From: {cfg.SB_SENDER}\n"
-        f"To: {receivers}\n"
-        f"Subject: {cfg.SB_SUBJECT}\n\n"
+        f"{from_hdr}\n"
+        f"{to_hdr}\n"
+        f"{subject_hdr}\n\n"
         f"{body}\n\n"
     )
     rand = datagen.generate(
@@ -49,7 +60,8 @@ def appendMessage(cfg: Config) -> bytes:
         repeat=cfg.SB_REPEAT_STRING,
         stream=cfg.SB_RAND_STREAM,
     )
-    return base.encode("ascii") + rand
+    encoding = "utf-7" if cfg.SB_TEST_UTF7 else "utf-8"
+    return base.encode(encoding) + rand
 
 
 def sizeof_fmt(num: int, suffix: str = "B") -> str:

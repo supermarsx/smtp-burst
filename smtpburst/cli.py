@@ -135,6 +135,30 @@ def build_parser(cfg: Config) -> argparse.ArgumentParser:
         "--rand-stream", help="Path to randomness stream for binary mode"
     )
     parser.add_argument(
+        "--unicode-case-test",
+        action="store_true",
+        default=cfg.SB_TEST_UNICODE,
+        help="Craft headers using Unicode/case tricks",
+    )
+    parser.add_argument(
+        "--utf7-test",
+        action="store_true",
+        default=cfg.SB_TEST_UTF7,
+        help="Encode message using UTF-7",
+    )
+    parser.add_argument(
+        "--header-tunnel-test",
+        action="store_true",
+        default=cfg.SB_TEST_TUNNEL,
+        help="Inject overlapping headers for tunneling",
+    )
+    parser.add_argument(
+        "--control-char-test",
+        action="store_true",
+        default=cfg.SB_TEST_CONTROL,
+        help="Insert encoded control characters",
+    )
+    parser.add_argument(
         "--stop-on-fail",
         action="store_true",
         default=cfg.SB_STOPFAIL,
