@@ -9,26 +9,27 @@ from smtplib import (
 )
 from typing import Tuple
 
-from . import config, datagen
+from .config import Config
+from . import datagen
 from . import attacks
 
 
-def appendMessage() -> bytes:
+def appendMessage(cfg: Config) -> bytes:
     """Construct the message using config values and append random data."""
-    receivers = ", ".join(config.SB_RECEIVERS)
+    receivers = ", ".join(cfg.SB_RECEIVERS)
     base = (
-        f"From: {config.SB_SENDER}\n"
+        f"From: {cfg.SB_SENDER}\n"
         f"To: {receivers}\n"
-        f"Subject: {config.SB_SUBJECT}\n\n"
-        f"{config.SB_BODY}\n\n"
+        f"Subject: {cfg.SB_SUBJECT}\n\n"
+        f"{cfg.SB_BODY}\n\n"
     )
     rand = datagen.generate(
-        config.SB_SIZE,
-        mode=config.SB_DATA_MODE,
-        secure=config.SB_SECURE_RANDOM,
-        words=config.SB_DICT_WORDS,
-        repeat=config.SB_REPEAT_STRING,
-        stream=config.SB_RAND_STREAM,
+        cfg.SB_SIZE,
+        mode=cfg.SB_DATA_MODE,
+        secure=cfg.SB_SECURE_RANDOM,
+        words=cfg.SB_DICT_WORDS,
+        repeat=cfg.SB_REPEAT_STRING,
+        stream=cfg.SB_RAND_STREAM,
     )
     return base.encode("ascii") + rand
 
@@ -47,21 +48,29 @@ def sendmail(
     burst: int,
     SB_FAILCOUNT,
     SB_MESSAGE: bytes,
-    server: str = config.SB_SERVER,
+    cfg: Config,
+    server: str | None = None,
     proxy: str | None = None,
     users=None,
     passwords=None,
-    use_ssl: bool = False,
-    start_tls: bool = False,
+    use_ssl: bool | None = None,
+    start_tls: bool | None = None,
 ):
     """Send a single email if failure threshold not reached.
 
     Parameters ``use_ssl`` and ``start_tls`` control the connection security.
     """
-    if SB_FAILCOUNT.value >= config.SB_STOPFQNT and config.SB_STOPFAIL:
+    if server is None:
+        server = cfg.SB_SERVER
+    if use_ssl is None:
+        use_ssl = cfg.SB_SSL
+    if start_tls is None:
+        start_tls = cfg.SB_STARTTLS
+
+    if SB_FAILCOUNT.value >= cfg.SB_STOPFQNT and cfg.SB_STOPFAIL:
         return
 
-    print(f"{number}/{config.SB_TOTAL}, Burst {burst} : Sending Email")
+    print(f"{number}/{cfg.SB_TOTAL}, Burst {burst} : Sending Email")
     host, port = parse_server(server)
     orig_socket = socket.socket
     if proxy:
@@ -91,27 +100,27 @@ def sendmail(
                             continue
                     if success:
                         break
-            smtpObj.sendmail(config.SB_SENDER, config.SB_RECEIVERS, SB_MESSAGE)
-        print(f"{number}/{config.SB_TOTAL}, Burst {burst} : Email Sent")
+            smtpObj.sendmail(cfg.SB_SENDER, cfg.SB_RECEIVERS, SB_MESSAGE)
+        print(f"{number}/{cfg.SB_TOTAL}, Burst {burst} : Email Sent")
     except SMTPException:
         SB_FAILCOUNT.value += 1
         print(
-            f"{number}/{config.SB_TOTAL}, Burst {burst}/{config.SB_BURSTS} : Failure {SB_FAILCOUNT.value}/{config.SB_STOPFQNT}, Unable to send email"
+            f"{number}/{cfg.SB_TOTAL}, Burst {burst}/{cfg.SB_BURSTS} : Failure {SB_FAILCOUNT.value}/{cfg.SB_STOPFQNT}, Unable to send email"
         )
     except SMTPSenderRefused:
         SB_FAILCOUNT.value += 1
         print(
-            f"{number}/{config.SB_TOTAL}, Burst {burst} : Failure {SB_FAILCOUNT.value}/{config.SB_STOPFQNT}, Sender refused"
+            f"{number}/{cfg.SB_TOTAL}, Burst {burst} : Failure {SB_FAILCOUNT.value}/{cfg.SB_STOPFQNT}, Sender refused"
         )
     except SMTPRecipientsRefused:
         SB_FAILCOUNT.value += 1
         print(
-            f"{number}/{config.SB_TOTAL}, Burst {burst} : Failure {SB_FAILCOUNT.value}/{config.SB_STOPFQNT}, Recipients refused"
+            f"{number}/{cfg.SB_TOTAL}, Burst {burst} : Failure {SB_FAILCOUNT.value}/{cfg.SB_STOPFQNT}, Recipients refused"
         )
     except SMTPDataError:
         SB_FAILCOUNT.value += 1
         print(
-            f"{number}/{config.SB_TOTAL}, Burst {burst} : Failure {SB_FAILCOUNT.value}/{config.SB_STOPFQNT}, Data Error"
+            f"{number}/{cfg.SB_TOTAL}, Burst {burst} : Failure {SB_FAILCOUNT.value}/{cfg.SB_STOPFQNT}, Data Error"
         )
     finally:
         if proxy:
