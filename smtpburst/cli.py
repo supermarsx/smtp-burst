@@ -77,6 +77,18 @@ def build_parser(cfg: Config) -> argparse.ArgumentParser:
         help="IP followed by one or more DNSBL zones to query",
     )
     parser.add_argument(
+        "--imap-check",
+        nargs=4,
+        metavar=("HOST", "USER", "PASS", "CRITERIA"),
+        help="Check IMAP inbox for messages matching CRITERIA",
+    )
+    parser.add_argument(
+        "--pop3-check",
+        nargs=4,
+        metavar=("HOST", "USER", "PASS", "PATTERN"),
+        help="Check POP3 inbox for messages containing PATTERN",
+    )
+    parser.add_argument(
         "--open-relay-test",
         action="store_true",
         help="Test if the target SMTP server is an open relay",
