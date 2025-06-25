@@ -86,6 +86,10 @@ def main(argv=None):
     if args.passlist:
         with open(args.passlist, "r", encoding="utf-8") as fh:
             cfg.SB_PASSLIST = [line.strip() for line in fh if line.strip()]
+    if args.username:
+        cfg.SB_USERNAME = args.username
+    if args.password:
+        cfg.SB_PASSWORD = args.password
     if args.body_file:
         with open(args.body_file, "r", encoding="utf-8") as fh:
             cfg.SB_BODY = fh.read()
@@ -104,6 +108,16 @@ def main(argv=None):
     if args.login_test:
         logger.info("Running SMTP login test")
         res = send.login_test(cfg)
+        if res:
+            logger.info(ascii_report(res))
+        return
+
+    if args.auth_test:
+        logger.info("Running SMTP auth method test")
+        if not cfg.SB_USERNAME or not cfg.SB_PASSWORD:
+            logger.error("--auth-test requires --username and --password")
+            return
+        res = send.auth_test(cfg)
         if res:
             logger.info(ascii_report(res))
         return

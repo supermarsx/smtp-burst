@@ -202,6 +202,13 @@ def build_parser(cfg: Config) -> argparse.ArgumentParser:
         help="Attempt SMTP AUTH logins using wordlists",
     )
     parser.add_argument(
+        "--auth-test",
+        action="store_true",
+        help="Test advertised AUTH methods using --username/--password",
+    )
+    parser.add_argument("--username", help="Username for --auth-test")
+    parser.add_argument("--password", help="Password for --auth-test")
+    parser.add_argument(
         "--ssl",
         action="store_true",
         default=cfg.SB_SSL,

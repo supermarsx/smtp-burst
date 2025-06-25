@@ -63,6 +63,9 @@ Additional CLI flags provide extended functionality:
 - `--expn-enum` enumerate lists with EXPN
 - `--rcpt-enum` enumerate via RCPT TO
 - `--login-test` attempt SMTP AUTH logins using wordlists
+- `--auth-test` test advertised SMTP AUTH mechanisms
+- `--username USER` username for `--auth-test`
+- `--password PASS` password for `--auth-test`
 - `--ssl` connect using SMTPS
 - `--starttls` upgrade the connection with STARTTLS
 - `--check-dmarc DOMAIN` query DMARC record for DOMAIN
@@ -98,6 +101,12 @@ Additional CLI flags provide extended functionality:
 - `--control-char-test` insert encoded control characters
 
 Run `smtp-burst --help` for the complete list of options.
+
+### Authentication Prerequisites
+
+The `--login-test` and `--auth-test` options require credentials. Supply
+wordlists with `--userlist` and `--passlist` or provide a single account using
+`--username` and `--password` for `--auth-test`.
 
 ## Report Format
 
