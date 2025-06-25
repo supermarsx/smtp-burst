@@ -10,6 +10,7 @@ from smtplib import (
 from typing import Tuple
 
 from . import config, datagen
+from . import attacks
 
 
 def appendMessage() -> bytes:
@@ -132,20 +133,5 @@ def parse_server(server: str) -> Tuple[str, int]:
 
 
 def open_sockets(host: str, count: int, port: int = 25):
-    """Open ``count`` TCP sockets to ``host`` and keep them open."""
-    sockets = []
-    for _ in range(count):
-        s = socket.create_connection((host, port))
-        sockets.append(s)
-    print(f"Opened {len(sockets)} sockets to {host}:{port}. Press Ctrl+C to exit.")
-    try:
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        pass
-    finally:
-        for s in sockets:
-            try:
-                s.close()
-            except Exception:
-                pass
+    """Delegate to :mod:`smtpburst.attacks` implementation."""
+    return attacks.open_sockets(host, count, port)
