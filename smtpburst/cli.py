@@ -32,6 +32,10 @@ def build_parser(cfg: Config) -> argparse.ArgumentParser:
     )
     parser.add_argument("--config", help="Path to JSON/YAML config file")
     parser.add_argument(
+        "--pipeline-file",
+        help="YAML file describing discovery/attack pipeline",
+    )
+    parser.add_argument(
         "--server",
         default=cfg.SB_SERVER,
         help="SMTP server to connect to",

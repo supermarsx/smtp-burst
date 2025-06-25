@@ -1,0 +1,13 @@
+# Example pipeline demonstrating discovery and attack steps
+stop_on_fail: true
+fail_threshold: 1
+steps:
+  - action: check_dmarc
+    domain: example.com
+  - action: ping
+    host: example.com
+  - action: open_sockets
+    host: smtp.example.com
+    count: 2
+    port: 25
+
