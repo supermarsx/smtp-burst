@@ -6,7 +6,7 @@ import logging
 # Ensure the project root is on sys.path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from smtpburst.send import sizeof_fmt, sendmail
+from smtpburst.send import sizeof_fmt, sendmail, throttle
 from smtpburst import send as burstGen
 from smtpburst import datagen
 from smtpburst.config import Config
@@ -216,4 +216,17 @@ def test_append_message_uses_subject_and_body(monkeypatch):
 def test_genData_length():
     for n in [0, 1, 10, 100]:
         assert len(datagen.generate(n, mode="ascii")) == n
+
+
+def test_throttle_combines_delay(monkeypatch):
+    calls = []
+
+    def fake_sleep(val):
+        calls.append(val)
+
+    monkeypatch.setattr(burstGen.time, "sleep", fake_sleep)
+    cfg = Config()
+    cfg.SB_GLOBAL_DELAY = 0.5
+    throttle(cfg, 0.2)
+    assert calls and calls[0] == pytest.approx(0.7)
 

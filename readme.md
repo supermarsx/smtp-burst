@@ -5,6 +5,8 @@ Simple python script that sends smtp email in bursts using independent processes
 
 - Burst sending of emails across multiple processes
 - Adjustable delays between emails and bursts
+- Global and per-mode delay controls
+- Tarpit detection based on response latency
 - Stop automatically after a number of failed sends
 - Optional JSON/YAML configuration file
 - Open-only socket mode for connection tests
@@ -75,6 +77,9 @@ Additional CLI flags provide extended functionality:
 - `--silent` suppress all output
 - `--errors-only` show only error messages
 - `--warnings` show warnings and errors only
+- `--global-delay SECS` sleep SECS before each network action
+- `--socket-delay SECS` delay between open socket checks
+- `--tarpit-threshold SECS` warn if responses exceed SECS
 
 Run `smtp-burst --help` for the complete list of options.
 

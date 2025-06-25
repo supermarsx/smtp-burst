@@ -28,7 +28,7 @@ def main(argv=None):
     if args.open_sockets:
         host, srv_port = send.parse_server(args.server)
         port = srv_port if ":" in args.server else args.port
-        send.open_sockets(host, args.open_sockets, port)
+        send.open_sockets(host, args.open_sockets, port, cfg)
         return
 
     cfg.SB_SERVER = args.server
@@ -39,6 +39,9 @@ def main(argv=None):
     cfg.SB_BURSTS = args.bursts
     cfg.SB_SGEMAILSPSEC = args.email_delay
     cfg.SB_BURSTSPSEC = args.burst_delay
+    cfg.SB_GLOBAL_DELAY = args.global_delay
+    cfg.SB_OPEN_SOCKETS_DELAY = args.socket_delay
+    cfg.SB_TARPIT_THRESHOLD = args.tarpit_threshold
     cfg.SB_SIZE = args.size
     cfg.SB_DATA_MODE = args.data_mode
     cfg.SB_REPEAT_STRING = args.repeat_string

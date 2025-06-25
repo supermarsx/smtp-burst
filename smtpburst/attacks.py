@@ -8,7 +8,7 @@ from typing import List
 logger = logging.getLogger(__name__)
 
 
-def open_sockets(host: str, count: int, port: int = 25):
+def open_sockets(host: str, count: int, port: int = 25, delay: float = 1.0, cfg=None):
     """Open ``count`` TCP sockets to ``host`` and keep them open."""
     sockets: List[socket.socket] = []
     for _ in range(count):
@@ -25,7 +25,10 @@ def open_sockets(host: str, count: int, port: int = 25):
     )
     try:
         while True:
-            time.sleep(1)
+            d = delay
+            if cfg is not None:
+                d += getattr(cfg, 'SB_GLOBAL_DELAY', 0.0)
+            time.sleep(d)
     except KeyboardInterrupt:
         pass
     finally:

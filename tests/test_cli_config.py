@@ -77,6 +77,17 @@ def test_data_mode_option():
     assert args.data_mode == "binary"
 
 
+def test_new_delay_options():
+    args = burst_cli.parse_args([
+        "--global-delay", "1",
+        "--socket-delay", "2",
+        "--tarpit-threshold", "3",
+    ], Config())
+    assert args.global_delay == 1
+    assert args.socket_delay == 2
+    assert args.tarpit_threshold == 3
+
+
 def test_per_burst_flag():
     args = burst_cli.parse_args(["--per-burst-data"], Config())
     assert args.per_burst_data
