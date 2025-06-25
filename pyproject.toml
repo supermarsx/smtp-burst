@@ -9,7 +9,10 @@ description = "Send bursts of SMTP emails for testing"
 authors = [{name="supermarsx"}]
 readme = "readme.md"
 requires-python = ">=3.11"
-dependencies = ["PyYAML"]
+dependencies = [
+    "PyYAML",
+    "dnspython",
+]
 
 [project.scripts]
 smtp-burst = "smtpburst.__main__:main"

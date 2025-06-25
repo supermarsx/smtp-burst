@@ -5,6 +5,8 @@ from multiprocessing import Manager, Process
 from smtpburst.config import Config
 from smtpburst import send
 from smtpburst import cli
+from smtpburst import discovery
+from smtpburst import report
 
 
 def main(argv=None):
@@ -110,6 +112,26 @@ def main(argv=None):
             cfg.SB_RAND_STREAM.close()
         except Exception:
             pass
+
+    results = {}
+    if args.check_dmarc:
+        results['dmarc'] = discovery.check_dmarc(args.check_dmarc)
+    if args.check_spf:
+        results['spf'] = discovery.check_spf(args.check_spf)
+    if args.check_dkim:
+        results['dkim'] = discovery.check_dkim(args.check_dkim)
+    if args.check_srv:
+        results['srv'] = discovery.check_srv(args.check_srv)
+    if args.check_soa:
+        results['soa'] = discovery.check_soa(args.check_soa)
+    if args.check_txt:
+        results['txt'] = discovery.check_txt(args.check_txt)
+    if args.ping:
+        results['ping'] = discovery.ping(args.ping)
+    if args.traceroute:
+        results['traceroute'] = discovery.traceroute(args.traceroute)
+    if results:
+        print(report.ascii_report(results))
 
 
 if __name__ == "__main__":

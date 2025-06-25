@@ -55,6 +55,14 @@ def build_parser(cfg: Config) -> argparse.ArgumentParser:
     parser.add_argument("--passlist", help="Password wordlist for SMTP AUTH")
     parser.add_argument("--ssl", action="store_true", default=cfg.SB_SSL, help="Use SMTPS (SSL/TLS) connection")
     parser.add_argument("--starttls", action="store_true", default=cfg.SB_STARTTLS, help="Issue STARTTLS after connecting")
+    parser.add_argument("--check-dmarc", help="Domain to query DMARC record for")
+    parser.add_argument("--check-spf", help="Domain to query SPF record for")
+    parser.add_argument("--check-dkim", help="Domain to query DKIM record for")
+    parser.add_argument("--check-srv", help="Service to query SRV record for")
+    parser.add_argument("--check-soa", help="Domain to query SOA record for")
+    parser.add_argument("--check-txt", help="Domain to query TXT record for")
+    parser.add_argument("--ping", help="Host to ping")
+    parser.add_argument("--traceroute", help="Host to traceroute")
     return parser
 
 
