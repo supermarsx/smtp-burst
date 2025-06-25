@@ -83,6 +83,21 @@ def main(argv=None):
         results['soa'] = discovery.check_soa(args.check_soa)
     if args.check_txt:
         results['txt'] = discovery.check_txt(args.check_txt)
+    if args.lookup_mx:
+        results['mx'] = discovery.lookup_mx(args.lookup_mx)
+    if args.smtp_extensions:
+        host, port = send.parse_server(args.smtp_extensions)
+        results['smtp_extensions'] = discovery.smtp_extensions(host, port)
+    if args.cert_check:
+        host, port = send.parse_server(args.cert_check)
+        results['certificate'] = discovery.check_certificate(host, port)
+    if args.port_scan:
+        host = args.port_scan[0]
+        ports = [int(p) for p in args.port_scan[1:]]
+        results['port_scan'] = discovery.port_scan(host, ports)
+    if args.probe_honeypot:
+        host, port = send.parse_server(args.probe_honeypot)
+        results['honeypot'] = discovery.probe_honeypot(host, port)
     if args.blacklist_check:
         results['blacklist'] = nettests.blacklist_check(
             args.blacklist_check[0], args.blacklist_check[1:]

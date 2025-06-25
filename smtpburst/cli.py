@@ -62,6 +62,15 @@ def build_parser(cfg: Config) -> argparse.ArgumentParser:
     parser.add_argument("--check-srv", help="Service to query SRV record for")
     parser.add_argument("--check-soa", help="Domain to query SOA record for")
     parser.add_argument("--check-txt", help="Domain to query TXT record for")
+    parser.add_argument("--lookup-mx", help="Domain to query MX records for")
+    parser.add_argument("--smtp-extensions", help="Host to discover SMTP extensions")
+    parser.add_argument("--cert-check", help="Host to retrieve TLS certificate from")
+    parser.add_argument(
+        "--port-scan",
+        nargs="+",
+        help="Host followed by one or more ports to scan",
+    )
+    parser.add_argument("--probe-honeypot", help="Host to probe for SMTP honeypot")
     parser.add_argument(
         "--blacklist-check",
         nargs="+",

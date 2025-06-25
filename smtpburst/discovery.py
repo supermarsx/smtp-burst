@@ -113,3 +113,66 @@ def test_open_relay(host: str, port: int = 25) -> bool:
     except Exception:  # pragma: no cover - network errors
         return False
 
+
+def lookup_mx(domain: str) -> List[str]:
+    """Return MX records for ``domain``."""
+    try:
+        answers = resolver.resolve(domain, "MX")
+        return [f"{r.preference} {r.exchange.to_text()}" for r in answers]
+    except Exception as exc:  # pragma: no cover - dns resolver failures
+        return [f"error: {exc}"]
+
+
+def smtp_extensions(host: str, port: int = 25) -> List[str]:
+    """Return list of supported SMTP extensions for ``host``."""
+    try:
+        with smtplib.SMTP(host, port, timeout=10) as smtp:
+            smtp.ehlo()
+            return list(smtp.esmtp_features.keys())
+    except Exception as exc:  # pragma: no cover - network failures
+        return [f"error: {exc}"]
+
+
+import ssl
+import socket
+
+def check_certificate(host: str, port: int = 443) -> Dict[str, Any]:
+    """Return TLS certificate details for ``host``."""
+    try:
+        pem = ssl.get_server_certificate((host, port))
+        cert = ssl._ssl._test_decode_cert(pem)
+        return {
+            "subject": cert.get("subject"),
+            "issuer": cert.get("issuer"),
+            "not_before": cert.get("notBefore"),
+            "not_after": cert.get("notAfter"),
+        }
+    except Exception as exc:  # pragma: no cover - network/ssl failures
+        return {"error": str(exc)}
+
+
+def port_scan(host: str, ports: List[int], timeout: float = 1.0) -> Dict[int, bool]:
+    """Return mapping of ports to open status for ``host``."""
+    results: Dict[int, bool] = {}
+    for p in ports:
+        sock = socket.socket()
+        sock.settimeout(timeout)
+        try:
+            sock.connect((host, p))
+            results[p] = True
+        except Exception:
+            results[p] = False
+        finally:
+            sock.close()
+    return results
+
+
+def probe_honeypot(host: str, port: int = 25) -> bool:
+    """Return ``True`` if banner suggests a honeypot."""
+    keywords = ("cowrie", "dionaea", "honey")
+    try:
+        with socket.create_connection((host, port), timeout=3) as s:
+            banner = s.recv(1024).decode(errors="ignore").lower()
+            return any(k in banner for k in keywords)
+    except Exception:  # pragma: no cover - network issues
+        return False

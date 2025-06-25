@@ -101,6 +101,21 @@ def test_open_relay_flag():
     assert args.open_relay_test
 
 
+def test_new_discovery_cli_options():
+    args = burst_cli.parse_args([
+        '--lookup-mx', 'example.com',
+        '--smtp-extensions', 'host',
+        '--cert-check', 'host',
+        '--port-scan', 'host', '25', '587',
+        '--probe-honeypot', 'host'
+    ], Config())
+    assert args.lookup_mx == 'example.com'
+    assert args.smtp_extensions == 'host'
+    assert args.cert_check == 'host'
+    assert args.port_scan == ['host', '25', '587']
+    assert args.probe_honeypot == 'host'
+
+
 def test_logging_cli_flags():
     args = burst_cli.parse_args(['--silent'], Config())
     assert args.silent

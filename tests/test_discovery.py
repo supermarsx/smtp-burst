@@ -88,3 +88,66 @@ def test_open_relay_test(monkeypatch):
 
     monkeypatch.setattr(nettests.smtplib, 'SMTP', DummySMTP)
     assert nettests.open_relay_test('host')
+
+
+def test_lookup_mx(monkeypatch):
+    def fake_resolve(domain, record):
+        assert record == 'MX'
+        return [SimpleNamespace(preference=10, exchange=SimpleNamespace(to_text=lambda: 'mail.example.com'))]
+
+    monkeypatch.setattr(discovery.resolver, 'resolve', fake_resolve)
+    assert discovery.lookup_mx('ex.com') == ['10 mail.example.com']
+
+
+def test_smtp_extensions(monkeypatch):
+    class DummySMTP:
+        def __init__(self, *a, **k):
+            self.esmtp_features = {'size': '', 'starttls': ''}
+        def ehlo(self):
+            pass
+        def __enter__(self):
+            return self
+        def __exit__(self, exc_type, exc, tb):
+            pass
+
+    monkeypatch.setattr(discovery.smtplib, 'SMTP', DummySMTP)
+    assert discovery.smtp_extensions('h') == ['size', 'starttls']
+
+
+def test_check_certificate(monkeypatch):
+    monkeypatch.setattr(discovery.ssl, 'get_server_certificate', lambda addr: 'PEM')
+    monkeypatch.setattr(discovery.ssl._ssl, '_test_decode_cert', lambda pem: {'subject': 's', 'issuer': 'i', 'notBefore': 'b', 'notAfter': 'a'})
+    res = discovery.check_certificate('h')
+    assert res['subject'] == 's'
+    assert res['issuer'] == 'i'
+
+
+def test_port_scan(monkeypatch):
+    class DummySocket:
+        def __init__(self):
+            self.connected = []
+        def settimeout(self, t):
+            pass
+        def connect(self, addr):
+            if addr[1] == 25:
+                return
+            raise OSError
+        def close(self):
+            pass
+
+    monkeypatch.setattr(discovery.socket, 'socket', DummySocket)
+    res = discovery.port_scan('h', [25, 26])
+    assert res == {25: True, 26: False}
+
+
+def test_probe_honeypot(monkeypatch):
+    class DummyConn:
+        def __enter__(self):
+            return self
+        def __exit__(self, exc_type, exc, tb):
+            pass
+        def recv(self, n):
+            return b'HoneySMTP ready'
+
+    monkeypatch.setattr(discovery.socket, 'create_connection', lambda addr, timeout=3: DummyConn())
+    assert discovery.probe_honeypot('h')
