@@ -1,16 +1,23 @@
 import random
 import smtplib
 import socket
+import string
 import time
-from smtplib import SMTPException, SMTPSenderRefused, SMTPRecipientsRefused, SMTPDataError
+from smtplib import (
+    SMTPException,
+    SMTPSenderRefused,
+    SMTPRecipientsRefused,
+    SMTPDataError,
+)
 from typing import Tuple
 
 from . import config
 
 
 def genData(size: int) -> str:
-    """Generate random string data of ``size`` bytes."""
-    return bytearray(random.getrandbits(8) for _ in range(size)).decode("utf-8", "ignore")
+    """Generate random ASCII string data of ``size`` characters."""
+    chars = string.ascii_letters + string.digits
+    return "".join(random.choice(chars) for _ in range(size))
 
 
 def appendMessage() -> bytes:
@@ -22,7 +29,7 @@ def appendMessage() -> bytes:
         f"Subject: {config.SB_SUBJECT}\n\n"
         f"{config.SB_BODY}\n\n"
     )
-    return (base + genData(config.SB_SIZE)).encode("ascii", "ignore")
+    return (base + genData(config.SB_SIZE)).encode("ascii")
 
 
 def sizeof_fmt(num: int, suffix: str = 'B') -> str:
