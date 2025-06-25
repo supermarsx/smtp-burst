@@ -3,8 +3,10 @@ import logging
 from smtpburst.config import Config
 from smtpburst import send
 from smtpburst import cli
-from smtpburst import discovery, nettests, inbox
-from smtpburst import report
+from smtpburst import discovery
+from smtpburst.discovery import nettests
+from smtpburst.reporting import ascii_report
+from smtpburst import inbox
 
 logger = logging.getLogger(__name__)
 
@@ -126,12 +128,12 @@ def main(argv=None):
         results["honeypot"] = discovery.probe_honeypot(host, port)
     if args.tls_discovery:
         host, port = send.parse_server(args.tls_discovery)
-        from . import tls_probe
+        from smtpburst.discovery import tls_probe
 
         results["tls"] = tls_probe.discover(host, port)
     if args.ssl_discovery:
         host, port = send.parse_server(args.ssl_discovery)
-        from . import ssl_probe
+        from smtpburst.discovery import ssl_probe
 
         results["ssl"] = ssl_probe.discover(host, port)
     if args.imap_check:
@@ -166,13 +168,13 @@ def main(argv=None):
             results["rcpt"] = nettests.rcpt_enum(host, enum_items, port=port)
     if args.rdns_test:
         host, _ = send.parse_server(args.server)
-        from . import rdns
+        from smtpburst.discovery import rdns
 
         ok = rdns.verify(host)
         msg = "Reverse DNS: PASS" if ok else "Reverse DNS: FAIL"
         print(msg)
     if results:
-        logger.info(report.ascii_report(results))
+        logger.info(ascii_report(results))
 
 
 if __name__ == "__main__":

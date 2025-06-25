@@ -6,7 +6,7 @@ import random
 import socket
 from typing import List
 
-from .nettests import ping
+from .discovery.nettests import ping
 from .send import parse_server
 
 

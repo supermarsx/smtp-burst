@@ -3,7 +3,7 @@ import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from smtpburst import rdns
+from smtpburst.discovery import rdns
 
 
 def test_verify_rdns_success(monkeypatch):

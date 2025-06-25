@@ -4,7 +4,8 @@ from types import SimpleNamespace
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from smtpburst import discovery, nettests
+from smtpburst import discovery
+from smtpburst.discovery import nettests
 
 
 class DummyAns:

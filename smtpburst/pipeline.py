@@ -10,7 +10,8 @@ try:
 except ImportError:  # pragma: no cover - optional dependency
     yaml = None
 
-from . import discovery, nettests, attacks, send, tls_probe, ssl_probe
+from . import send, attacks, discovery
+from .discovery import nettests, tls_probe, ssl_probe
 
 logger = logging.getLogger(__name__)
 

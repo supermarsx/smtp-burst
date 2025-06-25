@@ -1,5 +1,5 @@
 import ssl
-from smtpburst import ssl_probe
+from smtpburst.discovery import ssl_probe
 
 
 def test_ssl_discover(monkeypatch):
