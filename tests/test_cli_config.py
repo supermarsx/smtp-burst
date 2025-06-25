@@ -184,6 +184,11 @@ def test_outbound_test_flag():
     assert args.outbound_test
 
 
+def test_login_test_flag():
+    args = burst_cli.parse_args(["--login-test"], Config())
+    assert args.login_test
+
+
 def test_template_and_enum_options(tmp_path):
     tpl = tmp_path / "tpl.txt"
     tpl.write_text("body")

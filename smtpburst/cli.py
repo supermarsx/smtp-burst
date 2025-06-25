@@ -197,6 +197,11 @@ def build_parser(cfg: Config) -> argparse.ArgumentParser:
     parser.add_argument("--expn-enum", action="store_true", help="Use EXPN to enumerate lists")
     parser.add_argument("--rcpt-enum", action="store_true", help="Use RCPT TO to enumerate users")
     parser.add_argument(
+        "--login-test",
+        action="store_true",
+        help="Attempt SMTP AUTH logins using wordlists",
+    )
+    parser.add_argument(
         "--ssl",
         action="store_true",
         default=cfg.SB_SSL,

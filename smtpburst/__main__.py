@@ -100,6 +100,13 @@ def main(argv=None):
         send.send_test_email(cfg)
         return
 
+    if args.login_test:
+        logger.info("Running SMTP login test")
+        res = send.login_test(cfg)
+        if res:
+            logger.info(ascii_report(res))
+        return
+
     logger.info("Starting smtp-burst")
     send.bombing_mode(cfg)
 
