@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from smtpburst import discovery
+from smtpburst import discovery, nettests
 
 
 class DummyAns:
@@ -38,8 +38,8 @@ def test_ping(monkeypatch):
         assert cmd[-1] == 'host'
         return SimpleNamespace(stdout='pong')
 
-    monkeypatch.setattr(discovery.subprocess, 'run', fake_run)
-    assert discovery.ping('host') == 'pong'
+    monkeypatch.setattr(nettests.subprocess, 'run', fake_run)
+    assert nettests.ping('host') == 'pong'
 
 
 def test_traceroute(monkeypatch):
@@ -47,8 +47,8 @@ def test_traceroute(monkeypatch):
         assert cmd[-1] == 'host'
         return SimpleNamespace(stdout='trace')
 
-    monkeypatch.setattr(discovery.subprocess, 'run', fake_run)
-    assert discovery.traceroute('host') == 'trace'
+    monkeypatch.setattr(nettests.subprocess, 'run', fake_run)
+    assert nettests.traceroute('host') == 'trace'
 
 
 def test_check_rbl(monkeypatch):
@@ -60,13 +60,13 @@ def test_check_rbl(monkeypatch):
             return [DummyAns('127.0.0.2')]
         raise discovery.resolver.NXDOMAIN
 
-    monkeypatch.setattr(discovery.resolver, 'resolve', fake_resolve)
-    res = discovery.check_rbl('1.2.3.4', ['listed.example', 'clean.example'])
+    monkeypatch.setattr(nettests.resolver, 'resolve', fake_resolve)
+    res = nettests.blacklist_check('1.2.3.4', ['listed.example', 'clean.example'])
     assert res == {'listed.example': 'listed', 'clean.example': 'not listed'}
     assert calls == ['4.3.2.1.listed.example', '4.3.2.1.clean.example']
 
 
-def test_test_open_relay(monkeypatch):
+def test_open_relay_test(monkeypatch):
     class DummySMTP:
         def __init__(self, *args, **kwargs):
             pass
@@ -86,5 +86,5 @@ def test_test_open_relay(monkeypatch):
         def __exit__(self, exc_type, exc, tb):
             pass
 
-    monkeypatch.setattr(discovery.smtplib, 'SMTP', DummySMTP)
-    assert discovery.test_open_relay('host')
+    monkeypatch.setattr(nettests.smtplib, 'SMTP', DummySMTP)
+    assert nettests.open_relay_test('host')
