@@ -126,3 +126,17 @@ def test_main_tls_discovery(monkeypatch):
 
     assert called['host'] == 'h'
     assert called['report'] == {'tls': {'TLSv1_2': {'supported': True}}}
+
+
+def test_main_banner_check(monkeypatch):
+    called = {}
+
+    def fake_banner_check(server):
+        called['server'] = server
+        return ('banner', True)
+
+    monkeypatch.setattr(main_mod.discovery, 'banner_check', fake_banner_check)
+
+    main_mod.main(['--banner-check', '--server', 'srv'])
+
+    assert called['server'] == 'srv'

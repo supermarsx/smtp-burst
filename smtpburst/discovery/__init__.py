@@ -10,6 +10,8 @@ from typing import Any, Dict, List
 import ssl
 import socket
 
+from .. import send, rdns
+
 
 def _lookup(domain: str, record: str) -> List[str]:
     """Return record strings for ``domain`` and ``record`` type."""
@@ -186,3 +188,14 @@ def probe_honeypot(host: str, port: int = 25) -> bool:
             return any(k in banner for k in keywords)
     except Exception:  # pragma: no cover - network issues
         return False
+
+
+def banner_check(server: str) -> tuple[str, bool]:
+    """Return banner string and reverse DNS status for ``server``."""
+    host, port = send.parse_server(server)
+    try:
+        with socket.create_connection((host, port), timeout=5) as s:
+            banner = s.recv(1024).decode(errors="ignore").strip()
+    except Exception:  # pragma: no cover - connection errors
+        return "", False
+    return banner, rdns.verify(host)

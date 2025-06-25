@@ -258,6 +258,11 @@ def test_proxy_order_cli():
     assert args.proxy_order == "random"
 
 
+def test_banner_check_flag():
+    args = burst_cli.parse_args(["--banner-check"], Config())
+    assert args.banner_check
+
+
 def test_check_proxies_flag():
     args = burst_cli.parse_args(["--check-proxies"], Config())
     assert args.check_proxies
