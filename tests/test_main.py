@@ -6,6 +6,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from smtpburst import __main__ as main_mod
 from smtpburst import send
+import logging
 
 
 def test_main_open_sockets(monkeypatch):
@@ -50,3 +51,32 @@ def test_main_spawns_processes(monkeypatch):
 
     assert len(started) == 6
     assert len(joined) == 6
+
+
+def test_logging_modes(monkeypatch, caplog):
+    def dummy_bombing_mode(cfg):
+        log = logging.getLogger("smtpburst.send")
+        log.info("info")
+        log.warning("warn")
+        log.error("err")
+
+    monkeypatch.setattr(send, "bombing_mode", dummy_bombing_mode)
+
+    caplog.set_level(logging.INFO)
+    main_mod.main([])
+    msgs = [r.getMessage() for r in caplog.records]
+    assert "info" in msgs and "warn" in msgs and "err" in msgs
+
+    caplog.clear()
+    main_mod.main(["--warnings"])
+    msgs = [r.getMessage() for r in caplog.records]
+    assert "info" not in msgs and "warn" in msgs and "err" in msgs
+
+    caplog.clear()
+    main_mod.main(["--errors-only"])
+    msgs = [r.getMessage() for r in caplog.records]
+    assert "info" not in msgs and "warn" not in msgs and "err" in msgs
+
+    caplog.clear()
+    main_mod.main(["--silent"])
+    assert not caplog.records

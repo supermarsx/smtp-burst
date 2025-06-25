@@ -1,6 +1,7 @@
 import os
 import sys
 import pytest
+import logging
 
 # Ensure the project root is on sys.path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -78,7 +79,7 @@ def test_open_sockets_creates_connections(monkeypatch):
     assert connections == [("host", 123)] * 3
 
 
-def test_sendmail_reports_auth_success(monkeypatch, capsys):
+def test_sendmail_reports_auth_success(monkeypatch, caplog):
     class DummySMTP:
         def __init__(self, *args, **kwargs):
             pass
@@ -105,9 +106,9 @@ def test_sendmail_reports_auth_success(monkeypatch, capsys):
 
     cfg = Config()
     counter = DummyCounter()
-    sendmail(1, 1, counter, b"msg", cfg, server="s", users=["u"], passwords=["p"])
-    captured = capsys.readouterr().out
-    assert "Auth success: u:p" in captured
+    with caplog.at_level(logging.INFO, logger="smtpburst.send"):
+        sendmail(1, 1, counter, b"msg", cfg, server="s", users=["u"], passwords=["p"])
+    assert any("Auth success: u:p" in r.getMessage() for r in caplog.records)
 
 
 def test_sendmail_uses_ssl(monkeypatch):
