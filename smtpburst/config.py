@@ -35,6 +35,12 @@ class Config:
     SB_SSL: bool = False
     SB_STARTTLS: bool = False
 
+    # Delay options
+    SB_GLOBAL_DELAY: float = 0.0
+    SB_OPEN_SOCKETS_DELAY: float = 1.0
+    SB_SMURF_DELAY: float = 0.01
+    SB_TARPIT_THRESHOLD: float = 5.0
+
     # Data generation options
     SB_DATA_MODE: str = "ascii"
     SB_DICT_WORDS: List[str] = field(default_factory=list)

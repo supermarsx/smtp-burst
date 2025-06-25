@@ -7,6 +7,9 @@ emails_per_burst: 10
 bursts: 5
 email_delay: 0.5
 burst_delay: 1
+global_delay: 0
+socket_delay: 1
+tarpit_threshold: 5
 size: 1024
 stop_on_fail: true
 stop_fail_count: 5

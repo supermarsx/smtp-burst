@@ -18,6 +18,13 @@ from . import attacks
 logger = logging.getLogger(__name__)
 
 
+def throttle(cfg: Config, delay: float = 0.0) -> None:
+    """Sleep for ``delay`` seconds plus any global delay."""
+    total = cfg.SB_GLOBAL_DELAY + delay
+    if total > 0:
+        time.sleep(total)
+
+
 def appendMessage(cfg: Config) -> bytes:
     """Construct the message using config values and append random data."""
     receivers = ", ".join(cfg.SB_RECEIVERS)
@@ -86,6 +93,7 @@ def sendmail(
             socket.socket = socks.socksocket
         except Exception:
             pass
+    throttle(cfg)
     try:
         smtp_cls = smtplib.SMTP_SSL if use_ssl else smtplib.SMTP
         with smtp_cls(host, port) as smtpObj:
@@ -104,7 +112,11 @@ def sendmail(
                             continue
                     if success:
                         break
+            start_t = time.monotonic()
             smtpObj.sendmail(cfg.SB_SENDER, cfg.SB_RECEIVERS, SB_MESSAGE)
+            latency = time.monotonic() - start_t
+            if latency > cfg.SB_TARPIT_THRESHOLD:
+                logger.warning("Possible tarpit detected: %.2fs latency", latency)
         logger.info("%s/%s, Burst %s : Email Sent", number, cfg.SB_TOTAL, burst)
     except SMTPException:
         SB_FAILCOUNT.value += 1
@@ -166,9 +178,10 @@ def parse_server(server: str) -> Tuple[str, int]:
     return host, port
 
 
-def open_sockets(host: str, count: int, port: int = 25):
+def open_sockets(host: str, count: int, port: int = 25, cfg: Config | None = None):
     """Delegate to :mod:`smtpburst.attacks` implementation."""
-    return attacks.open_sockets(host, count, port)
+    delay = cfg.SB_OPEN_SOCKETS_DELAY if cfg else 1.0
+    return attacks.open_sockets(host, count, port, delay, cfg)
 
 def bombing_mode(cfg: Config) -> None:
     """Run burst sending autonomously using provided configuration."""
@@ -190,7 +203,7 @@ def bombing_mode(cfg: Config) -> None:
         for number in numbers:
             if fail_count.value >= cfg.SB_STOPFQNT and cfg.SB_STOPFAIL:
                 break
-            time.sleep(cfg.SB_SGEMAILSPSEC)
+            throttle(cfg, cfg.SB_SGEMAILSPSEC)
             proxy = None
             if cfg.SB_PROXIES:
                 idx = (number + (b * cfg.SB_SGEMAILS) - 1) % len(cfg.SB_PROXIES)
@@ -215,7 +228,7 @@ def bombing_mode(cfg: Config) -> None:
             proc.start()
         for proc in procs:
             proc.join()
-        time.sleep(cfg.SB_BURSTSPSEC)
+        throttle(cfg, cfg.SB_BURSTSPSEC)
 
     if cfg.SB_RAND_STREAM:
         try:

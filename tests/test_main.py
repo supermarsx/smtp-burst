@@ -11,7 +11,7 @@ import logging
 
 def test_main_open_sockets(monkeypatch):
     called = {}
-    def fake_open(host, count, port):
+    def fake_open(host, count, port, cfg=None):
         called['args'] = (host, count, port)
     monkeypatch.setattr(send, 'open_sockets', fake_open)
     main_mod.main(['--open-sockets', '2', '--server', 'host.example:2525'])
