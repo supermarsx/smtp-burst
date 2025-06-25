@@ -82,22 +82,22 @@ def test_per_burst_flag():
 def test_discovery_options():
     args = burst_cli.parse_args([
         '--check-dmarc', 'ex.com',
-        '--ping', 'host'
+        '--ping-test', 'host'
     ], Config())
     assert args.check_dmarc == 'ex.com'
-    assert args.ping == 'host'
+    assert args.ping_test == 'host'
 
 
-def test_check_rbl_option():
+def test_blacklist_option():
     args = burst_cli.parse_args([
-        '--check-rbl', '1.2.3.4', 'rbl.example'
+        '--blacklist-check', '1.2.3.4', 'rbl.example'
     ], Config())
-    assert args.check_rbl == ['1.2.3.4', 'rbl.example']
+    assert args.blacklist_check == ['1.2.3.4', 'rbl.example']
 
 
-def test_test_open_relay_flag():
-    args = burst_cli.parse_args(['--test-open-relay'], Config())
-    assert args.test_open_relay
+def test_open_relay_flag():
+    args = burst_cli.parse_args(['--open-relay-test'], Config())
+    assert args.open_relay_test
 
 
 def test_logging_cli_flags():

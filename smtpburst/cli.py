@@ -62,17 +62,17 @@ def build_parser(cfg: Config) -> argparse.ArgumentParser:
     parser.add_argument("--check-soa", help="Domain to query SOA record for")
     parser.add_argument("--check-txt", help="Domain to query TXT record for")
     parser.add_argument(
-        "--check-rbl",
+        "--blacklist-check",
         nargs="+",
-        help="IP followed by one or more RBL zones to query",
+        help="IP followed by one or more DNSBL zones to query",
     )
     parser.add_argument(
-        "--test-open-relay",
+        "--open-relay-test",
         action="store_true",
         help="Test if the target SMTP server is an open relay",
     )
-    parser.add_argument("--ping", help="Host to ping")
-    parser.add_argument("--traceroute", help="Host to traceroute")
+    parser.add_argument("--ping-test", help="Host to ping")
+    parser.add_argument("--traceroute-test", help="Host to traceroute")
     level_group = parser.add_mutually_exclusive_group()
     level_group.add_argument("--silent", action="store_true", help="Suppress all log output")
     level_group.add_argument("--errors-only", action="store_true", help="Show only error messages")

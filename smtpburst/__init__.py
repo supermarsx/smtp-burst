@@ -1,6 +1,6 @@
 """smtp-burst library package."""
 
-from . import send, config, cli, datagen, attacks, report, discovery
+from . import send, config, cli, datagen, attacks, report, discovery, nettests
 
 __all__ = [
     "send",
@@ -10,4 +10,5 @@ __all__ = [
     "attacks",
     "report",
     "discovery",
+    "nettests",
 ]

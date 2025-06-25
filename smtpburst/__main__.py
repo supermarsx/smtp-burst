@@ -4,7 +4,7 @@ import logging
 from smtpburst.config import Config
 from smtpburst import send
 from smtpburst import cli
-from smtpburst import discovery
+from smtpburst import discovery, nettests
 from smtpburst import report
 
 logger = logging.getLogger(__name__)
@@ -83,15 +83,17 @@ def main(argv=None):
         results['soa'] = discovery.check_soa(args.check_soa)
     if args.check_txt:
         results['txt'] = discovery.check_txt(args.check_txt)
-    if args.check_rbl:
-        results['rbl'] = discovery.check_rbl(args.check_rbl[0], args.check_rbl[1:])
-    if args.test_open_relay:
+    if args.blacklist_check:
+        results['blacklist'] = nettests.blacklist_check(
+            args.blacklist_check[0], args.blacklist_check[1:]
+        )
+    if args.open_relay_test:
         host, port = send.parse_server(args.server)
-        results['open_relay'] = discovery.test_open_relay(host, port)
-    if args.ping:
-        results['ping'] = discovery.ping(args.ping)
-    if args.traceroute:
-        results['traceroute'] = discovery.traceroute(args.traceroute)
+        results['open_relay'] = nettests.open_relay_test(host, port)
+    if args.ping_test:
+        results['ping'] = nettests.ping(args.ping_test)
+    if args.traceroute_test:
+        results['traceroute'] = nettests.traceroute(args.traceroute_test)
     if results:
         logger.info(report.ascii_report(results))
 
