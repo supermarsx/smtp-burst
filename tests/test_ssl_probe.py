@@ -28,15 +28,15 @@ def test_ssl_discover(monkeypatch):
                 def connect(self_inner, addr):
                     if ver == ssl.TLSVersion.SSLv3:
                         return
-                    raise OSError('fail')
+                    raise OSError("fail")
 
             return DummySock()
 
     def fake_ctx_factory():
         return DummyCtx()
 
-    monkeypatch.setattr(ssl_probe.socket, 'socket', fake_socket)
-    monkeypatch.setattr(ssl_probe.ssl, 'create_default_context', fake_ctx_factory)
+    monkeypatch.setattr(ssl_probe.socket, "socket", fake_socket)
+    monkeypatch.setattr(ssl_probe.ssl, "create_default_context", fake_ctx_factory)
 
-    res = ssl_probe.discover('h')
-    assert res['SSLv3'] is True
+    res = ssl_probe.discover("h")
+    assert res["SSLv3"] is True

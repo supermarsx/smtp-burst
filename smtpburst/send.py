@@ -45,13 +45,13 @@ def appendMessage(cfg: Config) -> bytes:
     return base.encode("ascii") + rand
 
 
-def sizeof_fmt(num: int, suffix: str = 'B') -> str:
+def sizeof_fmt(num: int, suffix: str = "B") -> str:
     """Return human readable file size."""
-    for unit in ['', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi']:
+    for unit in ["", "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi"]:
         if abs(num) < 1024.0:
             return "%3.1f%s%s" % (num, unit, suffix)
         num /= 1024.0
-    return "%.1f%s%s" % (num, 'Yi', suffix)
+    return "%.1f%s%s" % (num, "Yi", suffix)
 
 
 def sendmail(
@@ -81,7 +81,7 @@ def sendmail(
     if SB_FAILCOUNT.value >= cfg.SB_STOPFQNT and cfg.SB_STOPFAIL:
         return
 
-    logger.info(f"%s/%s, Burst %s : Sending Email", number, cfg.SB_TOTAL, burst)
+    logger.info("%s/%s, Burst %s : Sending Email", number, cfg.SB_TOTAL, burst)
     host, port = parse_server(server)
     orig_socket = socket.socket
     if proxy:
@@ -183,13 +183,14 @@ def open_sockets(host: str, count: int, port: int = 25, cfg: Config | None = Non
     delay = cfg.SB_OPEN_SOCKETS_DELAY if cfg else 1.0
     return attacks.open_sockets(host, count, port, delay, cfg)
 
+
 def bombing_mode(cfg: Config) -> None:
     """Run burst sending autonomously using provided configuration."""
     from multiprocessing import Manager, Process
 
     logger.info("Generating %s of data to append to message", sizeof_fmt(cfg.SB_SIZE))
     manager = Manager()
-    fail_count = manager.Value('i', 0)
+    fail_count = manager.Value("i", 0)
     message = appendMessage(cfg)
     logger.info("Message using %s of random data", sizeof_fmt(sys.getsizeof(message)))
 
@@ -218,10 +219,10 @@ def bombing_mode(cfg: Config) -> None:
                     cfg,
                 ),
                 kwargs={
-                    'server': cfg.SB_SERVER,
-                    'proxy': proxy,
-                    'users': cfg.SB_USERLIST,
-                    'passwords': cfg.SB_PASSLIST,
+                    "server": cfg.SB_SERVER,
+                    "proxy": proxy,
+                    "users": cfg.SB_USERLIST,
+                    "passwords": cfg.SB_PASSLIST,
                 },
             )
             procs.append(proc)

@@ -1,8 +1,7 @@
-import os
 import random
 import secrets
 import string
-from typing import Iterable, List, Optional, TextIO
+from typing import List, Optional, TextIO
 
 
 def gen_ascii(size: int, secure: bool = False) -> str:
@@ -19,7 +18,9 @@ def gen_utf8(size: int, secure: bool = False) -> str:
     return "".join(rng.choice(charset) for _ in range(size))
 
 
-def gen_binary(size: int, secure: bool = False, stream: Optional[TextIO] = None) -> bytes:
+def gen_binary(
+    size: int, secure: bool = False, stream: Optional[TextIO] = None
+) -> bytes:
     """Return ``size`` random bytes, optionally reading from ``stream``."""
     if stream is not None:
         data = stream.read(size)
@@ -78,6 +79,6 @@ def generate(
         return gen_dictionary(size, words or []).encode("utf-8")
     if mode == "repeat":
         return gen_repeat(repeat or "", size).encode("utf-8")
+
     # default ascii
     return gen_ascii(size, secure=secure).encode("ascii")
-
