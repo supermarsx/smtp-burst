@@ -62,6 +62,7 @@ Additional CLI flags provide extended functionality:
 - `--vrfy-enum` enumerate users with VRFY
 - `--expn-enum` enumerate lists with EXPN
 - `--rcpt-enum` enumerate via RCPT TO
+- `--login-test` attempt SMTP AUTH logins using wordlists
 - `--ssl` connect using SMTPS
 - `--starttls` upgrade the connection with STARTTLS
 - `--check-dmarc DOMAIN` query DMARC record for DOMAIN
