@@ -117,6 +117,13 @@ def test_new_discovery_cli_options():
     assert args.probe_honeypot == 'host'
 
 
+def test_tls_discovery_option():
+    args = burst_cli.parse_args([
+        '--tls-discovery', 'host'
+    ], Config())
+    assert args.tls_discovery == 'host'
+
+
 def test_inbox_cli_options():
     args = burst_cli.parse_args([
         '--imap-check', 'h', 'u', 'p', 'ALL',

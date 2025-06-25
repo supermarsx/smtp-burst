@@ -98,6 +98,10 @@ def main(argv=None):
     if args.probe_honeypot:
         host, port = send.parse_server(args.probe_honeypot)
         results['honeypot'] = discovery.probe_honeypot(host, port)
+    if args.tls_discovery:
+        host, port = send.parse_server(args.tls_discovery)
+        from . import tls_probe
+        results['tls'] = tls_probe.discover(host, port)
     if args.imap_check:
         host, user, pwd, crit = args.imap_check
         host, port = send.parse_server(host)
