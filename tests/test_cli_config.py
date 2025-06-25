@@ -28,6 +28,7 @@ def test_cli_overrides_config(tmp_path):
     assert args.server == "cli.example.com"
 
 
+@pytest.mark.skipif(burst_cli.yaml is None, reason="PyYAML not installed")
 def test_yaml_config_parsing(tmp_path):
     yaml_cfg = "server: yaml.example.com\n"
     cfg_path = tmp_path / "config.yaml"
