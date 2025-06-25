@@ -13,6 +13,8 @@ Simple python script that sends smtp email in bursts using independent processes
 - Customizable subject and message body via CLI options
 - Autonomous bombing mode for hands-off bursts
 - Helper scripts for packaging and running tests
+- Discovery utilities for MX lookup, SMTP extension scan, certificate checks,
+  port scanning and honeypot probing
 
 ## Installation
 
@@ -59,6 +61,11 @@ Additional CLI flags provide extended functionality:
 - `--check-srv NAME` query SRV record for NAME
 - `--check-soa DOMAIN` query SOA record for DOMAIN
 - `--check-txt DOMAIN` query TXT record for DOMAIN
+- `--lookup-mx DOMAIN` lookup MX records for DOMAIN
+- `--smtp-extensions HOST` list SMTP extensions for HOST
+- `--cert-check HOST` retrieve TLS certificate from HOST
+- `--port-scan HOST PORT [PORT ...]` scan ports on HOST
+- `--probe-honeypot HOST` probe HOST for SMTP honeypot
 - `--blacklist-check IP ZONE [ZONE ...]` check IP against DNSBL zones
 - `--open-relay-test` test if the target SMTP server is an open relay
 - `--ping-test HOST` run ping for HOST
@@ -91,7 +98,8 @@ The following flags perform DNS and network checks using the utilities in
 `smtpburst.discovery` and `smtpburst.nettests`:
 
 - `--check-dmarc`, `--check-spf`, `--check-dkim`
-- `--check-srv`, `--check-soa`, `--check-txt`
+- `--check-srv`, `--check-soa`, `--check-txt`, `--lookup-mx`
+- `--smtp-extensions`, `--cert-check`, `--port-scan`, `--probe-honeypot`
 - `--blacklist-check`
 - `--open-relay-test`, `--ping-test`, `--traceroute-test`
 
