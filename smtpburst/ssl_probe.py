@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Legacy SSL version discovery utilities."""
 
 from typing import Dict

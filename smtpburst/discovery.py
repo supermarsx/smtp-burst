@@ -6,7 +6,9 @@ from dns import resolver
 import ipaddress
 import smtplib
 import subprocess
-from typing import List, Any, Dict
+from typing import Any, Dict, List
+import ssl
+import socket
 
 
 def _lookup(domain: str, record: str) -> List[str]:
@@ -52,12 +54,17 @@ def check_txt(domain: str) -> List[str]:
 def ping(host: str) -> str:
     """Return result of ``ping`` command for ``host``."""
     try:
-        proc = subprocess.run([
-            "ping",
-            "-c",
-            "1",
-            host,
-        ], capture_output=True, text=True, check=False)
+        proc = subprocess.run(
+            [
+                "ping",
+                "-c",
+                "1",
+                host,
+            ],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
         return proc.stdout.strip()
     except Exception as exc:  # pragma: no cover - system might not have ping
         return str(exc)
@@ -66,10 +73,15 @@ def ping(host: str) -> str:
 def traceroute(host: str) -> str:
     """Return result of ``traceroute`` command for ``host``."""
     try:
-        proc = subprocess.run([
-            "traceroute",
-            host,
-        ], capture_output=True, text=True, check=False)
+        proc = subprocess.run(
+            [
+                "traceroute",
+                host,
+            ],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
         return proc.stdout.strip()
     except Exception as exc:  # pragma: no cover
         return str(exc)
@@ -133,8 +145,6 @@ def smtp_extensions(host: str, port: int = 25) -> List[str]:
         return [f"error: {exc}"]
 
 
-import ssl
-import socket
 
 def check_certificate(host: str, port: int = 443) -> Dict[str, Any]:
     """Return TLS certificate details for ``host``."""

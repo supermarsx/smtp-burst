@@ -3,7 +3,7 @@ import os
 import sys
 import pytest
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from smtpburst import cli as burst_cli
 from smtpburst.config import Config
@@ -24,7 +24,9 @@ def test_cli_overrides_config(tmp_path):
     cfg_path = tmp_path / "c.json"
     cfg_path.write_text(json.dumps(cfg))
 
-    args = burst_cli.parse_args(["--config", str(cfg_path), "--server", "cli.example.com"], Config())
+    args = burst_cli.parse_args(
+        ["--config", str(cfg_path), "--server", "cli.example.com"], Config()
+    )
     assert args.server == "cli.example.com"
 
 
@@ -78,11 +80,17 @@ def test_data_mode_option():
 
 
 def test_new_delay_options():
-    args = burst_cli.parse_args([
-        "--global-delay", "1",
-        "--socket-delay", "2",
-        "--tarpit-threshold", "3",
-    ], Config())
+    args = burst_cli.parse_args(
+        [
+            "--global-delay",
+            "1",
+            "--socket-delay",
+            "2",
+            "--tarpit-threshold",
+            "3",
+        ],
+        Config(),
+    )
     assert args.global_delay == 1
     assert args.socket_delay == 2
     assert args.tarpit_threshold == 3
@@ -92,76 +100,82 @@ def test_per_burst_flag():
     args = burst_cli.parse_args(["--per-burst-data"], Config())
     assert args.per_burst_data
 
+
 def test_discovery_options():
-    args = burst_cli.parse_args([
-        '--check-dmarc', 'ex.com',
-        '--ping-test', 'host'
-    ], Config())
-    assert args.check_dmarc == 'ex.com'
-    assert args.ping_test == 'host'
+    args = burst_cli.parse_args(
+        ["--check-dmarc", "ex.com", "--ping-test", "host"], Config()
+    )
+    assert args.check_dmarc == "ex.com"
+    assert args.ping_test == "host"
 
 
 def test_blacklist_option():
-    args = burst_cli.parse_args([
-        '--blacklist-check', '1.2.3.4', 'rbl.example'
-    ], Config())
-    assert args.blacklist_check == ['1.2.3.4', 'rbl.example']
+    args = burst_cli.parse_args(
+        ["--blacklist-check", "1.2.3.4", "rbl.example"], Config()
+    )
+    assert args.blacklist_check == ["1.2.3.4", "rbl.example"]
 
 
 def test_open_relay_flag():
-    args = burst_cli.parse_args(['--open-relay-test'], Config())
+    args = burst_cli.parse_args(["--open-relay-test"], Config())
     assert args.open_relay_test
 
 
 def test_new_discovery_cli_options():
-    args = burst_cli.parse_args([
-        '--lookup-mx', 'example.com',
-        '--smtp-extensions', 'host',
-        '--cert-check', 'host',
-        '--port-scan', 'host', '25', '587',
-        '--probe-honeypot', 'host'
-    ], Config())
-    assert args.lookup_mx == 'example.com'
-    assert args.smtp_extensions == 'host'
-    assert args.cert_check == 'host'
-    assert args.port_scan == ['host', '25', '587']
-    assert args.probe_honeypot == 'host'
+    args = burst_cli.parse_args(
+        [
+            "--lookup-mx",
+            "example.com",
+            "--smtp-extensions",
+            "host",
+            "--cert-check",
+            "host",
+            "--port-scan",
+            "host",
+            "25",
+            "587",
+            "--probe-honeypot",
+            "host",
+        ],
+        Config(),
+    )
+    assert args.lookup_mx == "example.com"
+    assert args.smtp_extensions == "host"
+    assert args.cert_check == "host"
+    assert args.port_scan == ["host", "25", "587"]
+    assert args.probe_honeypot == "host"
 
 
 def test_tls_discovery_option():
-    args = burst_cli.parse_args([
-        '--tls-discovery', 'host'
-    ], Config())
-    assert args.tls_discovery == 'host'
+    args = burst_cli.parse_args(["--tls-discovery", "host"], Config())
+    assert args.tls_discovery == "host"
 
 
 def test_ssl_discovery_option():
-    args = burst_cli.parse_args([
-        '--ssl-discovery', 'host'
-    ], Config())
-    assert args.ssl_discovery == 'host'
+    args = burst_cli.parse_args(["--ssl-discovery", "host"], Config())
+    assert args.ssl_discovery == "host"
 
 
 def test_inbox_cli_options():
-    args = burst_cli.parse_args([
-        '--imap-check', 'h', 'u', 'p', 'ALL',
-        '--pop3-check', 'p', 'u2', 'p2', 'txt'
-    ], Config())
-    assert args.imap_check == ['h', 'u', 'p', 'ALL']
-    assert args.pop3_check == ['p', 'u2', 'p2', 'txt']
+    args = burst_cli.parse_args(
+        ["--imap-check", "h", "u", "p", "ALL", "--pop3-check", "p", "u2", "p2", "txt"],
+        Config(),
+    )
+    assert args.imap_check == ["h", "u", "p", "ALL"]
+    assert args.pop3_check == ["p", "u2", "p2", "txt"]
 
 
 def test_logging_cli_flags():
-    args = burst_cli.parse_args(['--silent'], Config())
+    args = burst_cli.parse_args(["--silent"], Config())
     assert args.silent
-    args = burst_cli.parse_args(['--errors-only'], Config())
+    args = burst_cli.parse_args(["--errors-only"], Config())
     assert args.errors_only
-    args = burst_cli.parse_args(['--warnings'], Config())
+    args = burst_cli.parse_args(["--warnings"], Config())
     assert args.warnings
 
 
 def test_rdns_flag():
-    args = burst_cli.parse_args(['--rdns-test'], Config())
+    args = burst_cli.parse_args(["--rdns-test"], Config())
     assert args.rdns_test
 
 

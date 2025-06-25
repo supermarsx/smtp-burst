@@ -15,9 +15,7 @@ def open_sockets(host: str, count: int, port: int = 25, delay: float = 1.0, cfg=
         try:
             s = socket.create_connection((host, port))
         except Exception as exc:  # pragma: no cover - logging path tested separately
-            logger.warning(
-                "Failed to open socket to %s:%s: %s", host, port, exc
-            )
+            logger.warning("Failed to open socket to %s:%s: %s", host, port, exc)
             continue
         sockets.append(s)
     logger.info(
@@ -27,7 +25,7 @@ def open_sockets(host: str, count: int, port: int = 25, delay: float = 1.0, cfg=
         while True:
             d = delay
             if cfg is not None:
-                d += getattr(cfg, 'SB_GLOBAL_DELAY', 0.0)
+                d += getattr(cfg, "SB_GLOBAL_DELAY", 0.0)
             time.sleep(d)
     except KeyboardInterrupt:
         pass
@@ -76,7 +74,7 @@ def tcp_reset_attack(host: str, port: int):
     try:
         s = socket.create_connection((host, port))
         # SO_LINGER with timeout 0 triggers RST on close
-        linger = struct.pack('ii', 1, 0)
+        linger = struct.pack("ii", 1, 0)
         s.setsockopt(socket.SOL_SOCKET, socket.SO_LINGER, linger)
         s.close()
     except Exception:
@@ -110,11 +108,11 @@ def auto_test(host: str, port: int):
 def suite_test(host: str, port: int):
     """Run full suite and return results dictionary."""
     results = {
-        'socket_open_time': socket_open_time(host, 5, port),
-        'syn_flood': 'done',
-        'tcp_reset_attack': 'done',
-        'tcp_reset_flood': 'done',
-        'smurf': 'done',
+        "socket_open_time": socket_open_time(host, 5, port),
+        "syn_flood": "done",
+        "tcp_reset_attack": "done",
+        "tcp_reset_flood": "done",
+        "smurf": "done",
     }
     tcp_syn_flood(host, port, 10)
     tcp_reset_attack(host, port)

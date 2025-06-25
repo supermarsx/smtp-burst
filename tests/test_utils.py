@@ -4,7 +4,7 @@ import pytest
 import logging
 
 # Ensure the project root is on sys.path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from smtpburst.send import sizeof_fmt, sendmail, throttle
 from smtpburst import send as burstGen
@@ -142,7 +142,7 @@ def test_sendmail_uses_ssl(monkeypatch):
 
     class DummySSL:
         def __init__(self, *args, **kwargs):
-            calls['ssl'] = True
+            calls["ssl"] = True
 
         def sendmail(self, *args, **kwargs):
             pass
@@ -155,7 +155,7 @@ def test_sendmail_uses_ssl(monkeypatch):
 
     class DummySMTP:
         def __init__(self, *args, **kwargs):
-            calls['smtp'] = True
+            calls["smtp"] = True
 
     monkeypatch.setattr(burstGen.smtplib, "SMTP_SSL", DummySSL)
     monkeypatch.setattr(burstGen.smtplib, "SMTP", DummySMTP)
@@ -167,7 +167,7 @@ def test_sendmail_uses_ssl(monkeypatch):
     cfg = Config()
     counter = DummyCounter()
     sendmail(1, 1, counter, b"msg", cfg, use_ssl=True)
-    assert calls.get('ssl') and not calls.get('smtp')
+    assert calls.get("ssl") and not calls.get("smtp")
 
 
 def test_sendmail_calls_starttls(monkeypatch):
@@ -178,7 +178,7 @@ def test_sendmail_calls_starttls(monkeypatch):
             pass
 
         def starttls(self):
-            called['starttls'] = True
+            called["starttls"] = True
 
         def sendmail(self, *args, **kwargs):
             pass
@@ -198,19 +198,19 @@ def test_sendmail_calls_starttls(monkeypatch):
     cfg = Config()
     counter = DummyCounter()
     sendmail(1, 1, counter, b"msg", cfg, start_tls=True)
-    assert called.get('starttls')
+    assert called.get("starttls")
 
 
 def test_append_message_uses_subject_and_body(monkeypatch):
     cfg = Config()
-    cfg.SB_SENDER = 'a@b.com'
-    cfg.SB_RECEIVERS = ['c@d.com']
-    cfg.SB_SUBJECT = 'Sub'
-    cfg.SB_BODY = 'Body'
+    cfg.SB_SENDER = "a@b.com"
+    cfg.SB_RECEIVERS = ["c@d.com"]
+    cfg.SB_SUBJECT = "Sub"
+    cfg.SB_BODY = "Body"
     cfg.SB_SIZE = 0
     msg = burstGen.appendMessage(cfg)
-    assert b'Subject: Sub' in msg
-    assert b'Body' in msg
+    assert b"Subject: Sub" in msg
+    assert b"Body" in msg
 
 
 def test_genData_length():
@@ -229,4 +229,3 @@ def test_throttle_combines_delay(monkeypatch):
     cfg.SB_GLOBAL_DELAY = 0.5
     throttle(cfg, 0.2)
     assert calls and calls[0] == pytest.approx(0.7)
-

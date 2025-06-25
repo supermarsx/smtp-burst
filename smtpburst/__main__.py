@@ -1,4 +1,3 @@
-import sys
 import logging
 
 from smtpburst.config import Config
@@ -75,62 +74,67 @@ def main(argv=None):
 
     results = {}
     if args.check_dmarc:
-        results['dmarc'] = discovery.check_dmarc(args.check_dmarc)
+        results["dmarc"] = discovery.check_dmarc(args.check_dmarc)
     if args.check_spf:
-        results['spf'] = discovery.check_spf(args.check_spf)
+        results["spf"] = discovery.check_spf(args.check_spf)
     if args.check_dkim:
-        results['dkim'] = discovery.check_dkim(args.check_dkim)
+        results["dkim"] = discovery.check_dkim(args.check_dkim)
     if args.check_srv:
-        results['srv'] = discovery.check_srv(args.check_srv)
+        results["srv"] = discovery.check_srv(args.check_srv)
     if args.check_soa:
-        results['soa'] = discovery.check_soa(args.check_soa)
+        results["soa"] = discovery.check_soa(args.check_soa)
     if args.check_txt:
-        results['txt'] = discovery.check_txt(args.check_txt)
+        results["txt"] = discovery.check_txt(args.check_txt)
     if args.lookup_mx:
-        results['mx'] = discovery.lookup_mx(args.lookup_mx)
+        results["mx"] = discovery.lookup_mx(args.lookup_mx)
     if args.smtp_extensions:
         host, port = send.parse_server(args.smtp_extensions)
-        results['smtp_extensions'] = discovery.smtp_extensions(host, port)
+        results["smtp_extensions"] = discovery.smtp_extensions(host, port)
     if args.cert_check:
         host, port = send.parse_server(args.cert_check)
-        results['certificate'] = discovery.check_certificate(host, port)
+        results["certificate"] = discovery.check_certificate(host, port)
     if args.port_scan:
         host = args.port_scan[0]
         ports = [int(p) for p in args.port_scan[1:]]
-        results['port_scan'] = discovery.port_scan(host, ports)
+        results["port_scan"] = discovery.port_scan(host, ports)
     if args.probe_honeypot:
         host, port = send.parse_server(args.probe_honeypot)
-        results['honeypot'] = discovery.probe_honeypot(host, port)
+        results["honeypot"] = discovery.probe_honeypot(host, port)
     if args.tls_discovery:
         host, port = send.parse_server(args.tls_discovery)
         from . import tls_probe
-        results['tls'] = tls_probe.discover(host, port)
+
+        results["tls"] = tls_probe.discover(host, port)
     if args.ssl_discovery:
         host, port = send.parse_server(args.ssl_discovery)
         from . import ssl_probe
-        results['ssl'] = ssl_probe.discover(host, port)
+
+        results["ssl"] = ssl_probe.discover(host, port)
     if args.imap_check:
         host, user, pwd, crit = args.imap_check
         host, port = send.parse_server(host)
-        results['imap'] = inbox.imap_search(host, user, pwd, criteria=crit, port=port)
+        results["imap"] = inbox.imap_search(host, user, pwd, criteria=crit, port=port)
     if args.pop3_check:
         host, user, pwd, patt = args.pop3_check
         host, port = send.parse_server(host)
-        results['pop3'] = inbox.pop3_search(host, user, pwd, pattern=patt.encode(), port=port)
+        results["pop3"] = inbox.pop3_search(
+            host, user, pwd, pattern=patt.encode(), port=port
+        )
     if args.blacklist_check:
-        results['blacklist'] = nettests.blacklist_check(
+        results["blacklist"] = nettests.blacklist_check(
             args.blacklist_check[0], args.blacklist_check[1:]
         )
     if args.open_relay_test:
         host, port = send.parse_server(args.server)
-        results['open_relay'] = nettests.open_relay_test(host, port)
+        results["open_relay"] = nettests.open_relay_test(host, port)
     if args.ping_test:
-        results['ping'] = nettests.ping(args.ping_test)
+        results["ping"] = nettests.ping(args.ping_test)
     if args.traceroute_test:
-        results['traceroute'] = nettests.traceroute(args.traceroute_test)
+        results["traceroute"] = nettests.traceroute(args.traceroute_test)
     if args.rdns_test:
         host, _ = send.parse_server(args.server)
         from . import rdns
+
         ok = rdns.verify(host)
         msg = "Reverse DNS: PASS" if ok else "Reverse DNS: FAIL"
         print(msg)
