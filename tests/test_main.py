@@ -27,7 +27,7 @@ def test_main_spawns_processes(monkeypatch):
             return DummyValue(typecode, value)
     def manager_factory():
         return DummyManager()
-    monkeypatch.setattr(main_mod, 'Manager', manager_factory)
+    monkeypatch.setattr('multiprocessing.Manager', manager_factory)
 
     started = []
     joined = []
@@ -40,9 +40,9 @@ def test_main_spawns_processes(monkeypatch):
             started.append(self.args)
         def join(self):
             joined.append(self.args)
-    monkeypatch.setattr(main_mod, 'Process', DummyProcess)
+    monkeypatch.setattr('multiprocessing.Process', DummyProcess)
 
-    monkeypatch.setattr(main_mod, 'time', type('T', (), {'sleep': lambda *a, **k: None}))
+    monkeypatch.setattr(send, 'time', type('T', (), {'sleep': lambda *a, **k: None}))
     monkeypatch.setattr(send, 'appendMessage', lambda cfg: b'msg')
     monkeypatch.setattr(send, 'sizeof_fmt', lambda n: str(n))
 

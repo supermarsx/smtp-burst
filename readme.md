@@ -11,6 +11,7 @@ Simple python script that sends smtp email in bursts using independent processes
 - Optional SSL or STARTTLS connections via CLI flags
 - Random payload data appended to each message
 - Customizable subject and message body via CLI options
+- Autonomous bombing mode for hands-off bursts
 - Helper scripts for packaging and running tests
 
 ## Installation
