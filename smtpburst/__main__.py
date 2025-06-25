@@ -2,13 +2,14 @@ import sys
 import time
 from multiprocessing import Manager, Process
 
-from smtpburst import config as cfg
+from smtpburst.config import Config
 from smtpburst import send
 from smtpburst import cli
 
 
 def main(argv=None):
-    args = cli.parse_args(argv)
+    cfg = Config()
+    args = cli.parse_args(argv, cfg)
 
     if args.open_sockets:
         host, srv_port = send.parse_server(args.server)
@@ -31,7 +32,6 @@ def main(argv=None):
     cfg.SB_SECURE_RANDOM = args.secure_random
     cfg.SB_STOPFAIL = args.stop_on_fail
     cfg.SB_STOPFQNT = args.stop_fail_count
-    cfg.SB_TOTAL = cfg.SB_SGEMAILS * cfg.SB_BURSTS
     cfg.SB_SSL = args.ssl
     cfg.SB_STARTTLS = args.starttls
 
@@ -58,7 +58,7 @@ def main(argv=None):
     SB_FAILCOUNT = manager.Value('i', 0)
 
     print(f"Generating {send.sizeof_fmt(cfg.SB_SIZE)} of data to append to message")
-    SB_MESSAGE = send.appendMessage()
+    SB_MESSAGE = send.appendMessage(cfg)
     print(f"Message using {send.sizeof_fmt(sys.getsizeof(SB_MESSAGE))} of random data")
 
     print(
@@ -68,7 +68,7 @@ def main(argv=None):
 
     for x in range(0, cfg.SB_BURSTS):
         if cfg.SB_PER_BURST_DATA:
-            SB_MESSAGE = send.appendMessage()
+            SB_MESSAGE = send.appendMessage(cfg)
         quantity = range(1, cfg.SB_SGEMAILS + 1)
         procs = []
 
@@ -89,13 +89,14 @@ def main(argv=None):
                     x + 1,
                     SB_FAILCOUNT,
                     SB_MESSAGE,
-                    cfg.SB_SERVER,
-                    proxy,
-                    cfg.SB_USERLIST,
-                    cfg.SB_PASSLIST,
-                    cfg.SB_SSL,
-                    cfg.SB_STARTTLS,
+                    cfg,
                 ),
+                kwargs={
+                    "server": cfg.SB_SERVER,
+                    "proxy": proxy,
+                    "users": cfg.SB_USERLIST,
+                    "passwords": cfg.SB_PASSLIST,
+                },
             )
             procs.append(process)
             process.start()
