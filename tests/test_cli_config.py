@@ -189,6 +189,17 @@ def test_login_test_flag():
     assert args.login_test
 
 
+def test_auth_test_flag():
+    args = burst_cli.parse_args([
+        "--auth-test",
+        "--username",
+        "u",
+        "--password",
+        "p",
+    ], Config())
+    assert args.auth_test and args.username == "u" and args.password == "p"
+
+
 def test_template_and_enum_options(tmp_path):
     tpl = tmp_path / "tpl.txt"
     tpl.write_text("body")

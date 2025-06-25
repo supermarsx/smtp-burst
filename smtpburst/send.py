@@ -247,6 +247,51 @@ def login_test(cfg: Config) -> dict[str, bool]:
     return results
 
 
+def auth_test(cfg: Config) -> dict[str, bool]:
+    """Attempt authentication with provided credentials for each advertised
+    method.
+
+    Returns a mapping of mechanism name to success status.
+    """
+
+    if not cfg.SB_USERNAME or not cfg.SB_PASSWORD:
+        return {}
+
+    host, port = parse_server(cfg.SB_SERVER)
+    smtp_cls = smtplib.SMTP_SSL if cfg.SB_SSL else smtplib.SMTP
+    with smtp_cls(host, port) as smtp:
+        if cfg.SB_STARTTLS and not cfg.SB_SSL:
+            smtp.starttls()
+        smtp.ehlo()
+        methods = smtp.esmtp_features.get("auth", "").split()
+
+    results: dict[str, bool] = {}
+    for mech in methods:
+        auth_attr = "auth_" + mech.lower().replace("-", "_")
+        try:
+            with smtp_cls(host, port) as sm:
+                if cfg.SB_STARTTLS and not cfg.SB_SSL:
+                    sm.starttls()
+                sm.ehlo()
+                sm.user, sm.password = cfg.SB_USERNAME, cfg.SB_PASSWORD
+                sm.auth(mech, getattr(sm, auth_attr))
+            logging.getLogger(__name__).info(
+                "Authentication %s succeeded", mech
+            )
+            results[mech] = True
+        except smtplib.SMTPAuthenticationError:
+            logging.getLogger(__name__).info(
+                "Authentication %s failed", mech
+            )
+            results[mech] = False
+        except smtplib.SMTPException:
+            logging.getLogger(__name__).info(
+                "Authentication %s failed", mech
+            )
+            results[mech] = False
+    return results
+
+
 def send_test_email(cfg: Config) -> None:
     """Send a single minimal email using ``sendmail`` helper."""
 

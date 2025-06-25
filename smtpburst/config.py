@@ -33,6 +33,8 @@ class Config:
     SB_CHECK_PROXIES: bool = False
     SB_USERLIST: List[str] = field(default_factory=list)
     SB_PASSLIST: List[str] = field(default_factory=list)
+    SB_USERNAME: str = ""
+    SB_PASSWORD: str = ""
 
     # Security options
     SB_SSL: bool = False
