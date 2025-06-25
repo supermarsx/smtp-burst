@@ -12,6 +12,7 @@ from . import (
     inbox,
     tls_probe,
     ssl_probe,
+    pipeline,
     rdns,
     proxy,
 )
@@ -28,6 +29,7 @@ __all__ = [
     "inbox",
     "tls_probe",
     "ssl_probe",
+    "pipeline",
     "rdns",
     "proxy",
 ]

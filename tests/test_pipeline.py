@@ -1,0 +1,51 @@
+import os
+import sys
+import pytest
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+from smtpburst import pipeline
+
+
+def test_cli_pipeline_option():
+    from smtpburst import cli
+    from smtpburst.config import Config
+
+    args = cli.parse_args(["--pipeline-file", "p.yml"], Config())
+    assert args.pipeline_file == "p.yml"
+
+
+@pytest.mark.skipif(pipeline.yaml is None, reason="PyYAML not installed")
+def test_pipeline_runner_stop(monkeypatch, tmp_path):
+    calls = []
+
+    def ok():
+        calls.append("ok")
+        return True
+
+    def bad():
+        calls.append("bad")
+        return False
+
+    monkeypatch.setitem(pipeline.ACTION_MAP, "ok", lambda: ok())
+    monkeypatch.setitem(pipeline.ACTION_MAP, "bad", lambda: bad())
+
+    cfg = {
+        "steps": [
+            {"action": "ok"},
+            {"action": "bad"},
+            {"action": "ok"},
+        ],
+        "stop_on_fail": True,
+        "fail_threshold": 1,
+    }
+
+    path = tmp_path / "p.yaml"
+    import yaml
+
+    path.write_text(yaml.safe_dump(cfg))
+
+    runner = pipeline.load_pipeline(str(path))
+    res = runner.run()
+    assert calls == ["ok", "bad"]
+    assert len(res) == 2

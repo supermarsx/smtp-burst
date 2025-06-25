@@ -24,6 +24,13 @@ def main(argv=None):
     logging.basicConfig(level=level, format="%(levelname)s:%(message)s")
     logging.getLogger().setLevel(level)
 
+    if args.pipeline_file:
+        from . import pipeline
+
+        runner = pipeline.load_pipeline(args.pipeline_file)
+        runner.run()
+        return
+
     if args.open_sockets:
         host, srv_port = send.parse_server(args.server)
         port = srv_port if ":" in args.server else args.port
