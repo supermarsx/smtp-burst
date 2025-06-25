@@ -78,3 +78,11 @@ def test_data_mode_option():
 def test_per_burst_flag():
     args = burst_cli.parse_args(["--per-burst-data"], Config())
     assert args.per_burst_data
+
+def test_discovery_options():
+    args = burst_cli.parse_args([
+        '--check-dmarc', 'ex.com',
+        '--ping', 'host'
+    ], Config())
+    assert args.check_dmarc == 'ex.com'
+    assert args.ping == 'host'
