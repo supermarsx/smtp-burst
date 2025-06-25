@@ -67,3 +67,13 @@ def test_body_file_option(tmp_path):
     body_file.write_text("hello")
     args = burst_cli.parse_args(["--body-file", str(body_file)])
     assert args.body_file == str(body_file)
+
+
+def test_data_mode_option():
+    args = burst_cli.parse_args(["--data-mode", "binary"])
+    assert args.data_mode == "binary"
+
+
+def test_per_burst_flag():
+    args = burst_cli.parse_args(["--per-burst-data"])
+    assert args.per_burst_data

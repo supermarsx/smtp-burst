@@ -1,7 +1,5 @@
-import random
 import smtplib
 import socket
-import string
 import time
 from smtplib import (
     SMTPException,
@@ -11,13 +9,7 @@ from smtplib import (
 )
 from typing import Tuple
 
-from . import config
-
-
-def genData(size: int) -> str:
-    """Generate random ASCII string data of ``size`` characters."""
-    chars = string.ascii_letters + string.digits
-    return "".join(random.choice(chars) for _ in range(size))
+from . import config, datagen
 
 
 def appendMessage() -> bytes:
@@ -29,7 +21,15 @@ def appendMessage() -> bytes:
         f"Subject: {config.SB_SUBJECT}\n\n"
         f"{config.SB_BODY}\n\n"
     )
-    return (base + genData(config.SB_SIZE)).encode("ascii")
+    rand = datagen.generate(
+        config.SB_SIZE,
+        mode=config.SB_DATA_MODE,
+        secure=config.SB_SECURE_RANDOM,
+        words=config.SB_DICT_WORDS,
+        repeat=config.SB_REPEAT_STRING,
+        stream=config.SB_RAND_STREAM,
+    )
+    return base.encode("ascii") + rand
 
 
 def sizeof_fmt(num: int, suffix: str = 'B') -> str:
