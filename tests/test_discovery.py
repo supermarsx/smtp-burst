@@ -49,3 +49,42 @@ def test_traceroute(monkeypatch):
 
     monkeypatch.setattr(discovery.subprocess, 'run', fake_run)
     assert discovery.traceroute('host') == 'trace'
+
+
+def test_check_rbl(monkeypatch):
+    calls = []
+
+    def fake_resolve(domain, record):
+        calls.append(domain)
+        if 'listed' in domain:
+            return [DummyAns('127.0.0.2')]
+        raise discovery.resolver.NXDOMAIN
+
+    monkeypatch.setattr(discovery.resolver, 'resolve', fake_resolve)
+    res = discovery.check_rbl('1.2.3.4', ['listed.example', 'clean.example'])
+    assert res == {'listed.example': 'listed', 'clean.example': 'not listed'}
+    assert calls == ['4.3.2.1.listed.example', '4.3.2.1.clean.example']
+
+
+def test_test_open_relay(monkeypatch):
+    class DummySMTP:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def helo(self, _):
+            return (250, b'ok')
+
+        def mail(self, _):
+            return (250, b'ok')
+
+        def rcpt(self, _):
+            return (250, b'ok')
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            pass
+
+    monkeypatch.setattr(discovery.smtplib, 'SMTP', DummySMTP)
+    assert discovery.test_open_relay('host')

@@ -3,8 +3,10 @@ from __future__ import annotations
 """DNS and network discovery utilities."""
 
 from dns import resolver
+import ipaddress
+import smtplib
 import subprocess
-from typing import List, Any
+from typing import List, Any, Dict
 
 
 def _lookup(domain: str, record: str) -> List[str]:
@@ -71,4 +73,43 @@ def traceroute(host: str) -> str:
         return proc.stdout.strip()
     except Exception as exc:  # pragma: no cover
         return str(exc)
+
+
+def check_rbl(ip: str, zones: List[str]) -> Dict[str, str]:
+    """Return mapping of RBL zone to listing status for ``ip``."""
+    results: Dict[str, str] = {}
+    try:
+        ip_obj = ipaddress.ip_address(ip)
+    except ValueError as exc:  # pragma: no cover - input validation
+        return {zone: f"error: {exc}" for zone in zones}
+
+    if ip_obj.version == 4:
+        reversed_ip = ".".join(reversed(ip.split(".")))
+    else:  # pragma: no cover - IPv6 rarely used in tests
+        reversed_ip = ".".join(reversed(ip_obj.exploded.split(":")))
+
+    for zone in zones:
+        qname = f"{reversed_ip}.{zone}"
+        try:
+            resolver.resolve(qname, "A")
+            results[zone] = "listed"
+        except resolver.NXDOMAIN:
+            results[zone] = "not listed"
+        except Exception as exc:  # pragma: no cover - other resolver errors
+            results[zone] = f"error: {exc}"
+    return results
+
+
+def test_open_relay(host: str, port: int = 25) -> bool:
+    """Return ``True`` if SMTP server appears to be an open relay."""
+    try:
+        with smtplib.SMTP(host, port, timeout=10) as smtp:
+            smtp.helo("smtp-burst")
+            code, _ = smtp.mail("relaytest@example.com")
+            if code >= 400:
+                return False
+            code, _ = smtp.rcpt("recipient@example.net")
+            return code < 400
+    except Exception:  # pragma: no cover - network errors
+        return False
 

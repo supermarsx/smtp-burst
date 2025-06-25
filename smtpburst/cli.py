@@ -61,6 +61,16 @@ def build_parser(cfg: Config) -> argparse.ArgumentParser:
     parser.add_argument("--check-srv", help="Service to query SRV record for")
     parser.add_argument("--check-soa", help="Domain to query SOA record for")
     parser.add_argument("--check-txt", help="Domain to query TXT record for")
+    parser.add_argument(
+        "--check-rbl",
+        nargs="+",
+        help="IP followed by one or more RBL zones to query",
+    )
+    parser.add_argument(
+        "--test-open-relay",
+        action="store_true",
+        help="Test if the target SMTP server is an open relay",
+    )
     parser.add_argument("--ping", help="Host to ping")
     parser.add_argument("--traceroute", help="Host to traceroute")
     return parser

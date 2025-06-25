@@ -86,3 +86,15 @@ def test_discovery_options():
     ], Config())
     assert args.check_dmarc == 'ex.com'
     assert args.ping == 'host'
+
+
+def test_check_rbl_option():
+    args = burst_cli.parse_args([
+        '--check-rbl', '1.2.3.4', 'rbl.example'
+    ], Config())
+    assert args.check_rbl == ['1.2.3.4', 'rbl.example']
+
+
+def test_test_open_relay_flag():
+    args = burst_cli.parse_args(['--test-open-relay'], Config())
+    assert args.test_open_relay
