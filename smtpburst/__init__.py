@@ -1,6 +1,6 @@
 """smtp-burst library package."""
 
-from . import send, config, cli, datagen, attacks, report, discovery, nettests, inbox, tls_probe, ssl_probe
+from . import send, config, cli, datagen, attacks, report, discovery, nettests, inbox, tls_probe, ssl_probe, rdns
 
 __all__ = [
     "send",
@@ -14,4 +14,5 @@ __all__ = [
     "inbox",
     "tls_probe",
     "ssl_probe",
+    "rdns",
 ]

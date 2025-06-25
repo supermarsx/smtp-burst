@@ -160,6 +160,11 @@ def test_logging_cli_flags():
     assert args.warnings
 
 
+def test_rdns_flag():
+    args = burst_cli.parse_args(['--rdns-test'], Config())
+    assert args.rdns_test
+
+
 def test_unknown_config_warning(tmp_path):
     cfg_path = tmp_path / "u.json"
     cfg_path.write_text(json.dumps({"bogus": 1}))
