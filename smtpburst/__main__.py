@@ -205,6 +205,11 @@ def main(argv=None):
         ok = rdns.verify(host)
         msg = "Reverse DNS: PASS" if ok else "Reverse DNS: FAIL"
         print(msg)
+    if args.banner_check:
+        banner, ok = discovery.banner_check(args.server)
+        print(f"Banner: {banner}")
+        msg = "Reverse DNS: PASS" if ok else "Reverse DNS: FAIL"
+        print(msg)
     if results:
         logger.info(ascii_report(results))
 

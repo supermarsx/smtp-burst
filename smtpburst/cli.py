@@ -275,6 +275,11 @@ def build_parser(cfg: Config) -> argparse.ArgumentParser:
         help="Verify reverse DNS for the configured server",
     )
     parser.add_argument(
+        "--banner-check",
+        action="store_true",
+        help="Read SMTP banner and verify reverse DNS",
+    )
+    parser.add_argument(
         "--outbound-test",
         action="store_true",
         help="Send one test email and exit",

@@ -87,6 +87,7 @@ Additional CLI flags provide extended functionality:
 - `--traceroute-test HOST` run traceroute to HOST
 - `--perf-test HOST` measure connection, SMTP and ping performance for HOST
 - `--baseline-host HOST` compare `--perf-test` results with HOST
+- `--banner-check` read the SMTP banner and verify reverse DNS
 - `--rdns-test` verify reverse DNS for the configured server
 - `--outbound-test` send one test email and exit
 - `--silent` suppress all output
