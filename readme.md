@@ -33,7 +33,7 @@ This will install the `smtp-burst` console entry point.
 
    ```bash
    $ python -m smtpburst --server smtp.example.com \
-       --sender from@example.com --receivers to@example.com other@example.com
+       --sender from@example.com --receivers to@example.com other@example.com \
        --subject "Test" --body-file body.txt
    ```
 
@@ -42,6 +42,80 @@ This will install the `smtp-burst` console entry point.
 
 An optional `--config` flag can load settings from a JSON or YAML file.
 See `examples/config.yaml` for a reference.
+
+## Command Line Options
+
+Additional CLI flags provide extended functionality:
+
+- `--open-sockets N` open N connections without sending email
+- `--proxy-file FILE` rotate through SOCKS proxies in FILE
+- `--userlist FILE` username wordlist for SMTP AUTH
+- `--passlist FILE` password wordlist for SMTP AUTH
+- `--ssl` connect using SMTPS
+- `--starttls` upgrade the connection with STARTTLS
+- `--check-dmarc DOMAIN` query DMARC record for DOMAIN
+- `--check-spf DOMAIN` query SPF record for DOMAIN
+- `--check-dkim DOMAIN` query DKIM record for DOMAIN
+- `--check-srv NAME` query SRV record for NAME
+- `--check-soa DOMAIN` query SOA record for DOMAIN
+- `--check-txt DOMAIN` query TXT record for DOMAIN
+- `--blacklist-check IP ZONE [ZONE ...]` check IP against DNSBL zones
+- `--open-relay-test` test if the target SMTP server is an open relay
+- `--ping-test HOST` run ping for HOST
+- `--traceroute-test HOST` run traceroute to HOST
+- `--silent` suppress all output
+- `--errors-only` show only error messages
+- `--warnings` show warnings and errors only
+
+Run `smtp-burst --help` for the complete list of options.
+
+## Report Format
+
+Discovery and network tests emit a small ASCII report. Example:
+
+```
++-----------------+
+| Test Report     |
++-----------------+
+dmarc             : v=DMARC1; p=none
+ping              : 64 bytes from 127.0.0.1
++-----------------+
+```
+
+Results are printed to standard output and can be redirected to a file if
+required.
+
+## Discovery Tests
+
+The following flags perform DNS and network checks using the utilities in
+`smtpburst.discovery` and `smtpburst.nettests`:
+
+- `--check-dmarc`, `--check-spf`, `--check-dkim`
+- `--check-srv`, `--check-soa`, `--check-txt`
+- `--blacklist-check`
+- `--open-relay-test`, `--ping-test`, `--traceroute-test`
+
+When these options are used, the report shown above is generated.
+
+## Examples
+
+Verbose logging is enabled by default. To show only warnings:
+
+```bash
+$ python -m smtpburst --warnings --server smtp.example.com
+```
+
+Silent mode suppresses all logs:
+
+```bash
+$ python -m smtpburst --silent --server smtp.example.com
+```
+
+Run a DNS check and save the report:
+
+```bash
+$ python -m smtpburst --check-dmarc example.com --ping-test example.com > report.txt
+```
 
 ## Running Tests
 
