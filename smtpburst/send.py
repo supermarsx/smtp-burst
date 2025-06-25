@@ -2,6 +2,7 @@ import smtplib
 import socket
 import time
 import sys
+import logging
 from smtplib import (
     SMTPException,
     SMTPSenderRefused,
@@ -13,6 +14,8 @@ from typing import Tuple
 from .config import Config
 from . import datagen
 from . import attacks
+
+logger = logging.getLogger(__name__)
 
 
 def appendMessage(cfg: Config) -> bytes:
@@ -71,7 +74,7 @@ def sendmail(
     if SB_FAILCOUNT.value >= cfg.SB_STOPFQNT and cfg.SB_STOPFAIL:
         return
 
-    print(f"{number}/{cfg.SB_TOTAL}, Burst {burst} : Sending Email")
+    logger.info(f"%s/%s, Burst %s : Sending Email", number, cfg.SB_TOTAL, burst)
     host, port = parse_server(server)
     orig_socket = socket.socket
     if proxy:
@@ -94,7 +97,7 @@ def sendmail(
                     for pwd in passwords:
                         try:
                             smtpObj.login(user, pwd)
-                            print(f"Auth success: {user}:{pwd}")
+                            logger.info("Auth success: %s:%s", user, pwd)
                             success = True
                             break
                         except SMTPException:
@@ -102,26 +105,47 @@ def sendmail(
                     if success:
                         break
             smtpObj.sendmail(cfg.SB_SENDER, cfg.SB_RECEIVERS, SB_MESSAGE)
-        print(f"{number}/{cfg.SB_TOTAL}, Burst {burst} : Email Sent")
+        logger.info("%s/%s, Burst %s : Email Sent", number, cfg.SB_TOTAL, burst)
     except SMTPException:
         SB_FAILCOUNT.value += 1
-        print(
-            f"{number}/{cfg.SB_TOTAL}, Burst {burst}/{cfg.SB_BURSTS} : Failure {SB_FAILCOUNT.value}/{cfg.SB_STOPFQNT}, Unable to send email"
+        logger.error(
+            "%s/%s, Burst %s/%s : Failure %s/%s, Unable to send email",
+            number,
+            cfg.SB_TOTAL,
+            burst,
+            cfg.SB_BURSTS,
+            SB_FAILCOUNT.value,
+            cfg.SB_STOPFQNT,
         )
     except SMTPSenderRefused:
         SB_FAILCOUNT.value += 1
-        print(
-            f"{number}/{cfg.SB_TOTAL}, Burst {burst} : Failure {SB_FAILCOUNT.value}/{cfg.SB_STOPFQNT}, Sender refused"
+        logger.error(
+            "%s/%s, Burst %s : Failure %s/%s, Sender refused",
+            number,
+            cfg.SB_TOTAL,
+            burst,
+            SB_FAILCOUNT.value,
+            cfg.SB_STOPFQNT,
         )
     except SMTPRecipientsRefused:
         SB_FAILCOUNT.value += 1
-        print(
-            f"{number}/{cfg.SB_TOTAL}, Burst {burst} : Failure {SB_FAILCOUNT.value}/{cfg.SB_STOPFQNT}, Recipients refused"
+        logger.error(
+            "%s/%s, Burst %s : Failure %s/%s, Recipients refused",
+            number,
+            cfg.SB_TOTAL,
+            burst,
+            SB_FAILCOUNT.value,
+            cfg.SB_STOPFQNT,
         )
     except SMTPDataError:
         SB_FAILCOUNT.value += 1
-        print(
-            f"{number}/{cfg.SB_TOTAL}, Burst {burst} : Failure {SB_FAILCOUNT.value}/{cfg.SB_STOPFQNT}, Data Error"
+        logger.error(
+            "%s/%s, Burst %s : Failure %s/%s, Data Error",
+            number,
+            cfg.SB_TOTAL,
+            burst,
+            SB_FAILCOUNT.value,
+            cfg.SB_STOPFQNT,
         )
     finally:
         if proxy:
@@ -150,11 +174,11 @@ def bombing_mode(cfg: Config) -> None:
     """Run burst sending autonomously using provided configuration."""
     from multiprocessing import Manager, Process
 
-    print(f"Generating {sizeof_fmt(cfg.SB_SIZE)} of data to append to message")
+    logger.info("Generating %s of data to append to message", sizeof_fmt(cfg.SB_SIZE))
     manager = Manager()
     fail_count = manager.Value('i', 0)
     message = appendMessage(cfg)
-    print(f"Message using {sizeof_fmt(sys.getsizeof(message))} of random data")
+    logger.info("Message using %s of random data", sizeof_fmt(sys.getsizeof(message)))
 
     for b in range(cfg.SB_BURSTS):
         if cfg.SB_PER_BURST_DATA:
