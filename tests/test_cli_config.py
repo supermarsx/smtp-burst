@@ -5,6 +5,7 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from smtpburst import cli as burst_cli
+from smtpburst.config import Config
 
 
 def test_json_config_parsing(tmp_path):
@@ -12,7 +13,7 @@ def test_json_config_parsing(tmp_path):
     cfg_path = tmp_path / "config.json"
     cfg_path.write_text(json.dumps(cfg))
 
-    args = burst_cli.parse_args(["--config", str(cfg_path)])
+    args = burst_cli.parse_args(["--config", str(cfg_path)], Config())
     assert args.server == "json.example.com"
     assert args.bursts == 2
 
@@ -22,7 +23,7 @@ def test_cli_overrides_config(tmp_path):
     cfg_path = tmp_path / "c.json"
     cfg_path.write_text(json.dumps(cfg))
 
-    args = burst_cli.parse_args(["--config", str(cfg_path), "--server", "cli.example.com"])
+    args = burst_cli.parse_args(["--config", str(cfg_path), "--server", "cli.example.com"], Config())
     assert args.server == "cli.example.com"
 
 
@@ -31,49 +32,49 @@ def test_yaml_config_parsing(tmp_path):
     cfg_path = tmp_path / "config.yaml"
     cfg_path.write_text(yaml_cfg)
 
-    args = burst_cli.parse_args(["--config", str(cfg_path)])
+    args = burst_cli.parse_args(["--config", str(cfg_path)], Config())
     assert args.server == "yaml.example.com"
 
 
 def test_open_sockets_option():
-    args = burst_cli.parse_args(["--open-sockets", "5"])
+    args = burst_cli.parse_args(["--open-sockets", "5"], Config())
     assert args.open_sockets == 5
 
 
 def test_proxy_file_option(tmp_path):
     proxy_file = tmp_path / "proxies.txt"
     proxy_file.write_text("127.0.0.1:1080\n")
-    args = burst_cli.parse_args(["--proxy-file", str(proxy_file)])
+    args = burst_cli.parse_args(["--proxy-file", str(proxy_file)], Config())
     assert args.proxy_file == str(proxy_file)
 
 
 def test_ssl_flag():
-    args = burst_cli.parse_args(["--ssl"])
+    args = burst_cli.parse_args(["--ssl"], Config())
     assert args.ssl
 
 
 def test_starttls_flag():
-    args = burst_cli.parse_args(["--starttls"])
+    args = burst_cli.parse_args(["--starttls"], Config())
     assert args.starttls
 
 
 def test_subject_option():
-    args = burst_cli.parse_args(["--subject", "MySub"])
+    args = burst_cli.parse_args(["--subject", "MySub"], Config())
     assert args.subject == "MySub"
 
 
 def test_body_file_option(tmp_path):
     body_file = tmp_path / "body.txt"
     body_file.write_text("hello")
-    args = burst_cli.parse_args(["--body-file", str(body_file)])
+    args = burst_cli.parse_args(["--body-file", str(body_file)], Config())
     assert args.body_file == str(body_file)
 
 
 def test_data_mode_option():
-    args = burst_cli.parse_args(["--data-mode", "binary"])
+    args = burst_cli.parse_args(["--data-mode", "binary"], Config())
     assert args.data_mode == "binary"
 
 
 def test_per_burst_flag():
-    args = burst_cli.parse_args(["--per-burst-data"])
+    args = burst_cli.parse_args(["--per-burst-data"], Config())
     assert args.per_burst_data

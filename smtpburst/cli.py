@@ -2,7 +2,7 @@ import argparse
 import json
 from typing import Any, Dict
 
-from . import config as cfg
+from .config import Config
 
 try:
     import yaml
@@ -24,7 +24,7 @@ def load_config(path: str) -> Dict[str, Any]:
     return data
 
 
-def build_parser() -> argparse.ArgumentParser:
+def build_parser(cfg: Config) -> argparse.ArgumentParser:
     """Return argument parser for smtp-burst."""
     parser = argparse.ArgumentParser(
         description="Send bursts of SMTP emails for testing purposes"
@@ -58,13 +58,16 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def parse_args(args=None) -> argparse.Namespace:
+def parse_args(args=None, cfg: Config | None = None) -> argparse.Namespace:
     """Parse command line arguments, optionally merging a config file."""
+    if cfg is None:
+        cfg = Config()
+
     config_parser = argparse.ArgumentParser(add_help=False)
     config_parser.add_argument("--config")
     config_args, _ = config_parser.parse_known_args(args)
 
-    parser = build_parser()
+    parser = build_parser(cfg)
     if config_args.config:
         try:
             config_data = load_config(config_args.config)

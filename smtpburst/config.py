@@ -1,46 +1,49 @@
+from dataclasses import dataclass, field
+from typing import List, Optional, TextIO
+
 # Size constants
 SZ_KILOBYTE = 1024
 SZ_MEGABYTE = 1024 * SZ_KILOBYTE
 SZ_GIGABYTE = 1024 * SZ_MEGABYTE
 SZ_TERABYTE = 1024 * SZ_GIGABYTE
 
-# Default runtime parameters
-SB_SGEMAILS = 5
-SB_SGEMAILSPSEC = 1
-SB_BURSTS = 3
-SB_BURSTSPSEC = 3
-SB_TOTAL = SB_SGEMAILS * SB_BURSTS
-SB_SIZE = 5 * SZ_MEGABYTE * 2
-SB_STOPFAIL = True
-SB_STOPFQNT = 3
-SB_FAILCOUNT = 0
 
-SB_SENDER = 'from@sender.com'
-SB_RECEIVERS = ['to@receiver.com']
-SB_SERVER = 'smtp.mail.com'
-SB_SUBJECT = 'smtp-burst test'
-SB_BODY = 'smtp-burst message body'
-SB_MESSAGEC = """From: SENDER <from@sender.com>
-To: RECEIVER <to@receiver.com>
-Subject: SUBJECT
+@dataclass
+class Config:
+    """Runtime configuration options."""
 
-MESSAGE DATA
+    SB_SGEMAILS: int = 5
+    SB_SGEMAILSPSEC: float = 1
+    SB_BURSTS: int = 3
+    SB_BURSTSPSEC: float = 3
+    SB_SIZE: int = 5 * SZ_MEGABYTE * 2
+    SB_STOPFAIL: bool = True
+    SB_STOPFQNT: int = 3
 
-"""
+    SB_SENDER: str = "from@sender.com"
+    SB_RECEIVERS: List[str] = field(default_factory=lambda: ["to@receiver.com"])
+    SB_SERVER: str = "smtp.mail.com"
+    SB_SUBJECT: str = "smtp-burst test"
+    SB_BODY: str = "smtp-burst message body"
 
-# Proxy and authentication defaults
-SB_PROXIES = []
-SB_USERLIST = []
-SB_PASSLIST = []
+    # Proxy and authentication defaults
+    SB_PROXIES: List[str] = field(default_factory=list)
+    SB_USERLIST: List[str] = field(default_factory=list)
+    SB_PASSLIST: List[str] = field(default_factory=list)
 
-# Security options
-SB_SSL = False
-SB_STARTTLS = False
+    # Security options
+    SB_SSL: bool = False
+    SB_STARTTLS: bool = False
 
-# Data generation options
-SB_DATA_MODE = 'ascii'
-SB_DICT_WORDS = []
-SB_REPEAT_STRING = ''
-SB_PER_BURST_DATA = False
-SB_SECURE_RANDOM = False
-SB_RAND_STREAM = None
+    # Data generation options
+    SB_DATA_MODE: str = "ascii"
+    SB_DICT_WORDS: List[str] = field(default_factory=list)
+    SB_REPEAT_STRING: str = ""
+    SB_PER_BURST_DATA: bool = False
+    SB_SECURE_RANDOM: bool = False
+    SB_RAND_STREAM: Optional[TextIO] = None
+
+    @property
+    def SB_TOTAL(self) -> int:
+        """Total number of emails to send."""
+        return self.SB_SGEMAILS * self.SB_BURSTS
