@@ -109,6 +109,14 @@ def test_discovery_options():
     assert args.ping_test == "host"
 
 
+def test_perf_cli_options():
+    args = burst_cli.parse_args(
+        ["--perf-test", "host", "--baseline-host", "base"], Config()
+    )
+    assert args.perf_test == "host"
+    assert args.baseline_host == "base"
+
+
 def test_blacklist_option():
     args = burst_cli.parse_args(
         ["--blacklist-check", "1.2.3.4", "rbl.example"], Config()

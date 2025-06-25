@@ -7,6 +7,7 @@ from smtpburst import discovery
 from smtpburst.discovery import nettests
 from smtpburst.reporting import ascii_report
 from smtpburst import inbox
+from smtpburst import attacks
 
 logger = logging.getLogger(__name__)
 
@@ -169,6 +170,11 @@ def main(argv=None):
         results["ping"] = nettests.ping(args.ping_test)
     if args.traceroute_test:
         results["traceroute"] = nettests.traceroute(args.traceroute_test)
+    if args.perf_test:
+        host, port = send.parse_server(args.perf_test)
+        results["performance"] = attacks.performance_test(
+            host, port, baseline=args.baseline_host
+        )
     if args.vrfy_enum or args.expn_enum or args.rcpt_enum:
         host, port = send.parse_server(args.server)
         enum_items = cfg.SB_ENUM_LIST or cfg.SB_USERLIST

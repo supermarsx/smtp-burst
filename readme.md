@@ -82,6 +82,8 @@ Additional CLI flags provide extended functionality:
 - `--open-relay-test` test if the target SMTP server is an open relay
 - `--ping-test HOST` run ping for HOST
 - `--traceroute-test HOST` run traceroute to HOST
+- `--perf-test HOST` measure connection, SMTP and ping performance for HOST
+- `--baseline-host HOST` compare `--perf-test` results with HOST
 - `--rdns-test` verify reverse DNS for the configured server
 - `--outbound-test` send one test email and exit
 - `--silent` suppress all output
@@ -145,7 +147,8 @@ The following flags perform DNS and network checks using the utilities in
 - `--smtp-extensions`, `--cert-check`, `--port-scan`, `--probe-honeypot`,
   `--tls-discovery`, `--ssl-discovery`
 - `--blacklist-check`
-- `--open-relay-test`, `--ping-test`, `--traceroute-test`, `--rdns-test`
+- `--open-relay-test`, `--ping-test`, `--traceroute-test`, `--perf-test`,
+  `--baseline-host`, `--rdns-test`
 
 When these options are used, the report shown above is generated.
 
