@@ -179,3 +179,8 @@ def test_append_message_uses_subject_and_body(monkeypatch):
     assert b'Subject: Sub' in msg
     assert b'Body' in msg
 
+
+def test_genData_length():
+    for n in [0, 1, 10, 100]:
+        assert len(burstGen.genData(n)) == n
+
