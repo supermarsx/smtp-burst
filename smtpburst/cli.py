@@ -73,6 +73,10 @@ def build_parser(cfg: Config) -> argparse.ArgumentParser:
     )
     parser.add_argument("--ping", help="Host to ping")
     parser.add_argument("--traceroute", help="Host to traceroute")
+    level_group = parser.add_mutually_exclusive_group()
+    level_group.add_argument("--silent", action="store_true", help="Suppress all log output")
+    level_group.add_argument("--errors-only", action="store_true", help="Show only error messages")
+    level_group.add_argument("--warnings", action="store_true", help="Show warnings and errors only")
     return parser
 
 

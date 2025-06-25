@@ -1,4 +1,5 @@
 import sys
+import logging
 
 from smtpburst.config import Config
 from smtpburst import send
@@ -6,10 +7,23 @@ from smtpburst import cli
 from smtpburst import discovery
 from smtpburst import report
 
+logger = logging.getLogger(__name__)
+
 
 def main(argv=None):
     cfg = Config()
     args = cli.parse_args(argv, cfg)
+
+    if args.silent:
+        level = logging.CRITICAL
+    elif args.errors_only:
+        level = logging.ERROR
+    elif args.warnings:
+        level = logging.WARNING
+    else:
+        level = logging.INFO
+    logging.basicConfig(level=level, format="%(levelname)s:%(message)s")
+    logging.getLogger().setLevel(level)
 
     if args.open_sockets:
         host, srv_port = send.parse_server(args.server)
@@ -53,7 +67,7 @@ def main(argv=None):
         with open(args.body_file, "r", encoding="utf-8") as fh:
             cfg.SB_BODY = fh.read()
 
-    print("Starting smtp-burst")
+    logger.info("Starting smtp-burst")
     send.bombing_mode(cfg)
 
     results = {}
@@ -79,7 +93,7 @@ def main(argv=None):
     if args.traceroute:
         results['traceroute'] = discovery.traceroute(args.traceroute)
     if results:
-        print(report.ascii_report(results))
+        logger.info(report.ascii_report(results))
 
 
 if __name__ == "__main__":

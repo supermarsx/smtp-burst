@@ -1,7 +1,11 @@
 import socket
 import struct
 import time
+import logging
 from typing import List
+
+
+logger = logging.getLogger(__name__)
 
 
 def open_sockets(host: str, count: int, port: int = 25):
@@ -10,7 +14,9 @@ def open_sockets(host: str, count: int, port: int = 25):
     for _ in range(count):
         s = socket.create_connection((host, port))
         sockets.append(s)
-    print(f"Opened {len(sockets)} sockets to {host}:{port}. Press Ctrl+C to exit.")
+    logger.info(
+        "Opened %s sockets to %s:%s. Press Ctrl+C to exit.", len(sockets), host, port
+    )
     try:
         while True:
             time.sleep(1)
@@ -34,7 +40,9 @@ def socket_open_time(host: str, count: int, port: int = 25) -> List[float]:
         s.close()
         times.append(end - start)
     avg = sum(times) / len(times) if times else 0
-    print(f"Average open time to {host}:{port} over {count} sockets: {avg:.4f}s")
+    logger.info(
+        "Average open time to %s:%s over %s sockets: %.4fs", host, port, count, avg
+    )
     return times
 
 
@@ -51,7 +59,7 @@ def tcp_syn_flood(host: str, port: int, count: int):
             s.close()
         except Exception:
             pass
-    print(f"Sent {count} SYN packets to {host}:{port}")
+    logger.info("Sent %s SYN packets to %s:%s", count, host, port)
 
 
 def tcp_reset_attack(host: str, port: int):
@@ -64,21 +72,21 @@ def tcp_reset_attack(host: str, port: int):
         s.close()
     except Exception:
         pass
-    print(f"Performed TCP reset attack on {host}:{port}")
+    logger.info("Performed TCP reset attack on %s:%s", host, port)
 
 
 def tcp_reset_flood(host: str, port: int, count: int):
     """Repeated TCP reset attacks."""
     for _ in range(count):
         tcp_reset_attack(host, port)
-    print(f"Performed {count} TCP resets on {host}:{port}")
+    logger.info("Performed %s TCP resets on %s:%s", count, host, port)
 
 
 def smurf_test(target: str, count: int):
     """Simulate a smurf attack by issuing ping requests."""
     for _ in range(count):
         time.sleep(0.01)
-    print(f"Simulated smurf attack against {target} {count} times")
+    logger.info("Simulated smurf attack against %s %s times", target, count)
 
 
 def auto_test(host: str, port: int):

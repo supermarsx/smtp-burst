@@ -98,3 +98,12 @@ def test_check_rbl_option():
 def test_test_open_relay_flag():
     args = burst_cli.parse_args(['--test-open-relay'], Config())
     assert args.test_open_relay
+
+
+def test_logging_cli_flags():
+    args = burst_cli.parse_args(['--silent'], Config())
+    assert args.silent
+    args = burst_cli.parse_args(['--errors-only'], Config())
+    assert args.errors_only
+    args = burst_cli.parse_args(['--warnings'], Config())
+    assert args.warnings
