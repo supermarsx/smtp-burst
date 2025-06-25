@@ -179,6 +179,11 @@ def test_rdns_flag():
     assert args.rdns_test
 
 
+def test_outbound_test_flag():
+    args = burst_cli.parse_args(["--outbound-test"], Config())
+    assert args.outbound_test
+
+
 def test_template_and_enum_options(tmp_path):
     tpl = tmp_path / "tpl.txt"
     tpl.write_text("body")

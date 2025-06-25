@@ -203,6 +203,29 @@ def open_sockets(host: str, count: int, port: int = 25, cfg: Config | None = Non
     return attacks.open_sockets(host, count, port, delay, cfg)
 
 
+def send_test_email(cfg: Config) -> None:
+    """Send a single minimal email using ``sendmail`` helper."""
+
+    class Counter:
+        def __init__(self):
+            self.value = 0
+
+    msg = (
+        f"From: {cfg.SB_SENDER}\n"
+        f"To: {', '.join(cfg.SB_RECEIVERS)}\n"
+        f"Subject: {cfg.SB_SUBJECT}\n\n"
+        "smtp-burst outbound test\n"
+    ).encode("utf-8")
+
+    sendmail(
+        1,
+        1,
+        Counter(),
+        msg,
+        cfg,
+    )
+
+
 def bombing_mode(cfg: Config) -> None:
     """Run burst sending autonomously using provided configuration."""
     from multiprocessing import Manager, Process
