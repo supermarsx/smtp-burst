@@ -230,7 +230,7 @@ def build_parser(cfg: Config) -> argparse.ArgumentParser:
     parser.add_argument("--probe-honeypot", help="Host to probe for SMTP honeypot")
     parser.add_argument(
         "--tls-discovery",
-        help="Host to discover supported TLS versions",
+        help="Host to probe TLS versions and certificate validity",
     )
     parser.add_argument(
         "--ssl-discovery",

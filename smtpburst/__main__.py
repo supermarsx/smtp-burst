@@ -140,9 +140,9 @@ def main(argv=None):
         results["honeypot"] = discovery.probe_honeypot(host, port)
     if args.tls_discovery:
         host, port = send.parse_server(args.tls_discovery)
-        from smtpburst.discovery import tls_probe
+        from smtpburst import tlstest
 
-        results["tls"] = tls_probe.discover(host, port)
+        results["tls"] = tlstest.test_versions(host, port)
     if args.ssl_discovery:
         host, port = send.parse_server(args.ssl_discovery)
         from smtpburst.discovery import ssl_probe

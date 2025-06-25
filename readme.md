@@ -76,7 +76,7 @@ Additional CLI flags provide extended functionality:
 - `--cert-check HOST` retrieve TLS certificate from HOST
 - `--port-scan HOST PORT [PORT ...]` scan ports on HOST
 - `--probe-honeypot HOST` probe HOST for SMTP honeypot
-- `--tls-discovery HOST` discover supported TLS versions on HOST
+- `--tls-discovery HOST` probe TLS versions and validate certificates on HOST
 - `--ssl-discovery HOST` discover supported legacy SSL versions on HOST
 - `--blacklist-check IP ZONE [ZONE ...]` check IP against DNSBL zones
 - `--open-relay-test` test if the target SMTP server is an open relay
@@ -110,14 +110,14 @@ ping              : 64 bytes from 127.0.0.1
 +-----------------+
 ```
 
-Running TLS discovery prints the supported versions:
+Running TLS discovery prints the negotiated protocol and certificate status:
 
 ```
 $ python -m smtpburst --tls-discovery smtp.example.com
 +-----------------+
 | Test Report     |
 +-----------------+
-tls               : {'TLSv1': False, 'TLSv1_2': True}
+tls               : {'TLSv1_2': {'supported': True, 'valid': False, 'protocol': 'TLSv1.2'}}
 +-----------------+
 ```
 
