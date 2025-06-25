@@ -260,6 +260,8 @@ def build_parser(cfg: Config) -> argparse.ArgumentParser:
     )
     parser.add_argument("--ping-test", help="Host to ping")
     parser.add_argument("--traceroute-test", help="Host to traceroute")
+    parser.add_argument("--perf-test", help="Host to run performance test against")
+    parser.add_argument("--baseline-host", help="Baseline host for performance comparison")
     parser.add_argument(
         "--rdns-test",
         action="store_true",

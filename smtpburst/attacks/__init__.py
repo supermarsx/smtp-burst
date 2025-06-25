@@ -2,7 +2,9 @@ import socket
 import struct
 import time
 import logging
-from typing import List
+import smtplib
+import subprocess
+from typing import List, Dict, Any
 
 
 logger = logging.getLogger(__name__)
@@ -118,4 +120,86 @@ def suite_test(host: str, port: int):
     tcp_reset_attack(host, port)
     tcp_reset_flood(host, port, 5)
     smurf_test(host, 5)
+    return results
+
+
+def connection_setup_time(host: str, port: int = 25) -> float:
+    """Return time to establish a TCP connection to ``host``."""
+    start = time.monotonic()
+    try:
+        s = socket.create_connection((host, port))
+    finally:
+        end = time.monotonic()
+        try:
+            s.close()
+        except Exception:
+            pass
+    return end - start
+
+
+def smtp_handshake_time(host: str, port: int = 25, use_ssl: bool = False, start_tls: bool = False) -> float:
+    """Return time to complete SMTP handshake with ``host``."""
+    smtp_cls = smtplib.SMTP_SSL if use_ssl else smtplib.SMTP
+    start = time.monotonic()
+    with smtp_cls(host, port, timeout=10) as smtp:
+        if start_tls and not use_ssl:
+            smtp.starttls()
+        smtp.ehlo()
+    return time.monotonic() - start
+
+
+def message_send_time(
+    host: str,
+    sender: str,
+    recipients: List[str],
+    message: bytes,
+    port: int = 25,
+    use_ssl: bool = False,
+    start_tls: bool = False,
+) -> float:
+    """Return time required to send ``message`` via SMTP."""
+    smtp_cls = smtplib.SMTP_SSL if use_ssl else smtplib.SMTP
+    start = time.monotonic()
+    with smtp_cls(host, port, timeout=10) as smtp:
+        if start_tls and not use_ssl:
+            smtp.starttls()
+        smtp.sendmail(sender, recipients, message)
+    return time.monotonic() - start
+
+
+def ping_latency(host: str) -> float:
+    """Return latency of a single ICMP ping to ``host``."""
+    start = time.monotonic()
+    subprocess.run(["ping", "-c", "1", host], capture_output=True, text=True, check=False)
+    return time.monotonic() - start
+
+
+def performance_test(host: str, port: int = 25, baseline: str | None = None) -> Dict[str, Any]:
+    """Run latency tests against ``host`` and optionally ``baseline``."""
+
+    def _measure(target: str, p: int) -> Dict[str, float]:
+        return {
+            "connection_setup": connection_setup_time(target, p),
+            "smtp_handshake": smtp_handshake_time(target, p),
+            "message_send": message_send_time(
+                target,
+                "from@sender.com",
+                ["to@receiver.com"],
+                b"test",
+                p,
+            ),
+            "ping": ping_latency(target),
+        }
+
+    results = {"target": _measure(host, port)}
+    if baseline:
+        if ":" in baseline:
+            b_host, b_port_str = baseline.rsplit(":", 1)
+            try:
+                b_port = int(b_port_str)
+            except ValueError:
+                b_port = 25
+        else:
+            b_host, b_port = baseline, 25
+        results["baseline"] = _measure(b_host, b_port)
     return results
