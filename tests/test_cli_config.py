@@ -222,3 +222,13 @@ def test_new_message_mode_flags():
     assert args.utf7_test
     assert args.header_tunnel_test
     assert args.control_char_test
+
+
+def test_proxy_order_cli():
+    args = burst_cli.parse_args(["--proxy-order", "random"], Config())
+    assert args.proxy_order == "random"
+
+
+def test_check_proxies_flag():
+    args = burst_cli.parse_args(["--check-proxies"], Config())
+    assert args.check_proxies

@@ -29,6 +29,8 @@ class Config:
 
     # Proxy and authentication defaults
     SB_PROXIES: List[str] = field(default_factory=list)
+    SB_PROXY_ORDER: str = "asc"
+    SB_CHECK_PROXIES: bool = False
     SB_USERLIST: List[str] = field(default_factory=list)
     SB_PASSLIST: List[str] = field(default_factory=list)
 

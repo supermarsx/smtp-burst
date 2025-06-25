@@ -173,6 +173,18 @@ def build_parser(cfg: Config) -> argparse.ArgumentParser:
     parser.add_argument(
         "--proxy-file", help="File containing SOCKS proxies to rotate through"
     )
+    parser.add_argument(
+        "--proxy-order",
+        choices=["asc", "desc", "random"],
+        default=cfg.SB_PROXY_ORDER,
+        help="Order to apply proxies",
+    )
+    parser.add_argument(
+        "--check-proxies",
+        action="store_true",
+        default=cfg.SB_CHECK_PROXIES,
+        help="Validate proxies before use",
+    )
     parser.add_argument("--userlist", help="Username wordlist for SMTP AUTH")
     parser.add_argument("--passlist", help="Password wordlist for SMTP AUTH")
     parser.add_argument("--template-file", help="Phishing template file")
