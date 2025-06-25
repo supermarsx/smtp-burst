@@ -1,6 +1,7 @@
 import json
 import os
 import sys
+import pytest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -107,3 +108,10 @@ def test_logging_cli_flags():
     assert args.errors_only
     args = burst_cli.parse_args(['--warnings'], Config())
     assert args.warnings
+
+
+def test_unknown_config_warning(tmp_path):
+    cfg_path = tmp_path / "u.json"
+    cfg_path.write_text(json.dumps({"bogus": 1}))
+    with pytest.warns(RuntimeWarning):
+        burst_cli.parse_args(["--config", str(cfg_path)], Config())

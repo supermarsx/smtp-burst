@@ -1,5 +1,6 @@
 import argparse
 import json
+import warnings
 from typing import Any, Dict
 
 from .config import Config
@@ -95,5 +96,12 @@ def parse_args(args=None, cfg: Config | None = None) -> argparse.Namespace:
             config_data = load_config(config_args.config)
         except FileNotFoundError:
             raise SystemExit(f"Config file not found: {config_args.config}")
+        known = {action.dest for action in parser._actions}
+        unknown = [k for k in config_data.keys() if k not in known]
+        if unknown:
+            warnings.warn(
+                f"Unknown config options: {', '.join(unknown)}",
+                RuntimeWarning,
+            )
         parser.set_defaults(**config_data)
     return parser.parse_args(args)
