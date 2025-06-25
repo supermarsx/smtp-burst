@@ -61,8 +61,15 @@ def main(argv=None):
         cfg.SB_RAND_STREAM = open(args.rand_stream, "rb")
 
     if args.proxy_file:
-        with open(args.proxy_file, "r", encoding="utf-8") as fh:
-            cfg.SB_PROXIES = [line.strip() for line in fh if line.strip()]
+        from . import proxy
+
+        cfg.SB_PROXIES = proxy.load_proxies(
+            args.proxy_file,
+            order=args.proxy_order,
+            check=args.check_proxies,
+        )
+    cfg.SB_PROXY_ORDER = args.proxy_order
+    cfg.SB_CHECK_PROXIES = args.check_proxies
     if args.userlist:
         with open(args.userlist, "r", encoding="utf-8") as fh:
             cfg.SB_USERLIST = [line.strip() for line in fh if line.strip()]

@@ -53,6 +53,8 @@ Additional CLI flags provide extended functionality:
 
 - `--open-sockets N` open N connections without sending email
 - `--proxy-file FILE` rotate through SOCKS proxies in FILE
+- `--proxy-order {asc,desc,random}` apply proxies in given order
+- `--check-proxies` validate proxies before use
 - `--userlist FILE` username wordlist for SMTP AUTH
 - `--passlist FILE` password wordlist for SMTP AUTH
 - `--template-file FILE` phishing template with `{sender}` tags

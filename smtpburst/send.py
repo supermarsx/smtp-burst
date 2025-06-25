@@ -226,8 +226,12 @@ def bombing_mode(cfg: Config) -> None:
             throttle(cfg, cfg.SB_SGEMAILSPSEC)
             proxy = None
             if cfg.SB_PROXIES:
-                idx = (number + (b * cfg.SB_SGEMAILS) - 1) % len(cfg.SB_PROXIES)
-                proxy = cfg.SB_PROXIES[idx]
+                from . import proxy as proxy_util
+
+                idx = number + (b * cfg.SB_SGEMAILS) - 1
+                proxy = proxy_util.select_proxy(
+                    cfg.SB_PROXIES, cfg.SB_PROXY_ORDER, idx
+                )
             proc = Process(
                 target=sendmail,
                 args=(

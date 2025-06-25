@@ -13,6 +13,7 @@ from . import (
     tls_probe,
     ssl_probe,
     rdns,
+    proxy,
 )
 
 __all__ = [
@@ -28,4 +29,5 @@ __all__ = [
     "tls_probe",
     "ssl_probe",
     "rdns",
+    "proxy",
 ]
