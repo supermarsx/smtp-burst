@@ -213,6 +213,17 @@ def test_append_message_uses_subject_and_body(monkeypatch):
     assert b"Body" in msg
 
 
+def test_append_message_template():
+    cfg = Config()
+    cfg.SB_SENDER = "a@b.com"
+    cfg.SB_RECEIVERS = ["c@d.com"]
+    cfg.SB_SUBJECT = "Sub"
+    cfg.SB_TEMPLATE = "Hello {receiver} from {sender}"
+    cfg.SB_SIZE = 0
+    msg = burstGen.appendMessage(cfg)
+    assert b"Hello c@d.com" in msg
+
+
 def test_genData_length():
     for n in [0, 1, 10, 100]:
         assert len(datagen.generate(n, mode="ascii")) == n

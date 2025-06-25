@@ -170,3 +170,75 @@ def test_probe_honeypot(monkeypatch):
         discovery.socket, "create_connection", lambda addr, timeout=3: DummyConn()
     )
     assert discovery.probe_honeypot("h")
+
+
+def test_vrfy_enum(monkeypatch):
+    class DummySMTP:
+        def __init__(self, *a, **k):
+            pass
+
+        def helo(self, _):
+            pass
+
+        def verify(self, u):
+            return (250, b"ok") if u == "good" else (550, b"bad")
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            pass
+
+    monkeypatch.setattr(nettests.smtplib, "SMTP", DummySMTP)
+    res = nettests.vrfy_enum("h", ["good", "bad"])
+    assert res == {"good": True, "bad": False}
+
+
+def test_expn_enum(monkeypatch):
+    class DummySMTP:
+        def __init__(self, *a, **k):
+            pass
+
+        def helo(self, _):
+            pass
+
+        def expn(self, u):
+            return (250, b"ok") if u == "list" else (550, b"bad")
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            pass
+
+    monkeypatch.setattr(nettests.smtplib, "SMTP", DummySMTP)
+    res = nettests.expn_enum("h", ["list", "none"])
+    assert res == {"list": True, "none": False}
+
+
+def test_rcpt_enum(monkeypatch):
+    class DummySMTP:
+        def __init__(self, *a, **k):
+            pass
+
+        def helo(self, _):
+            pass
+
+        def mail(self, _):
+            return (250, b"ok")
+
+        def rcpt(self, r):
+            return (250, b"ok") if r == "ok" else (550, b"bad")
+
+        def rset(self):
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            pass
+
+    monkeypatch.setattr(nettests.smtplib, "SMTP", DummySMTP)
+    res = nettests.rcpt_enum("h", ["ok", "bad"])
+    assert res == {"ok": True, "bad": False}

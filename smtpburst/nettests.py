@@ -6,7 +6,7 @@ from dns import resolver
 import ipaddress
 import smtplib
 import subprocess
-from typing import List, Dict
+from typing import Callable, Dict, List
 
 
 def ping(host: str) -> str:
@@ -74,3 +74,47 @@ def blacklist_check(ip: str, zones: List[str]) -> Dict[str, str]:
         except Exception as exc:  # pragma: no cover - resolver errors
             results[zone] = f"error: {exc}"
     return results
+
+
+def _enum(
+    host: str, port: int, items: List[str], func: Callable[[smtplib.SMTP, str], tuple]
+) -> Dict[str, bool]:
+    """Return mapping of ``items`` to success status using ``func``."""
+    results: Dict[str, bool] = {}
+    try:
+        with smtplib.SMTP(host, port, timeout=10) as smtp:
+            smtp.helo("smtp-burst")
+            for item in items:
+                try:
+                    code, _ = func(smtp, item)
+                except smtplib.SMTPException:
+                    code = 500
+                results[item] = code < 400
+                if getattr(smtp, "rcpt", None) and func == smtp.rcpt:
+                    try:
+                        smtp.rset()
+                    except smtplib.SMTPException:
+                        pass
+    except Exception:  # pragma: no cover - network failures
+        return {it: False for it in items}
+    return results
+
+
+def vrfy_enum(host: str, items: List[str], port: int = 25) -> Dict[str, bool]:
+    """Return result of VRFY enumeration for ``items``."""
+    return _enum(host, port, items, lambda s, i: s.verify(i))
+
+
+def expn_enum(host: str, items: List[str], port: int = 25) -> Dict[str, bool]:
+    """Return result of EXPN enumeration for ``items``."""
+    return _enum(host, port, items, lambda s, i: s.expn(i))
+
+
+def rcpt_enum(host: str, items: List[str], port: int = 25) -> Dict[str, bool]:
+    """Return result of RCPT TO enumeration for ``items``."""
+
+    def _rcpt(smtp: smtplib.SMTP, rcpt: str):
+        smtp.mail("enum@example.com")
+        return smtp.rcpt(rcpt)
+
+    return _enum(host, port, items, _rcpt)

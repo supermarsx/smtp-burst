@@ -179,6 +179,28 @@ def test_rdns_flag():
     assert args.rdns_test
 
 
+def test_template_and_enum_options(tmp_path):
+    tpl = tmp_path / "tpl.txt"
+    tpl.write_text("body")
+    enum = tmp_path / "list.txt"
+    enum.write_text("a\n")
+    args = burst_cli.parse_args(
+        [
+            "--template-file",
+            str(tpl),
+            "--enum-list",
+            str(enum),
+            "--vrfy-enum",
+            "--expn-enum",
+            "--rcpt-enum",
+        ],
+        Config(),
+    )
+    assert args.template_file == str(tpl)
+    assert args.enum_list == str(enum)
+    assert args.vrfy_enum and args.expn_enum and args.rcpt_enum
+
+
 def test_unknown_config_warning(tmp_path):
     cfg_path = tmp_path / "u.json"
     cfg_path.write_text(json.dumps({"bogus": 1}))
