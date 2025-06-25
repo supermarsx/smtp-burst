@@ -105,3 +105,24 @@ def test_logging_modes(monkeypatch, caplog):
     caplog.clear()
     main_mod.main(["--silent"])
     assert not caplog.records
+
+def test_main_tls_discovery(monkeypatch):
+    called = {}
+
+    def fake_test(host, port):
+        called['host'] = host
+        called['port'] = port
+        return {'TLSv1_2': {'supported': True}}
+
+    def fake_report(res):
+        called['report'] = res
+        return 'R'
+
+    monkeypatch.setattr(main_mod.send, 'parse_server', lambda s: ('h', 443))
+    monkeypatch.setattr('smtpburst.tlstest.test_versions', fake_test)
+    monkeypatch.setattr(main_mod, 'ascii_report', fake_report)
+
+    main_mod.main(['--tls-discovery', 'h'])
+
+    assert called['host'] == 'h'
+    assert called['report'] == {'tls': {'TLSv1_2': {'supported': True}}}
