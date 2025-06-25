@@ -102,6 +102,10 @@ def main(argv=None):
         host, port = send.parse_server(args.tls_discovery)
         from . import tls_probe
         results['tls'] = tls_probe.discover(host, port)
+    if args.ssl_discovery:
+        host, port = send.parse_server(args.ssl_discovery)
+        from . import ssl_probe
+        results['ssl'] = ssl_probe.discover(host, port)
     if args.imap_check:
         host, user, pwd, crit = args.imap_check
         host, port = send.parse_server(host)

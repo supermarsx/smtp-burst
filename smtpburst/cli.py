@@ -76,6 +76,10 @@ def build_parser(cfg: Config) -> argparse.ArgumentParser:
         help="Host to discover supported TLS versions",
     )
     parser.add_argument(
+        "--ssl-discovery",
+        help="Host to discover supported legacy SSL versions",
+    )
+    parser.add_argument(
         "--blacklist-check",
         nargs="+",
         help="IP followed by one or more DNSBL zones to query",

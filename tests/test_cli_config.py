@@ -124,6 +124,13 @@ def test_tls_discovery_option():
     assert args.tls_discovery == 'host'
 
 
+def test_ssl_discovery_option():
+    args = burst_cli.parse_args([
+        '--ssl-discovery', 'host'
+    ], Config())
+    assert args.ssl_discovery == 'host'
+
+
 def test_inbox_cli_options():
     args = burst_cli.parse_args([
         '--imap-check', 'h', 'u', 'p', 'ALL',
