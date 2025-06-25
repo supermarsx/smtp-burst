@@ -106,6 +106,11 @@ def build_parser(cfg: Config) -> argparse.ArgumentParser:
     )
     parser.add_argument("--ping-test", help="Host to ping")
     parser.add_argument("--traceroute-test", help="Host to traceroute")
+    parser.add_argument(
+        "--rdns-test",
+        action="store_true",
+        help="Verify reverse DNS for the configured server",
+    )
     level_group = parser.add_mutually_exclusive_group()
     level_group.add_argument("--silent", action="store_true", help="Suppress all log output")
     level_group.add_argument("--errors-only", action="store_true", help="Show only error messages")

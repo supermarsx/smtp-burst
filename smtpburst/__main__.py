@@ -128,6 +128,12 @@ def main(argv=None):
         results['ping'] = nettests.ping(args.ping_test)
     if args.traceroute_test:
         results['traceroute'] = nettests.traceroute(args.traceroute_test)
+    if args.rdns_test:
+        host, _ = send.parse_server(args.server)
+        from . import rdns
+        ok = rdns.verify(host)
+        msg = "Reverse DNS: PASS" if ok else "Reverse DNS: FAIL"
+        print(msg)
     if results:
         logger.info(report.ascii_report(results))
 
