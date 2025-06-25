@@ -224,6 +224,51 @@ def test_append_message_template():
     assert b"Hello c@d.com" in msg
 
 
+def test_append_message_unicode_headers():
+    cfg = Config()
+    cfg.SB_SENDER = "a@b.com"
+    cfg.SB_RECEIVERS = ["c@d.com"]
+    cfg.SB_SUBJECT = "Sub"
+    cfg.SB_SIZE = 0
+    cfg.SB_TEST_UNICODE = True
+    msg = burstGen.appendMessage(cfg)
+    assert b"FrOm:" in msg and b"tO:" in msg
+
+
+def test_append_message_utf7_body():
+    cfg = Config()
+    cfg.SB_SENDER = "a@b.com"
+    cfg.SB_RECEIVERS = ["c@d.com"]
+    cfg.SB_SUBJECT = "Sub"
+    cfg.SB_BODY = "\u2713"  # checkmark
+    cfg.SB_SIZE = 0
+    cfg.SB_TEST_UTF7 = True
+    msg = burstGen.appendMessage(cfg)
+    assert b"+JxM" in msg
+
+
+def test_append_message_tunnel_header():
+    cfg = Config()
+    cfg.SB_SENDER = "a@b.com"
+    cfg.SB_RECEIVERS = ["c@d.com"]
+    cfg.SB_SUBJECT = "Sub"
+    cfg.SB_SIZE = 0
+    cfg.SB_TEST_TUNNEL = True
+    msg = burstGen.appendMessage(cfg)
+    assert b"X-Orig: overlap" in msg
+
+
+def test_append_message_control_chars():
+    cfg = Config()
+    cfg.SB_SENDER = "a@b.com"
+    cfg.SB_RECEIVERS = ["c@d.com"]
+    cfg.SB_SUBJECT = "Sub"
+    cfg.SB_SIZE = 0
+    cfg.SB_TEST_CONTROL = True
+    msg = burstGen.appendMessage(cfg)
+    assert b"\x01\x02" in msg
+
+
 def test_genData_length():
     for n in [0, 1, 10, 100]:
         assert len(datagen.generate(n, mode="ascii")) == n

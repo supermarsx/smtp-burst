@@ -86,6 +86,10 @@ Additional CLI flags provide extended functionality:
 - `--global-delay SECS` sleep SECS before each network action
 - `--socket-delay SECS` delay between open socket checks
 - `--tarpit-threshold SECS` warn if responses exceed SECS
+- `--unicode-case-test` craft headers using Unicode and case variation
+- `--utf7-test` encode headers and body with UTF-7
+- `--header-tunnel-test` add overlapping headers to test tunneling
+- `--control-char-test` insert encoded control characters
 
 Run `smtp-burst --help` for the complete list of options.
 

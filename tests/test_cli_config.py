@@ -206,3 +206,19 @@ def test_unknown_config_warning(tmp_path):
     cfg_path.write_text(json.dumps({"bogus": 1}))
     with pytest.warns(RuntimeWarning):
         burst_cli.parse_args(["--config", str(cfg_path)], Config())
+
+
+def test_new_message_mode_flags():
+    args = burst_cli.parse_args(
+        [
+            "--unicode-case-test",
+            "--utf7-test",
+            "--header-tunnel-test",
+            "--control-char-test",
+        ],
+        Config(),
+    )
+    assert args.unicode_case_test
+    assert args.utf7_test
+    assert args.header_tunnel_test
+    assert args.control_char_test
