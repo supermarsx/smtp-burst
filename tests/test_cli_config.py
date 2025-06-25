@@ -117,6 +117,15 @@ def test_new_discovery_cli_options():
     assert args.probe_honeypot == 'host'
 
 
+def test_inbox_cli_options():
+    args = burst_cli.parse_args([
+        '--imap-check', 'h', 'u', 'p', 'ALL',
+        '--pop3-check', 'p', 'u2', 'p2', 'txt'
+    ], Config())
+    assert args.imap_check == ['h', 'u', 'p', 'ALL']
+    assert args.pop3_check == ['p', 'u2', 'p2', 'txt']
+
+
 def test_logging_cli_flags():
     args = burst_cli.parse_args(['--silent'], Config())
     assert args.silent

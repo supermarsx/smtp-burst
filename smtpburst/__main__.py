@@ -4,7 +4,7 @@ import logging
 from smtpburst.config import Config
 from smtpburst import send
 from smtpburst import cli
-from smtpburst import discovery, nettests
+from smtpburst import discovery, nettests, inbox
 from smtpburst import report
 
 logger = logging.getLogger(__name__)
@@ -98,6 +98,14 @@ def main(argv=None):
     if args.probe_honeypot:
         host, port = send.parse_server(args.probe_honeypot)
         results['honeypot'] = discovery.probe_honeypot(host, port)
+    if args.imap_check:
+        host, user, pwd, crit = args.imap_check
+        host, port = send.parse_server(host)
+        results['imap'] = inbox.imap_search(host, user, pwd, criteria=crit, port=port)
+    if args.pop3_check:
+        host, user, pwd, patt = args.pop3_check
+        host, port = send.parse_server(host)
+        results['pop3'] = inbox.pop3_search(host, user, pwd, pattern=patt.encode(), port=port)
     if args.blacklist_check:
         results['blacklist'] = nettests.blacklist_check(
             args.blacklist_check[0], args.blacklist_check[1:]
