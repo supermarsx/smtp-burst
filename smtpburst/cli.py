@@ -103,6 +103,16 @@ def build_parser(cfg: Config) -> argparse.ArgumentParser:
         help="Open N TCP sockets and hold them open instead of sending email",
     )
     parser.add_argument(
+        "--socket-duration",
+        type=float,
+        help="Close open sockets after SECONDS",
+    )
+    parser.add_argument(
+        "--socket-iterations",
+        type=int,
+        help="Run the socket loop this many times before closing",
+    )
+    parser.add_argument(
         "--port", type=int, default=25, help="TCP port to use for socket mode"
     )
     parser.add_argument(

@@ -95,6 +95,8 @@ Additional CLI flags provide extended functionality:
 - `--warnings` show warnings and errors only
 - `--global-delay SECS` sleep SECS before each network action
 - `--socket-delay SECS` delay between open socket checks
+- `--socket-duration SECS` close open sockets after SECS
+- `--socket-iterations N` run the socket loop N times and exit
 - `--tarpit-threshold SECS` warn if responses exceed SECS
 - `--unicode-case-test` craft headers using Unicode and case variation
 - `--utf7-test` encode headers and body with UTF-7

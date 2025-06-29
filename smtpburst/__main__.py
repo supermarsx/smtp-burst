@@ -37,7 +37,14 @@ def main(argv=None):
     if args.open_sockets:
         host, srv_port = send.parse_server(args.server)
         port = srv_port if ":" in args.server else args.port
-        send.open_sockets(host, args.open_sockets, port, cfg)
+        send.open_sockets(
+            host,
+            args.open_sockets,
+            port,
+            cfg,
+            duration=args.socket_duration,
+            iterations=args.socket_iterations,
+        )
         return
 
     cfg.SB_SERVER = args.server

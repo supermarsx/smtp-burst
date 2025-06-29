@@ -11,12 +11,21 @@ import logging
 def test_main_open_sockets(monkeypatch):
     called = {}
 
-    def fake_open(host, count, port, cfg=None):
-        called["args"] = (host, count, port)
+    def fake_open(host, count, port, cfg=None, duration=None, iterations=None):
+        called["args"] = (host, count, port, duration, iterations)
 
     monkeypatch.setattr(send, "open_sockets", fake_open)
-    main_mod.main(["--open-sockets", "2", "--server", "host.example:2525"])
-    assert called["args"] == ("host.example", 2, 2525)
+    main_mod.main([
+        "--open-sockets",
+        "2",
+        "--server",
+        "host.example:2525",
+        "--socket-duration",
+        "1",
+        "--socket-iterations",
+        "3",
+    ])
+    assert called["args"] == ("host.example", 2, 2525, 1.0, 3)
 
 
 def test_main_outbound_test(monkeypatch):
