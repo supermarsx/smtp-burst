@@ -130,7 +130,7 @@ def main(argv=None):
         return
 
     logger.info("Starting smtp-burst")
-    send.bombing_mode(cfg)
+    send.bombing_mode(cfg, attachments=args.attach)
 
     results = {}
     if args.check_dmarc:

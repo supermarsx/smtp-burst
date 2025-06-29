@@ -310,6 +310,24 @@ def test_append_message_control_chars():
     assert b"\x01\x02" in msg
 
 
+def test_append_message_with_attachment(tmp_path):
+    cfg = Config()
+    cfg.SB_SENDER = "a@b.com"
+    cfg.SB_RECEIVERS = ["c@d.com"]
+    cfg.SB_SUBJECT = "Sub"
+    cfg.SB_SIZE = 0
+    att = tmp_path / "f.txt"
+    att.write_text("hello")
+    msg_bytes = burstGen.appendMessage(cfg, [str(att)])
+    import email
+    m = email.message_from_bytes(msg_bytes)
+    assert m.is_multipart()
+    payload = m.get_payload()
+    assert len(payload) == 2
+    assert payload[1].get_filename() == "f.txt"
+    assert payload[1].get_payload(decode=True) == b"hello"
+
+
 def test_genData_length():
     for n in [0, 1, 10, 100]:
         assert len(datagen.generate(n, mode="ascii")) == n

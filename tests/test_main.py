@@ -45,6 +45,21 @@ def test_main_outbound_test(monkeypatch):
     assert calls == ["test"]
 
 
+def test_main_passes_attachments(monkeypatch, tmp_path):
+    called = {}
+
+    def fake_bomb(cfg, attachments=None):
+        called["atts"] = attachments
+
+    monkeypatch.setattr(send, "bombing_mode", fake_bomb)
+
+    f = tmp_path / "a.txt"
+    f.write_text("x")
+    main_mod.main(["--attach", str(f)])
+
+    assert called["atts"] == [str(f)]
+
+
 def test_main_spawns_processes(monkeypatch):
     # Dummy Manager/Value implementation
     class DummyValue:
@@ -78,7 +93,7 @@ def test_main_spawns_processes(monkeypatch):
     monkeypatch.setattr("multiprocessing.Process", DummyProcess)
 
     monkeypatch.setattr(send, "time", type("T", (), {"sleep": lambda *a, **k: None}))
-    monkeypatch.setattr(send, "appendMessage", lambda cfg: b"msg")
+    monkeypatch.setattr(send, "appendMessage", lambda cfg, attachments=None: b"msg")
     monkeypatch.setattr(send, "sizeof_fmt", lambda n: str(n))
 
     main_mod.main(["--emails-per-burst", "2", "--bursts", "3"])
@@ -88,7 +103,7 @@ def test_main_spawns_processes(monkeypatch):
 
 
 def test_logging_modes(monkeypatch, caplog):
-    def dummy_bombing_mode(cfg):
+    def dummy_bombing_mode(cfg, attachments=None):
         log = logging.getLogger("smtpburst.send")
         log.info("info")
         log.warning("warn")
