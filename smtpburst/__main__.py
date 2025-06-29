@@ -8,6 +8,7 @@ from smtpburst.discovery import nettests
 from smtpburst.reporting import ascii_report
 from smtpburst import inbox
 from smtpburst import attacks
+from smtpburst.datagen import load_wordlist
 
 logger = logging.getLogger(__name__)
 
@@ -88,11 +89,9 @@ def main(argv=None):
     cfg.SB_PROXY_ORDER = args.proxy_order
     cfg.SB_CHECK_PROXIES = args.check_proxies
     if args.userlist:
-        with open(args.userlist, "r", encoding="utf-8") as fh:
-            cfg.SB_USERLIST = [line.strip() for line in fh if line.strip()]
+        cfg.SB_USERLIST = load_wordlist(args.userlist)
     if args.passlist:
-        with open(args.passlist, "r", encoding="utf-8") as fh:
-            cfg.SB_PASSLIST = [line.strip() for line in fh if line.strip()]
+        cfg.SB_PASSLIST = load_wordlist(args.passlist)
     if args.username:
         cfg.SB_USERNAME = args.username
     if args.password:
@@ -104,8 +103,7 @@ def main(argv=None):
         with open(args.template_file, "r", encoding="utf-8") as fh:
             cfg.SB_TEMPLATE = fh.read()
     if args.enum_list:
-        with open(args.enum_list, "r", encoding="utf-8") as fh:
-            cfg.SB_ENUM_LIST = [line.strip() for line in fh if line.strip()]
+        cfg.SB_ENUM_LIST = load_wordlist(args.enum_list)
 
     if args.outbound_test:
         logger.info("Sending outbound test message")
