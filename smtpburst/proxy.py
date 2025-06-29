@@ -30,7 +30,12 @@ def check_proxy(proxy: str, host: str = "example.com", port: int = 80) -> bool:
             request = f"CONNECT {host}:{port} HTTP/1.1\r\n\r\n".encode()
             try:
                 sock.sendall(request)
-                sock.recv(1)
+                reply = sock.recv(1024)
+                if not (
+                    reply.startswith(b"HTTP/1.1 200")
+                    or reply.startswith(b"HTTP/1.0 200")
+                ):
+                    return False
             except Exception:
                 return False
     except Exception:
