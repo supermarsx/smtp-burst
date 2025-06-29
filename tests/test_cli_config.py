@@ -8,6 +8,8 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 from smtpburst import cli as burst_cli
 from smtpburst.config import Config
 
+import logging
+from smtpburst import __main__ as main_mod
 
 def test_json_config_parsing(tmp_path):
     cfg = {"server": "json.example.com", "bursts": 2}
@@ -285,3 +287,16 @@ def test_banner_check_flag():
 def test_check_proxies_flag():
     args = burst_cli.parse_args(["--check-proxies"], Config())
     assert args.check_proxies
+
+
+def test_auth_test_requires_credentials(caplog):
+    args = burst_cli.parse_args(["--auth-test"], Config())
+    assert args.auth_test and not args.username and not args.password
+
+    with caplog.at_level(logging.ERROR, logger="smtpburst.__main__"):
+        main_mod.main(["--auth-test"])
+
+    assert any(
+        "--auth-test requires --username and --password" in r.getMessage()
+        for r in caplog.records
+    )
