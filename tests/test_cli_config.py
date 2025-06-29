@@ -300,3 +300,30 @@ def test_auth_test_requires_credentials(caplog):
         "--auth-test requires --username and --password" in r.getMessage()
         for r in caplog.records
     )
+
+
+def test_load_config_json(tmp_path):
+    cfg = {"server": "json.test", "bursts": 1}
+    path = tmp_path / "cfg.json"
+    path.write_text(json.dumps(cfg))
+    assert burst_cli.load_config(str(path)) == cfg
+
+
+@pytest.mark.skipif(burst_cli.yaml is None, reason="PyYAML not installed")
+def test_load_config_yaml(tmp_path):
+    cfg_path = tmp_path / "cfg.yaml"
+    cfg_path.write_text("server: yaml.test\nbursts: 2\n")
+    assert burst_cli.load_config(str(cfg_path)) == {"server": "yaml.test", "bursts": 2}
+
+
+def test_parse_args_unknown_keys(tmp_path):
+    cfg_path = tmp_path / "unknown.json"
+    cfg_path.write_text(json.dumps({"bogus": 1}))
+    with pytest.warns(RuntimeWarning):
+        burst_cli.parse_args(["--config", str(cfg_path)], Config())
+
+
+def test_parse_args_missing_config(tmp_path):
+    cfg_path = tmp_path / "missing.json"
+    with pytest.raises(SystemExit):
+        burst_cli.parse_args(["--config", str(cfg_path)], Config())
