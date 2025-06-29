@@ -34,20 +34,42 @@ def test_check_spf(monkeypatch):
     assert discovery.check_spf("ex.com") == ["v=spf1 include:foo"]
 
 
-def test_ping(monkeypatch):
+def test_ping_posix(monkeypatch):
     def fake_run(cmd, capture_output, text, check):
-        assert cmd[-1] == "host"
+        assert cmd == ["ping", "-c", "1", "host"]
         return SimpleNamespace(stdout="pong")
 
+    monkeypatch.setattr(nettests.platform, "system", lambda: "Linux")
     monkeypatch.setattr(nettests.subprocess, "run", fake_run)
     assert nettests.ping("host") == "pong"
 
 
-def test_traceroute(monkeypatch):
+def test_ping_windows(monkeypatch):
     def fake_run(cmd, capture_output, text, check):
-        assert cmd[-1] == "host"
+        assert cmd == ["ping", "-n", "1", "host"]
+        return SimpleNamespace(stdout="pong")
+
+    monkeypatch.setattr(nettests.platform, "system", lambda: "Windows")
+    monkeypatch.setattr(nettests.subprocess, "run", fake_run)
+    assert nettests.ping("host") == "pong"
+
+
+def test_traceroute_posix(monkeypatch):
+    def fake_run(cmd, capture_output, text, check):
+        assert cmd == ["traceroute", "host"]
         return SimpleNamespace(stdout="trace")
 
+    monkeypatch.setattr(nettests.platform, "system", lambda: "Linux")
+    monkeypatch.setattr(nettests.subprocess, "run", fake_run)
+    assert nettests.traceroute("host") == "trace"
+
+
+def test_traceroute_windows(monkeypatch):
+    def fake_run(cmd, capture_output, text, check):
+        assert cmd == ["tracert", "host"]
+        return SimpleNamespace(stdout="trace")
+
+    monkeypatch.setattr(nettests.platform, "system", lambda: "Windows")
     monkeypatch.setattr(nettests.subprocess, "run", fake_run)
     assert nettests.traceroute("host") == "trace"
 

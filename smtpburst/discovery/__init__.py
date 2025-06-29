@@ -6,6 +6,7 @@ from dns import resolver
 import ipaddress
 import smtplib
 import subprocess
+import platform
 from typing import Any, Dict, List
 import ssl
 import socket
@@ -56,13 +57,21 @@ def check_txt(domain: str) -> List[str]:
 def ping(host: str) -> str:
     """Return result of ``ping`` command for ``host``."""
     try:
-        proc = subprocess.run(
-            [
+        cmd = [
+            "ping",
+            "-c",
+            "1",
+            host,
+        ]
+        if platform.system().lower() == "windows":
+            cmd = [
                 "ping",
-                "-c",
+                "-n",
                 "1",
                 host,
-            ],
+            ]
+        proc = subprocess.run(
+            cmd,
             capture_output=True,
             text=True,
             check=False,
@@ -75,11 +84,17 @@ def ping(host: str) -> str:
 def traceroute(host: str) -> str:
     """Return result of ``traceroute`` command for ``host``."""
     try:
-        proc = subprocess.run(
-            [
-                "traceroute",
+        cmd = [
+            "traceroute",
+            host,
+        ]
+        if platform.system().lower() == "windows":
+            cmd = [
+                "tracert",
                 host,
-            ],
+            ]
+        proc = subprocess.run(
+            cmd,
             capture_output=True,
             text=True,
             check=False,
