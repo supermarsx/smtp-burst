@@ -6,14 +6,18 @@ from dns import resolver
 import ipaddress
 import smtplib
 import subprocess
+import platform
 from typing import Callable, Dict, List
 
 
 def ping(host: str) -> str:
     """Return output of ``ping`` command for ``host``."""
     try:
+        cmd = ["ping", "-c", "1", host]
+        if platform.system().lower() == "windows":
+            cmd = ["ping", "-n", "1", host]
         proc = subprocess.run(
-            ["ping", "-c", "1", host],
+            cmd,
             capture_output=True,
             text=True,
             check=False,
@@ -26,8 +30,11 @@ def ping(host: str) -> str:
 def traceroute(host: str) -> str:
     """Return output of ``traceroute`` command for ``host``."""
     try:
+        cmd = ["traceroute", host]
+        if platform.system().lower() == "windows":
+            cmd = ["tracert", host]
         proc = subprocess.run(
-            ["traceroute", host],
+            cmd,
             capture_output=True,
             text=True,
             check=False,
