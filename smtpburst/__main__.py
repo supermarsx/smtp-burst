@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 
 from smtpburst.config import Config
 from smtpburst import send
@@ -74,36 +75,34 @@ def main(argv=None):
     cfg.SB_STARTTLS = args.starttls
 
     if args.dict_file:
-        cfg.SB_DICT_WORDS = send.datagen.compile_wordlist(args.dict_file)
+        cfg.SB_DICT_WORDS = send.datagen.compile_wordlist(Path(args.dict_file))
     if args.rand_stream:
-        cfg.SB_RAND_STREAM = open(args.rand_stream, "rb")
+        cfg.SB_RAND_STREAM = Path(args.rand_stream).open("rb")
 
     if args.proxy_file:
         from . import proxy
 
         cfg.SB_PROXIES = proxy.load_proxies(
-            args.proxy_file,
+            Path(args.proxy_file),
             order=args.proxy_order,
             check=args.check_proxies,
         )
     cfg.SB_PROXY_ORDER = args.proxy_order
     cfg.SB_CHECK_PROXIES = args.check_proxies
     if args.userlist:
-        cfg.SB_USERLIST = load_wordlist(args.userlist)
+        cfg.SB_USERLIST = load_wordlist(Path(args.userlist))
     if args.passlist:
-        cfg.SB_PASSLIST = load_wordlist(args.passlist)
+        cfg.SB_PASSLIST = load_wordlist(Path(args.passlist))
     if args.username:
         cfg.SB_USERNAME = args.username
     if args.password:
         cfg.SB_PASSWORD = args.password
     if args.body_file:
-        with open(args.body_file, "r", encoding="utf-8") as fh:
-            cfg.SB_BODY = fh.read()
+        cfg.SB_BODY = Path(args.body_file).read_text(encoding="utf-8")
     if args.template_file:
-        with open(args.template_file, "r", encoding="utf-8") as fh:
-            cfg.SB_TEMPLATE = fh.read()
+        cfg.SB_TEMPLATE = Path(args.template_file).read_text(encoding="utf-8")
     if args.enum_list:
-        cfg.SB_ENUM_LIST = load_wordlist(args.enum_list)
+        cfg.SB_ENUM_LIST = load_wordlist(Path(args.enum_list))
 
     if args.outbound_test:
         logger.info("Sending outbound test message")
