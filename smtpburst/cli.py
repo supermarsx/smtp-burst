@@ -25,11 +25,8 @@ def load_config(path: str) -> Dict[str, Any]:
     return data
 
 
-def build_parser(cfg: Config) -> argparse.ArgumentParser:
-    """Return argument parser for smtp-burst."""
-    parser = argparse.ArgumentParser(
-        description="Send bursts of SMTP emails for testing purposes"
-    )
+def _add_core_options(parser: argparse.ArgumentParser, cfg: Config) -> None:
+    """Options for basic email sending configuration."""
     parser.add_argument("--config", help="Path to JSON/YAML config file")
     parser.add_argument(
         "--pipeline-file",
@@ -63,6 +60,10 @@ def build_parser(cfg: Config) -> argparse.ArgumentParser:
         metavar="FILE",
         help="Files to attach to each message",
     )
+
+
+def _add_burst_options(parser: argparse.ArgumentParser, cfg: Config) -> None:
+    """Options controlling burst behavior and delays."""
     parser.add_argument(
         "--emails-per-burst",
         type=int,
@@ -102,6 +103,10 @@ def build_parser(cfg: Config) -> argparse.ArgumentParser:
         default=cfg.SB_TARPIT_THRESHOLD,
         help="Latency in seconds considered a tarpit",
     )
+
+
+def _add_socket_options(parser: argparse.ArgumentParser) -> None:
+    """Options for raw socket mode."""
     parser.add_argument(
         "--open-sockets",
         type=int,
@@ -121,6 +126,10 @@ def build_parser(cfg: Config) -> argparse.ArgumentParser:
     parser.add_argument(
         "--port", type=int, default=25, help="TCP port to use for socket mode"
     )
+
+
+def _add_data_options(parser: argparse.ArgumentParser, cfg: Config) -> None:
+    """Options controlling payload generation."""
     parser.add_argument(
         "--size",
         type=int,
@@ -154,6 +163,10 @@ def build_parser(cfg: Config) -> argparse.ArgumentParser:
     parser.add_argument(
         "--rand-stream", help="Path to randomness stream for binary mode"
     )
+
+
+def _add_message_mode_options(parser: argparse.ArgumentParser, cfg: Config) -> None:
+    """Options toggling various message crafting tricks."""
     parser.add_argument(
         "--unicode-case-test",
         action="store_true",
@@ -178,6 +191,10 @@ def build_parser(cfg: Config) -> argparse.ArgumentParser:
         default=cfg.SB_TEST_CONTROL,
         help="Insert encoded control characters",
     )
+
+
+def _add_failure_options(parser: argparse.ArgumentParser, cfg: Config) -> None:
+    """Options controlling behaviour on failure."""
     parser.add_argument(
         "--stop-on-fail",
         action="store_true",
@@ -190,6 +207,10 @@ def build_parser(cfg: Config) -> argparse.ArgumentParser:
         default=cfg.SB_STOPFQNT,
         help="Number of failed emails that triggers stopping",
     )
+
+
+def _add_proxy_options(parser: argparse.ArgumentParser, cfg: Config) -> None:
+    """Proxy related options."""
     parser.add_argument(
         "--proxy-file", help="File containing SOCKS proxies to rotate through"
     )
@@ -205,6 +226,10 @@ def build_parser(cfg: Config) -> argparse.ArgumentParser:
         default=cfg.SB_CHECK_PROXIES,
         help="Validate proxies before use",
     )
+
+
+def _add_auth_options(parser: argparse.ArgumentParser) -> None:
+    """Authentication and enumeration related options."""
     parser.add_argument("--userlist", help="Username wordlist for SMTP AUTH")
     parser.add_argument("--passlist", help="Password wordlist for SMTP AUTH")
     parser.add_argument("--template-file", help="Phishing template file")
@@ -224,6 +249,10 @@ def build_parser(cfg: Config) -> argparse.ArgumentParser:
     )
     parser.add_argument("--username", help="Username for --auth-test")
     parser.add_argument("--password", help="Password for --auth-test")
+
+
+def _add_security_options(parser: argparse.ArgumentParser, cfg: Config) -> None:
+    """TLS related options."""
     parser.add_argument(
         "--ssl",
         action="store_true",
@@ -236,6 +265,10 @@ def build_parser(cfg: Config) -> argparse.ArgumentParser:
         default=cfg.SB_STARTTLS,
         help="Issue STARTTLS after connecting",
     )
+
+
+def _add_discovery_options(parser: argparse.ArgumentParser) -> None:
+    """Options for discovery and testing commands."""
     parser.add_argument("--check-dmarc", help="Domain to query DMARC record for")
     parser.add_argument("--check-spf", help="Domain to query SPF record for")
     parser.add_argument("--check-dkim", help="Domain to query DKIM record for")
@@ -300,6 +333,10 @@ def build_parser(cfg: Config) -> argparse.ArgumentParser:
         action="store_true",
         help="Send one test email and exit",
     )
+
+
+def _add_logging_options(parser: argparse.ArgumentParser) -> None:
+    """Mutually exclusive logging level flags."""
     level_group = parser.add_mutually_exclusive_group()
     level_group.add_argument(
         "--silent", action="store_true", help="Suppress all log output"
@@ -310,7 +347,27 @@ def build_parser(cfg: Config) -> argparse.ArgumentParser:
     level_group.add_argument(
         "--warnings", action="store_true", help="Show warnings and errors only"
     )
+
+
+def build_parser(cfg: Config) -> argparse.ArgumentParser:
+    """Return argument parser for smtp-burst."""
+    parser = argparse.ArgumentParser(
+        description="Send bursts of SMTP emails for testing purposes",
+    )
+    _add_core_options(parser, cfg)
+    _add_burst_options(parser, cfg)
+    _add_socket_options(parser)
+    _add_data_options(parser, cfg)
+    _add_message_mode_options(parser, cfg)
+    _add_failure_options(parser, cfg)
+    _add_proxy_options(parser, cfg)
+    _add_auth_options(parser)
+    _add_security_options(parser, cfg)
+    _add_discovery_options(parser)
+    _add_logging_options(parser)
     return parser
+
+
 
 
 def parse_args(args=None, cfg: Config | None = None) -> argparse.Namespace:
