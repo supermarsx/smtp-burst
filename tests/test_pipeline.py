@@ -49,3 +49,67 @@ def test_pipeline_runner_stop(monkeypatch, tmp_path):
     res = runner.run()
     assert calls == ["ok", "bad"]
     assert len(res) == 2
+
+
+@pytest.mark.skipif(pipeline.yaml is None, reason="PyYAML not installed")
+def test_load_pipeline_missing_steps(tmp_path):
+    import yaml
+    cfg = {"stop_on_fail": True}
+    path = tmp_path / "p.yaml"
+    path.write_text(yaml.safe_dump(cfg))
+    with pytest.raises(pipeline.PipelineError):
+        pipeline.load_pipeline(str(path))
+
+
+@pytest.mark.skipif(pipeline.yaml is None, reason="PyYAML not installed")
+def test_load_pipeline_steps_not_list(tmp_path):
+    import yaml
+    cfg = {"steps": {"action": "ok"}}
+    path = tmp_path / "p.yaml"
+    path.write_text(yaml.safe_dump(cfg))
+    with pytest.raises(pipeline.PipelineError):
+        pipeline.load_pipeline(str(path))
+
+
+def test_pipeline_runner_invalid_actions():
+    runner = pipeline.PipelineRunner([{}])
+    with pytest.raises(pipeline.PipelineError):
+        runner.run()
+    runner = pipeline.PipelineRunner([{"action": "nope"}])
+    with pytest.raises(pipeline.PipelineError):
+        runner.run()
+
+
+@pytest.mark.skipif(pipeline.yaml is None, reason="PyYAML not installed")
+def test_pipeline_runner_stop_threshold(monkeypatch, tmp_path):
+    calls = []
+
+    def bad():
+        calls.append("bad")
+        return False
+
+    def ok():
+        calls.append("ok")
+        return True
+
+    monkeypatch.setitem(pipeline.ACTION_MAP, "bad", lambda: bad())
+    monkeypatch.setitem(pipeline.ACTION_MAP, "ok", lambda: ok())
+
+    cfg = {
+        "steps": [
+            {"action": "bad"},
+            {"action": "bad"},
+            {"action": "ok"},
+        ],
+        "stop_on_fail": True,
+        "fail_threshold": 2,
+    }
+
+    import yaml
+    path = tmp_path / "p.yaml"
+    path.write_text(yaml.safe_dump(cfg))
+
+    runner = pipeline.load_pipeline(str(path))
+    res = runner.run()
+    assert calls == ["bad", "bad"]
+    assert len(res) == 2
