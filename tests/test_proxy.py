@@ -48,7 +48,7 @@ def test_check_proxy(monkeypatch):
             calls["send"] = True
 
         def recv(self, n):
-            return b"ok"
+            return b"HTTP/1.1 200 OK\r\n\r\n"
 
     def fake_create(addr, timeout=5):
         calls["conn"] = addr
@@ -65,3 +65,30 @@ def test_check_proxy(monkeypatch):
 def test_check_proxy_failure(monkeypatch):
     monkeypatch.setattr(proxy, "ping", lambda h: "")
     assert not proxy.check_proxy("bad:1")
+
+
+def test_check_proxy_bad_status(monkeypatch):
+    def fake_ping(host):
+        return True
+
+    class DummySock:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            pass
+
+        def sendall(self, data):
+            pass
+
+        def recv(self, n):
+            return b"HTTP/1.1 403 Forbidden\r\n\r\n"
+
+    def fake_create(addr, timeout=5):
+        return DummySock()
+
+    monkeypatch.setattr(proxy, "ping", fake_ping)
+    monkeypatch.setattr(proxy.socket, "gethostbyname", lambda h: "1.2.3.4")
+    monkeypatch.setattr(proxy.socket, "create_connection", fake_create)
+
+    assert not proxy.check_proxy("h:1")
