@@ -6,6 +6,8 @@ import smtplib
 import subprocess
 from typing import List, Dict, Any
 
+from .. import send
+
 
 logger = logging.getLogger(__name__)
 
@@ -214,13 +216,6 @@ def performance_test(host: str, port: int = 25, baseline: str | None = None) -> 
 
     results = {"target": _measure(host, port)}
     if baseline:
-        if ":" in baseline:
-            b_host, b_port_str = baseline.rsplit(":", 1)
-            try:
-                b_port = int(b_port_str)
-            except ValueError:
-                b_port = 25
-        else:
-            b_host, b_port = baseline, 25
+        b_host, b_port = send.parse_server(baseline)
         results["baseline"] = _measure(b_host, b_port)
     return results
