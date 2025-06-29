@@ -55,10 +55,15 @@ def gen_repeat(text: str, size: int) -> str:
     return (text * reps)[:size]
 
 
-def compile_wordlist(path: str) -> List[str]:
-    """Return list of words from ``path``."""
+def load_wordlist(path: str) -> List[str]:
+    """Return non-empty, stripped lines from ``path``."""
     with open(path, "r", encoding="utf-8") as fh:
         return [line.strip() for line in fh if line.strip()]
+
+
+def compile_wordlist(path: str) -> List[str]:
+    """Return list of words from ``path``."""
+    return load_wordlist(path)
 
 
 def generate(
