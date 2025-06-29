@@ -104,6 +104,48 @@ def test_open_sockets_continues_on_errors(monkeypatch, caplog):
     assert any("Failed to open socket" in r.getMessage() for r in caplog.records)
 
 
+def test_open_sockets_duration(monkeypatch):
+    closed = []
+
+    class DummySocket:
+        def close(self):
+            closed.append(True)
+
+    monkeypatch.setattr(burstGen.socket, "create_connection", lambda a: DummySocket())
+
+    vals = iter([0, 0, 1, 2])
+
+    def fake_monotonic():
+        return next(vals)
+
+    sleep_calls = []
+
+    monkeypatch.setattr(burstGen.time, "monotonic", fake_monotonic)
+    monkeypatch.setattr(burstGen.time, "sleep", lambda x: sleep_calls.append(x))
+
+    burstGen.open_sockets("host", 2, port=25, duration=2)
+
+    assert len(closed) == 2
+    assert len(sleep_calls) == 2
+
+
+def test_open_sockets_iterations(monkeypatch):
+    closed = []
+
+    class DummySocket:
+        def close(self):
+            closed.append(True)
+
+    monkeypatch.setattr(burstGen.socket, "create_connection", lambda a: DummySocket())
+    sleep_calls = []
+    monkeypatch.setattr(burstGen.time, "sleep", lambda x: sleep_calls.append(x))
+
+    burstGen.open_sockets("host", 1, port=25, iterations=3)
+
+    assert len(closed) == 1
+    assert len(sleep_calls) == 3
+
+
 def test_sendmail_reports_auth_success(monkeypatch, caplog):
     class DummySMTP:
         def __init__(self, *args, **kwargs):

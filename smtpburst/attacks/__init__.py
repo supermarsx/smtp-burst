@@ -10,8 +10,22 @@ from typing import List, Dict, Any
 logger = logging.getLogger(__name__)
 
 
-def open_sockets(host: str, count: int, port: int = 25, delay: float = 1.0, cfg=None):
-    """Open ``count`` TCP sockets to ``host`` and keep them open."""
+def open_sockets(
+    host: str,
+    count: int,
+    port: int = 25,
+    delay: float = 1.0,
+    cfg=None,
+    *,
+    duration: float | None = None,
+    iterations: int | None = None,
+) -> None:
+    """Open ``count`` TCP sockets to ``host`` and keep them open.
+
+    ``duration`` limits how long sockets remain open in seconds.
+    ``iterations`` limits how many delay loops run before closing.
+    ``KeyboardInterrupt`` still exits immediately.
+    """
     sockets: List[socket.socket] = []
     for _ in range(count):
         try:
@@ -23,12 +37,19 @@ def open_sockets(host: str, count: int, port: int = 25, delay: float = 1.0, cfg=
     logger.info(
         "Opened %s sockets to %s:%s. Press Ctrl+C to exit.", len(sockets), host, port
     )
+    start_time = time.monotonic()
+    loops = 0
     try:
         while True:
+            if duration is not None and time.monotonic() - start_time >= duration:
+                break
+            if iterations is not None and loops >= iterations:
+                break
             d = delay
             if cfg is not None:
                 d += getattr(cfg, "SB_GLOBAL_DELAY", 0.0)
             time.sleep(d)
+            loops += 1
     except KeyboardInterrupt:
         pass
     finally:

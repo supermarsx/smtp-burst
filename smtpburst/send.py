@@ -197,10 +197,26 @@ def parse_server(server: str) -> Tuple[str, int]:
     return host, port
 
 
-def open_sockets(host: str, count: int, port: int = 25, cfg: Config | None = None):
+def open_sockets(
+    host: str,
+    count: int,
+    port: int = 25,
+    cfg: Config | None = None,
+    *,
+    duration: float | None = None,
+    iterations: int | None = None,
+) -> None:
     """Delegate to :mod:`smtpburst.attacks` implementation."""
     delay = cfg.SB_OPEN_SOCKETS_DELAY if cfg else 1.0
-    return attacks.open_sockets(host, count, port, delay, cfg)
+    return attacks.open_sockets(
+        host,
+        count,
+        port,
+        delay,
+        cfg,
+        duration=duration,
+        iterations=iterations,
+    )
 
 
 def login_test(cfg: Config) -> dict[str, bool]:

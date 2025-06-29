@@ -45,6 +45,16 @@ def test_open_sockets_option():
     assert args.open_sockets == 5
 
 
+def test_socket_duration_option():
+    args = burst_cli.parse_args(["--socket-duration", "4"], Config())
+    assert args.socket_duration == 4
+
+
+def test_socket_iterations_option():
+    args = burst_cli.parse_args(["--socket-iterations", "3"], Config())
+    assert args.socket_iterations == 3
+
+
 def test_proxy_file_option(tmp_path):
     proxy_file = tmp_path / "proxies.txt"
     proxy_file.write_text("127.0.0.1:1080\n")
