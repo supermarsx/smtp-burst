@@ -3,13 +3,17 @@ from __future__ import annotations
 """DNS and network discovery utilities."""
 
 from dns import resolver
-import ipaddress
 import smtplib
-import subprocess
-import platform
-from typing import Any, Dict, List
 import ssl
 import socket
+from typing import Any, Dict, List
+
+from .nettests import (
+    ping,
+    traceroute,
+    blacklist_check as check_rbl,
+    open_relay_test as test_open_relay,
+)
 
 from .. import send, rdns
 
@@ -54,93 +58,7 @@ def check_txt(domain: str) -> List[str]:
     return _lookup(domain, "TXT")
 
 
-def ping(host: str) -> str:
-    """Return result of ``ping`` command for ``host``."""
-    try:
-        cmd = [
-            "ping",
-            "-c",
-            "1",
-            host,
-        ]
-        if platform.system().lower() == "windows":
-            cmd = [
-                "ping",
-                "-n",
-                "1",
-                host,
-            ]
-        proc = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        return proc.stdout.strip()
-    except Exception as exc:  # pragma: no cover - system might not have ping
-        return str(exc)
 
-
-def traceroute(host: str) -> str:
-    """Return result of ``traceroute`` command for ``host``."""
-    try:
-        cmd = [
-            "traceroute",
-            host,
-        ]
-        if platform.system().lower() == "windows":
-            cmd = [
-                "tracert",
-                host,
-            ]
-        proc = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        return proc.stdout.strip()
-    except Exception as exc:  # pragma: no cover
-        return str(exc)
-
-
-def check_rbl(ip: str, zones: List[str]) -> Dict[str, str]:
-    """Return mapping of RBL zone to listing status for ``ip``."""
-    results: Dict[str, str] = {}
-    try:
-        ip_obj = ipaddress.ip_address(ip)
-    except ValueError as exc:  # pragma: no cover - input validation
-        return {zone: f"error: {exc}" for zone in zones}
-
-    if ip_obj.version == 4:
-        reversed_ip = ".".join(reversed(ip.split(".")))
-    else:  # pragma: no cover - IPv6 rarely used in tests
-        reversed_ip = ".".join(reversed(ip_obj.exploded.split(":")))
-
-    for zone in zones:
-        qname = f"{reversed_ip}.{zone}"
-        try:
-            resolver.resolve(qname, "A")
-            results[zone] = "listed"
-        except resolver.NXDOMAIN:
-            results[zone] = "not listed"
-        except Exception as exc:  # pragma: no cover - other resolver errors
-            results[zone] = f"error: {exc}"
-    return results
-
-
-def test_open_relay(host: str, port: int = 25) -> bool:
-    """Return ``True`` if SMTP server appears to be an open relay."""
-    try:
-        with smtplib.SMTP(host, port, timeout=10) as smtp:
-            smtp.helo("smtp-burst")
-            code, _ = smtp.mail("relaytest@example.com")
-            if code >= 400:
-                return False
-            code, _ = smtp.rcpt("recipient@example.net")
-            return code < 400
-    except Exception:  # pragma: no cover - network errors
-        return False
 
 
 def lookup_mx(domain: str) -> List[str]:
