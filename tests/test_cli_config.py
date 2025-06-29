@@ -84,6 +84,15 @@ def test_body_file_option(tmp_path):
     assert args.body_file == str(body_file)
 
 
+def test_attach_option(tmp_path):
+    f1 = tmp_path / "a.txt"
+    f2 = tmp_path / "b.txt"
+    f1.write_text("a")
+    f2.write_text("b")
+    args = burst_cli.parse_args(["--attach", str(f1), str(f2)], Config())
+    assert args.attach == [str(f1), str(f2)]
+
+
 def test_data_mode_option():
     args = burst_cli.parse_args(["--data-mode", "binary"], Config())
     assert args.data_mode == "binary"

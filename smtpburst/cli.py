@@ -58,6 +58,12 @@ def build_parser(cfg: Config) -> argparse.ArgumentParser:
     )
     parser.add_argument("--body-file", help="File containing email body text")
     parser.add_argument(
+        "--attach",
+        nargs="+",
+        metavar="FILE",
+        help="Files to attach to each message",
+    )
+    parser.add_argument(
         "--emails-per-burst",
         type=int,
         default=cfg.SB_SGEMAILS,
