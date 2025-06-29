@@ -258,6 +258,30 @@ def open_sockets(
     )
 
 
+def _attempt_auth(
+    host: str,
+    port: int,
+    smtp_cls,
+    mech: str,
+    user: str,
+    pwd: str,
+    start_tls: bool,
+) -> bool:
+    """Try authenticating ``user``/``pwd`` using ``mech`` and return success."""
+
+    auth_attr = "auth_" + mech.lower().replace("-", "_")
+    try:
+        with smtp_cls(host, port) as sm:
+            if start_tls:
+                sm.starttls()
+            sm.ehlo()
+            sm.user, sm.password = user, pwd
+            sm.auth(mech, getattr(sm, auth_attr))
+        return True
+    except smtplib.SMTPAuthenticationError:
+        return False
+
+
 def login_test(cfg: Config) -> dict[str, bool]:
     """Attempt SMTP AUTH logins using wordlists.
 
@@ -274,23 +298,24 @@ def login_test(cfg: Config) -> dict[str, bool]:
     results: dict[str, bool] = {}
     for mech in methods:
         success = False
-        auth_attr = "auth_" + mech.lower().replace("-", "_")
+        use_tls = cfg.SB_STARTTLS and not cfg.SB_SSL
         for user in cfg.SB_USERLIST:
             for pwd in cfg.SB_PASSLIST:
                 try:
-                    with smtp_cls(host, port) as sm:
-                        if cfg.SB_STARTTLS and not cfg.SB_SSL:
-                            sm.starttls()
-                        sm.ehlo()
-                        sm.user, sm.password = user, pwd
-                        sm.auth(mech, getattr(sm, auth_attr))
-                    logging.getLogger(__name__).info(
-                        "Auth %s success: %s:%s", mech, user, pwd
+                    success = _attempt_auth(
+                        host,
+                        port,
+                        smtp_cls,
+                        mech,
+                        user,
+                        pwd,
+                        use_tls,
                     )
-                    success = True
-                    break
-                except smtplib.SMTPAuthenticationError:
-                    continue
+                    if success:
+                        logging.getLogger(__name__).info(
+                            "Auth %s success: %s:%s", mech, user, pwd
+                        )
+                        break
                 except smtplib.SMTPException:
                     break
             if success:
@@ -322,23 +347,23 @@ def auth_test(cfg: Config) -> dict[str, bool]:
 
     results: dict[str, bool] = {}
     for mech in methods:
-        auth_attr = "auth_" + mech.lower().replace("-", "_")
+        use_tls = cfg.SB_STARTTLS and not cfg.SB_SSL
         try:
-            with smtp_cls(host, port) as sm:
-                if cfg.SB_STARTTLS and not cfg.SB_SSL:
-                    sm.starttls()
-                sm.ehlo()
-                sm.user, sm.password = cfg.SB_USERNAME, cfg.SB_PASSWORD
-                sm.auth(mech, getattr(sm, auth_attr))
-            logging.getLogger(__name__).info(
-                "Authentication %s succeeded", mech
+            success = _attempt_auth(
+                host,
+                port,
+                smtp_cls,
+                mech,
+                cfg.SB_USERNAME,
+                cfg.SB_PASSWORD,
+                use_tls,
             )
-            results[mech] = True
-        except smtplib.SMTPAuthenticationError:
             logging.getLogger(__name__).info(
-                "Authentication %s failed", mech
+                "Authentication %s %s",
+                mech,
+                "succeeded" if success else "failed",
             )
-            results[mech] = False
+            results[mech] = success
         except smtplib.SMTPException:
             logging.getLogger(__name__).info(
                 "Authentication %s failed", mech
