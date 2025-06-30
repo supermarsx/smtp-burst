@@ -330,7 +330,7 @@ def test_append_message_with_attachment(tmp_path):
 
 def test_genData_length():
     for n in [0, 1, 10, 100]:
-        assert len(datagen.generate(n, mode="ascii")) == n
+        assert len(datagen.generate(n, mode=datagen.DataMode.ASCII)) == n
 
 
 def test_throttle_combines_delay(monkeypatch):

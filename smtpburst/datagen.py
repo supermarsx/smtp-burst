@@ -1,7 +1,18 @@
 import random
 import secrets
 import string
-from typing import List, Optional, TextIO
+from enum import Enum
+from typing import List, Optional, TextIO, Union
+
+
+class DataMode(Enum):
+    """Available data generation modes."""
+
+    ASCII = "ascii"
+    BINARY = "binary"
+    UTF8 = "utf8"
+    DICT = "dict"
+    REPEAT = "repeat"
 
 
 def gen_ascii(size: int, secure: bool = False) -> str:
@@ -68,7 +79,7 @@ def compile_wordlist(path: str) -> List[str]:
 
 def generate(
     size: int,
-    mode: str = "ascii",
+    mode: Union[DataMode, str] = DataMode.ASCII,
     *,
     secure: bool = False,
     words: Optional[List[str]] = None,
@@ -76,13 +87,19 @@ def generate(
     stream: Optional[TextIO] = None,
 ) -> bytes:
     """Generate ``size`` bytes of data using ``mode``."""
-    if mode == "binary":
+    if isinstance(mode, str):
+        try:
+            mode = DataMode(mode.lower())
+        except ValueError:
+            mode = DataMode.ASCII
+
+    if mode is DataMode.BINARY:
         return gen_binary(size, secure=secure, stream=stream)
-    if mode == "utf8":
+    if mode is DataMode.UTF8:
         return gen_utf8(size, secure=secure).encode("utf-8")
-    if mode == "dict":
+    if mode is DataMode.DICT:
         return gen_dictionary(size, words or []).encode("utf-8")
-    if mode == "repeat":
+    if mode is DataMode.REPEAT:
         return gen_repeat(repeat or "", size).encode("utf-8")
 
     # default ascii
