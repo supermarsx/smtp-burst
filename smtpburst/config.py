@@ -55,6 +55,9 @@ class Config:
     SB_RAND_STREAM: Optional[TextIO] = None
     SB_ENUM_LIST: List[str] = field(default_factory=list)
 
+    # Connection timeout
+    SB_TIMEOUT: float = 10.0
+
     SB_TEST_UNICODE: bool = False
     SB_TEST_UTF7: bool = False
     SB_TEST_TUNNEL: bool = False

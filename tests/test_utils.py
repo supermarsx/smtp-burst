@@ -211,6 +211,64 @@ def test_sendmail_uses_ssl(monkeypatch):
     assert calls.get("ssl") and not calls.get("smtp")
 
 
+def test_sendmail_passes_timeout(monkeypatch):
+    captured = {}
+
+    class DummySMTP:
+        def __init__(self, *args, **kwargs):
+            captured['timeout'] = kwargs.get('timeout')
+
+        def sendmail(self, *args, **kwargs):
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            pass
+
+    monkeypatch.setattr(burstGen.smtplib, "SMTP", DummySMTP)
+
+    class DummyCounter:
+        def __init__(self, value=0):
+            self.value = value
+
+    cfg = Config()
+    cfg.SB_TIMEOUT = 7.5
+    counter = DummyCounter()
+    sendmail(1, 1, counter, b"msg", cfg)
+    assert captured['timeout'] == pytest.approx(7.5)
+
+
+def test_sendmail_passes_timeout_ssl(monkeypatch):
+    captured = {}
+
+    class DummySSL:
+        def __init__(self, *args, **kwargs):
+            captured['timeout'] = kwargs.get('timeout')
+
+        def sendmail(self, *args, **kwargs):
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            pass
+
+    monkeypatch.setattr(burstGen.smtplib, "SMTP_SSL", DummySSL)
+
+    class DummyCounter:
+        def __init__(self, value=0):
+            self.value = value
+
+    cfg = Config()
+    cfg.SB_TIMEOUT = 6.0
+    counter = DummyCounter()
+    sendmail(1, 1, counter, b"msg", cfg, use_ssl=True)
+    assert captured['timeout'] == pytest.approx(6.0)
+
+
 def test_sendmail_calls_starttls(monkeypatch):
     called = {}
 
