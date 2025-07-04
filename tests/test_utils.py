@@ -307,7 +307,7 @@ def test_append_message_uses_subject_and_body(monkeypatch):
     cfg.SB_SUBJECT = "Sub"
     cfg.SB_BODY = "Body"
     cfg.SB_SIZE = 0
-    msg = burstGen.appendMessage(cfg)
+    msg = burstGen.append_message(cfg)
     assert b"Subject: Sub" in msg
     assert b"Body" in msg
 
@@ -319,7 +319,7 @@ def test_append_message_template():
     cfg.SB_SUBJECT = "Sub"
     cfg.SB_TEMPLATE = "Hello {receiver} from {sender}"
     cfg.SB_SIZE = 0
-    msg = burstGen.appendMessage(cfg)
+    msg = burstGen.append_message(cfg)
     assert b"Hello c@d.com" in msg
 
 
@@ -330,7 +330,7 @@ def test_append_message_unicode_headers():
     cfg.SB_SUBJECT = "Sub"
     cfg.SB_SIZE = 0
     cfg.SB_TEST_UNICODE = True
-    msg = burstGen.appendMessage(cfg)
+    msg = burstGen.append_message(cfg)
     assert b"FrOm:" in msg and b"tO:" in msg
 
 
@@ -342,7 +342,7 @@ def test_append_message_utf7_body():
     cfg.SB_BODY = "\u2713"  # checkmark
     cfg.SB_SIZE = 0
     cfg.SB_TEST_UTF7 = True
-    msg = burstGen.appendMessage(cfg)
+    msg = burstGen.append_message(cfg)
     assert b"+JxM" in msg
 
 
@@ -353,7 +353,7 @@ def test_append_message_tunnel_header():
     cfg.SB_SUBJECT = "Sub"
     cfg.SB_SIZE = 0
     cfg.SB_TEST_TUNNEL = True
-    msg = burstGen.appendMessage(cfg)
+    msg = burstGen.append_message(cfg)
     assert b"X-Orig: overlap" in msg
 
 
@@ -364,7 +364,7 @@ def test_append_message_control_chars():
     cfg.SB_SUBJECT = "Sub"
     cfg.SB_SIZE = 0
     cfg.SB_TEST_CONTROL = True
-    msg = burstGen.appendMessage(cfg)
+    msg = burstGen.append_message(cfg)
     assert b"\x01\x02" in msg
 
 
@@ -376,7 +376,7 @@ def test_append_message_with_attachment(tmp_path):
     cfg.SB_SIZE = 0
     att = tmp_path / "f.txt"
     att.write_text("hello")
-    msg_bytes = burstGen.appendMessage(cfg, [str(att)])
+    msg_bytes = burstGen.append_message(cfg, [str(att)])
     import email
     m = email.message_from_bytes(msg_bytes)
     assert m.is_multipart()

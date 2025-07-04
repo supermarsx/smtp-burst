@@ -28,11 +28,11 @@ def throttle(cfg: Config, delay: float = 0.0) -> None:
         time.sleep(total)
 
 
-def appendMessage(cfg: Config, attachments: Optional[List[str]] = None) -> bytes:
+def append_message(cfg: Config, attachments: Optional[List[str]] = None) -> bytes:
     """Construct the message using config values and append random data.
 
-    If ``attachments`` are provided, build a multipart message using the
-    :mod:`email` package and include each file as an attachment.
+    Message creation always uses :class:`email.message.EmailMessage`.  When
+    ``attachments`` are provided they are included as additional parts.
     """
     receivers = ", ".join(cfg.SB_RECEIVERS)
     body = cfg.SB_BODY
@@ -44,21 +44,7 @@ def appendMessage(cfg: Config, attachments: Optional[List[str]] = None) -> bytes
             receiver=receivers,
             subject=cfg.SB_SUBJECT,
         )
-    if cfg.SB_TEST_UNICODE:
-        from_hdr = f"FrOm: {cfg.SB_SENDER}"
-        to_hdr = f"tO: {receivers}"
-    else:
-        from_hdr = f"From: {cfg.SB_SENDER}"
-        to_hdr = f"To: {receivers}"
-    subject_hdr = f"Subject: {cfg.SB_SUBJECT}"
-    if cfg.SB_TEST_TUNNEL:
-        subject_hdr += "\nX-Orig: overlap"
-    base = (
-        f"{from_hdr}\n"
-        f"{to_hdr}\n"
-        f"{subject_hdr}\n\n"
-        f"{body}\n\n"
-    )
+
     rand = datagen.generate(
         cfg.SB_SIZE,
         mode=datagen.DataMode(cfg.SB_DATA_MODE),
@@ -68,10 +54,7 @@ def appendMessage(cfg: Config, attachments: Optional[List[str]] = None) -> bytes
         stream=cfg.SB_RAND_STREAM,
     )
     encoding = "utf-7" if cfg.SB_TEST_UTF7 else "utf-8"
-    payload = base.encode(encoding) + rand
-
-    if not attachments:
-        return payload
+    payload = body.encode(encoding) + b"\n\n" + rand
 
     msg = EmailMessage()
     if cfg.SB_TEST_UNICODE:
@@ -86,19 +69,20 @@ def appendMessage(cfg: Config, attachments: Optional[List[str]] = None) -> bytes
 
     msg.set_content(payload, maintype="text", subtype="plain", cte="8bit")
 
-    for path in attachments:
-        data = Path(path).read_bytes()
-        ctype, _ = mimetypes.guess_type(path)
-        if ctype:
-            maintype, subtype = ctype.split("/", 1)
-        else:
-            maintype, subtype = "application", "octet-stream"
-        msg.add_attachment(
-            data,
-            maintype=maintype,
-            subtype=subtype,
-            filename=Path(path).name,
-        )
+    if attachments:
+        for path in attachments:
+            data = Path(path).read_bytes()
+            ctype, _ = mimetypes.guess_type(path)
+            if ctype:
+                maintype, subtype = ctype.split("/", 1)
+            else:
+                maintype, subtype = "application", "octet-stream"
+            msg.add_attachment(
+                data,
+                maintype=maintype,
+                subtype=subtype,
+                filename=Path(path).name,
+            )
 
     return msg.as_bytes()
 
@@ -283,11 +267,9 @@ def _attempt_auth(
         return False
 
 
-def login_test(cfg: Config) -> dict[str, bool]:
-    """Attempt SMTP AUTH logins using wordlists.
+def _smtp_authenticate(cfg: Config, users: List[str], passwords: List[str]) -> dict[str, bool]:
+    """Try authentication attempts for ``users``/``passwords`` and return results."""
 
-    Returns a mapping of mechanism name to success status.
-    """
     host, port = parse_server(cfg.SB_SERVER)
     smtp_cls = smtplib.SMTP_SSL if cfg.SB_SSL else smtplib.SMTP
     with smtp_cls(host, port, timeout=cfg.SB_TIMEOUT) as smtp:
@@ -300,8 +282,8 @@ def login_test(cfg: Config) -> dict[str, bool]:
     for mech in methods:
         success = False
         use_tls = cfg.SB_STARTTLS and not cfg.SB_SSL
-        for user in cfg.SB_USERLIST:
-            for pwd in cfg.SB_PASSLIST:
+        for user in users:
+            for pwd in passwords:
                 try:
                     success = _attempt_auth(
                         host,
@@ -314,19 +296,27 @@ def login_test(cfg: Config) -> dict[str, bool]:
                         cfg.SB_TIMEOUT,
                     )
                     if success:
-                        logging.getLogger(__name__).info(
-                            "Auth %s success: %s:%s", mech, user, pwd
-                        )
+                        logger.info("Auth %s success: %s:%s", mech, user, pwd)
                         break
                 except smtplib.SMTPException:
                     break
             if success:
                 break
         results[mech] = success
-        logging.getLogger(__name__).info(
+        logger.info(
             "Authentication %s %s", mech, "succeeded" if success else "failed"
         )
+
     return results
+
+
+def login_test(cfg: Config) -> dict[str, bool]:
+    """Attempt SMTP AUTH logins using wordlists.
+
+    Returns a mapping of mechanism name to success status.
+    """
+
+    return _smtp_authenticate(cfg, cfg.SB_USERLIST, cfg.SB_PASSLIST)
 
 
 def auth_test(cfg: Config) -> dict[str, bool]:
@@ -375,6 +365,7 @@ def auth_test(cfg: Config) -> dict[str, bool]:
     return results
 
 
+
 def send_test_email(cfg: Config) -> None:
     """Send a single minimal email using ``sendmail`` helper."""
 
@@ -405,12 +396,12 @@ def bombing_mode(cfg: Config, attachments: Optional[List[str]] = None) -> None:
     logger.info("Generating %s of data to append to message", sizeof_fmt(cfg.SB_SIZE))
     manager = Manager()
     fail_count = manager.Value("i", 0)
-    message = appendMessage(cfg, attachments)
+    message = append_message(cfg, attachments)
     logger.info("Message using %s of random data", sizeof_fmt(sys.getsizeof(message)))
 
     for b in range(cfg.SB_BURSTS):
         if cfg.SB_PER_BURST_DATA:
-            message = appendMessage(cfg, attachments)
+            message = append_message(cfg, attachments)
         numbers = range(1, cfg.SB_SGEMAILS + 1)
         procs = []
         if fail_count.value >= cfg.SB_STOPFQNT and cfg.SB_STOPFAIL:

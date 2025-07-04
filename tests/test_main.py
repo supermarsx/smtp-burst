@@ -93,7 +93,7 @@ def test_main_spawns_processes(monkeypatch):
     monkeypatch.setattr("multiprocessing.Process", DummyProcess)
 
     monkeypatch.setattr(send, "time", type("T", (), {"sleep": lambda *a, **k: None}))
-    monkeypatch.setattr(send, "appendMessage", lambda cfg, attachments=None: b"msg")
+    monkeypatch.setattr(send, "append_message", lambda cfg, attachments=None: b"msg")
     monkeypatch.setattr(send, "sizeof_fmt", lambda n: str(n))
 
     main_mod.main(["--emails-per-burst", "2", "--bursts", "3"])
