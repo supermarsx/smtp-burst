@@ -282,13 +282,12 @@ def _attempt_auth(
         return False
 
 
-def login_test(cfg: Config) -> dict[str, bool]:
-    """Attempt SMTP AUTH logins using wordlists.
+def _smtp_authenticate(cfg: Config, users: List[str], passwords: List[str]) -> dict[str, bool]:
+    """Try authentication attempts for ``users``/``passwords`` and return results."""
 
-    Returns a mapping of mechanism name to success status.
-    """
     host, port = parse_server(cfg.SB_SERVER)
     smtp_cls = smtplib.SMTP_SSL if cfg.SB_SSL else smtplib.SMTP
+
     with smtp_cls(host, port) as smtp:
         if cfg.SB_STARTTLS and not cfg.SB_SSL:
             smtp.starttls()
@@ -299,8 +298,8 @@ def login_test(cfg: Config) -> dict[str, bool]:
     for mech in methods:
         success = False
         use_tls = cfg.SB_STARTTLS and not cfg.SB_SSL
-        for user in cfg.SB_USERLIST:
-            for pwd in cfg.SB_PASSLIST:
+        for user in users:
+            for pwd in passwords:
                 try:
                     success = _attempt_auth(
                         host,
@@ -312,19 +311,27 @@ def login_test(cfg: Config) -> dict[str, bool]:
                         use_tls,
                     )
                     if success:
-                        logging.getLogger(__name__).info(
-                            "Auth %s success: %s:%s", mech, user, pwd
-                        )
+                        logger.info("Auth %s success: %s:%s", mech, user, pwd)
                         break
                 except smtplib.SMTPException:
                     break
             if success:
                 break
         results[mech] = success
-        logging.getLogger(__name__).info(
+        logger.info(
             "Authentication %s %s", mech, "succeeded" if success else "failed"
         )
+
     return results
+
+
+def login_test(cfg: Config) -> dict[str, bool]:
+    """Attempt SMTP AUTH logins using wordlists.
+
+    Returns a mapping of mechanism name to success status.
+    """
+
+    return _smtp_authenticate(cfg, cfg.SB_USERLIST, cfg.SB_PASSLIST)
 
 
 def auth_test(cfg: Config) -> dict[str, bool]:
@@ -337,39 +344,7 @@ def auth_test(cfg: Config) -> dict[str, bool]:
     if not cfg.SB_USERNAME or not cfg.SB_PASSWORD:
         return {}
 
-    host, port = parse_server(cfg.SB_SERVER)
-    smtp_cls = smtplib.SMTP_SSL if cfg.SB_SSL else smtplib.SMTP
-    with smtp_cls(host, port) as smtp:
-        if cfg.SB_STARTTLS and not cfg.SB_SSL:
-            smtp.starttls()
-        smtp.ehlo()
-        methods = smtp.esmtp_features.get("auth", "").split()
-
-    results: dict[str, bool] = {}
-    for mech in methods:
-        use_tls = cfg.SB_STARTTLS and not cfg.SB_SSL
-        try:
-            success = _attempt_auth(
-                host,
-                port,
-                smtp_cls,
-                mech,
-                cfg.SB_USERNAME,
-                cfg.SB_PASSWORD,
-                use_tls,
-            )
-            logging.getLogger(__name__).info(
-                "Authentication %s %s",
-                mech,
-                "succeeded" if success else "failed",
-            )
-            results[mech] = success
-        except smtplib.SMTPException:
-            logging.getLogger(__name__).info(
-                "Authentication %s failed", mech
-            )
-            results[mech] = False
-    return results
+    return _smtp_authenticate(cfg, [cfg.SB_USERNAME], [cfg.SB_PASSWORD])
 
 
 def send_test_email(cfg: Config) -> None:
