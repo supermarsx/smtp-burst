@@ -154,7 +154,7 @@ def sendmail(
     throttle(cfg)
     try:
         smtp_cls = smtplib.SMTP_SSL if use_ssl else smtplib.SMTP
-        with smtp_cls(host, port) as smtpObj:
+        with smtp_cls(host, port, timeout=cfg.SB_TIMEOUT) as smtpObj:
             if start_tls and not use_ssl:
                 smtpObj.starttls()
             if users and passwords:
@@ -266,12 +266,13 @@ def _attempt_auth(
     user: str,
     pwd: str,
     start_tls: bool,
+    timeout: float,
 ) -> bool:
     """Try authenticating ``user``/``pwd`` using ``mech`` and return success."""
 
     auth_attr = "auth_" + mech.lower().replace("-", "_")
     try:
-        with smtp_cls(host, port) as sm:
+        with smtp_cls(host, port, timeout=timeout) as sm:
             if start_tls:
                 sm.starttls()
             sm.ehlo()
@@ -289,7 +290,7 @@ def login_test(cfg: Config) -> dict[str, bool]:
     """
     host, port = parse_server(cfg.SB_SERVER)
     smtp_cls = smtplib.SMTP_SSL if cfg.SB_SSL else smtplib.SMTP
-    with smtp_cls(host, port) as smtp:
+    with smtp_cls(host, port, timeout=cfg.SB_TIMEOUT) as smtp:
         if cfg.SB_STARTTLS and not cfg.SB_SSL:
             smtp.starttls()
         smtp.ehlo()
@@ -310,6 +311,7 @@ def login_test(cfg: Config) -> dict[str, bool]:
                         user,
                         pwd,
                         use_tls,
+                        cfg.SB_TIMEOUT,
                     )
                     if success:
                         logging.getLogger(__name__).info(
@@ -339,7 +341,7 @@ def auth_test(cfg: Config) -> dict[str, bool]:
 
     host, port = parse_server(cfg.SB_SERVER)
     smtp_cls = smtplib.SMTP_SSL if cfg.SB_SSL else smtplib.SMTP
-    with smtp_cls(host, port) as smtp:
+    with smtp_cls(host, port, timeout=cfg.SB_TIMEOUT) as smtp:
         if cfg.SB_STARTTLS and not cfg.SB_SSL:
             smtp.starttls()
         smtp.ehlo()
@@ -357,6 +359,7 @@ def auth_test(cfg: Config) -> dict[str, bool]:
                 cfg.SB_USERNAME,
                 cfg.SB_PASSWORD,
                 use_tls,
+                cfg.SB_TIMEOUT,
             )
             logging.getLogger(__name__).info(
                 "Authentication %s %s",
