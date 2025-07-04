@@ -394,3 +394,42 @@ def parse_args(args=None, cfg: Config | None = None) -> argparse.Namespace:
             )
         parser.set_defaults(**config_data)
     return parser.parse_args(args)
+
+
+def apply_args_to_config(cfg: Config, args: argparse.Namespace) -> None:
+    """Map argument values onto Config attributes."""
+
+    MAP = {
+        "server": "SB_SERVER",
+        "sender": "SB_SENDER",
+        "receivers": "SB_RECEIVERS",
+        "subject": "SB_SUBJECT",
+        "emails_per_burst": "SB_SGEMAILS",
+        "bursts": "SB_BURSTS",
+        "email_delay": "SB_SGEMAILSPSEC",
+        "burst_delay": "SB_BURSTSPSEC",
+        "global_delay": "SB_GLOBAL_DELAY",
+        "socket_delay": "SB_OPEN_SOCKETS_DELAY",
+        "tarpit_threshold": "SB_TARPIT_THRESHOLD",
+        "size": "SB_SIZE",
+        "data_mode": "SB_DATA_MODE",
+        "repeat_string": "SB_REPEAT_STRING",
+        "per_burst_data": "SB_PER_BURST_DATA",
+        "secure_random": "SB_SECURE_RANDOM",
+        "unicode_case_test": "SB_TEST_UNICODE",
+        "utf7_test": "SB_TEST_UTF7",
+        "header_tunnel_test": "SB_TEST_TUNNEL",
+        "control_char_test": "SB_TEST_CONTROL",
+        "stop_on_fail": "SB_STOPFAIL",
+        "stop_fail_count": "SB_STOPFQNT",
+        "ssl": "SB_SSL",
+        "starttls": "SB_STARTTLS",
+        "proxy_order": "SB_PROXY_ORDER",
+        "check_proxies": "SB_CHECK_PROXIES",
+    }
+
+    for arg_name, cfg_attr in MAP.items():
+        value = getattr(args, arg_name, None)
+        if value is not None:
+            setattr(cfg, cfg_attr, value)
+

@@ -49,30 +49,7 @@ def main(argv=None):
         )
         return
 
-    cfg.SB_SERVER = args.server
-    cfg.SB_SENDER = args.sender
-    cfg.SB_RECEIVERS = args.receivers
-    cfg.SB_SUBJECT = args.subject
-    cfg.SB_SGEMAILS = args.emails_per_burst
-    cfg.SB_BURSTS = args.bursts
-    cfg.SB_SGEMAILSPSEC = args.email_delay
-    cfg.SB_BURSTSPSEC = args.burst_delay
-    cfg.SB_GLOBAL_DELAY = args.global_delay
-    cfg.SB_OPEN_SOCKETS_DELAY = args.socket_delay
-    cfg.SB_TARPIT_THRESHOLD = args.tarpit_threshold
-    cfg.SB_SIZE = args.size
-    cfg.SB_DATA_MODE = args.data_mode
-    cfg.SB_REPEAT_STRING = args.repeat_string
-    cfg.SB_PER_BURST_DATA = args.per_burst_data
-    cfg.SB_SECURE_RANDOM = args.secure_random
-    cfg.SB_TEST_UNICODE = args.unicode_case_test
-    cfg.SB_TEST_UTF7 = args.utf7_test
-    cfg.SB_TEST_TUNNEL = args.header_tunnel_test
-    cfg.SB_TEST_CONTROL = args.control_char_test
-    cfg.SB_STOPFAIL = args.stop_on_fail
-    cfg.SB_STOPFQNT = args.stop_fail_count
-    cfg.SB_SSL = args.ssl
-    cfg.SB_STARTTLS = args.starttls
+    cli.apply_args_to_config(cfg, args)
 
     if args.dict_file:
         cfg.SB_DICT_WORDS = send.datagen.compile_wordlist(Path(args.dict_file))
