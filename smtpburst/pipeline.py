@@ -52,7 +52,12 @@ class PipelineError(Exception):
 class PipelineRunner:
     """Execute pipeline steps sequentially."""
 
-    def __init__(self, steps: List[Dict[str, Any]], stop_on_fail: bool = False, fail_threshold: int = 1):
+    def __init__(
+        self,
+        steps: List[Dict[str, Any]],
+        stop_on_fail: bool = False,
+        fail_threshold: int = 1,
+    ):
         self.steps = steps
         self.stop_on_fail = stop_on_fail
         self.fail_threshold = fail_threshold
@@ -96,4 +101,8 @@ def load_pipeline(path: str) -> PipelineRunner:
         raise PipelineError("'steps' must be a list")
     stop_on_fail = bool(data.get("stop_on_fail", False))
     fail_threshold = int(data.get("fail_threshold", 1))
-    return PipelineRunner(steps, stop_on_fail=stop_on_fail, fail_threshold=fail_threshold)
+    return PipelineRunner(
+        steps,
+        stop_on_fail=stop_on_fail,
+        fail_threshold=fail_threshold,
+    )

@@ -41,7 +41,11 @@ def test_banner_check_rdns_fail(monkeypatch):
         def recv(self, n):
             return b"220 test"
 
-    monkeypatch.setattr(discovery.socket, "create_connection", lambda addr, timeout=5: DummyConn())
+    monkeypatch.setattr(
+        discovery.socket,
+        "create_connection",
+        lambda addr, timeout=5: DummyConn(),
+    )
     monkeypatch.setattr(discovery.send, "parse_server", lambda s: ("host", 25))
     monkeypatch.setattr(discovery.rdns, "verify", lambda h: False)
 

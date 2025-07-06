@@ -15,11 +15,20 @@ VERSIONS = {
 }
 
 
-def test_versions(host: str, port: int = 443, timeout: float = 3.0) -> Dict[str, Dict[str, Any]]:
+def test_versions(
+    host: str,
+    port: int = 443,
+    timeout: float = 3.0,
+) -> Dict[str, Dict[str, Any]]:
     """Attempt TLS connections for each version and return details."""
     results: Dict[str, Dict[str, Any]] = {}
     for name, ver in VERSIONS.items():
-        info: Dict[str, Any] = {"supported": False, "valid": None, "protocol": None, "certificate": None}
+        info: Dict[str, Any] = {
+            "supported": False,
+            "valid": None,
+            "protocol": None,
+            "certificate": None,
+        }
 
         # First try with certificate verification enabled
         ctx = ssl.create_default_context()
@@ -44,7 +53,10 @@ def test_versions(host: str, port: int = 443, timeout: float = 3.0) -> Dict[str,
                 nctx.maximum_version = ver
                 with socket.create_connection((host, port), timeout=timeout) as raw:
                     with nctx.wrap_socket(raw, server_hostname=host) as sock:
-                        info.update(protocol=sock.version(), certificate=sock.getpeercert())
+                        info.update(
+                            protocol=sock.version(),
+                            certificate=sock.getpeercert(),
+                        )
             except Exception:
                 pass
         except Exception:

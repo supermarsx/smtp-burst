@@ -18,7 +18,9 @@ except ImportError:
 
 def _generate_cert(tmp_path):
     key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
-    subject = issuer = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, u"localhost")])
+    subject = issuer = x509.Name(
+        [x509.NameAttribute(NameOID.COMMON_NAME, u"localhost")]
+    )
     cert = (
         x509.CertificateBuilder()
         .subject_name(subject)
@@ -60,7 +62,11 @@ def _start_server(certfile, keyfile):
                 conn, _ = sock.accept()
             except socket.timeout:
                 continue
-            with ctx.wrap_socket(conn, server_side=True, do_handshake_on_connect=False) as s:
+            with ctx.wrap_socket(
+                conn,
+                server_side=True,
+                do_handshake_on_connect=False,
+            ) as s:
                 try:
                     s.do_handshake()
                     s.recv(1)
