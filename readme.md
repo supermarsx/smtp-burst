@@ -208,7 +208,8 @@ The script simply invokes `pytest --cov` and collects coverage information.
 
 Build standalone executables with [PyInstaller](https://www.pyinstaller.org/).
 Use the platform specific build scripts located in `scripts/` to create a
-standalone binary using PyInstaller:
+standalone binary. Each script verifies that `pyinstaller` is available and
+places the output in a platform specific `dist/` directory:
 
 ```bash
 $ ./scripts/build_ubuntu.sh   # Linux
