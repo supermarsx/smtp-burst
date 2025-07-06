@@ -32,7 +32,11 @@ def main(argv=None):
     if args.pipeline_file:
         from . import pipeline
 
-        runner = pipeline.load_pipeline(args.pipeline_file)
+        try:
+            runner = pipeline.load_pipeline(args.pipeline_file)
+        except SystemExit as exc:
+            print(exc)
+            return
         runner.run()
         return
 

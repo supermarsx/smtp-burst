@@ -15,6 +15,12 @@ def test_cli_pipeline_option():
     assert args.pipeline_file == "p.yml"
 
 
+def test_load_pipeline_missing_yaml(monkeypatch):
+    monkeypatch.setattr(pipeline, "yaml", None)
+    with pytest.raises(SystemExit, match="PyYAML"):
+        pipeline.load_pipeline("p.yml")
+
+
 @pytest.mark.skipif(pipeline.yaml is None, reason="PyYAML not installed")
 def test_pipeline_runner_stop(monkeypatch, tmp_path):
     calls = []
