@@ -22,7 +22,9 @@ def ping(host: str) -> str:
             text=True,
             check=False,
         )
-        return proc.stdout.strip()
+        if proc.returncode == 0:
+            return proc.stdout.strip()
+        return ""
     except Exception as exc:  # pragma: no cover - ping may not exist
         return str(exc)
 

@@ -37,7 +37,7 @@ def test_check_spf(monkeypatch):
 def test_ping_posix(monkeypatch):
     def fake_run(cmd, capture_output, text, check):
         assert cmd == ["ping", "-c", "1", "host"]
-        return SimpleNamespace(stdout="pong")
+        return SimpleNamespace(stdout="pong", returncode=0)
 
     monkeypatch.setattr(nettests.platform, "system", lambda: "Linux")
     monkeypatch.setattr(nettests.subprocess, "run", fake_run)
@@ -47,11 +47,21 @@ def test_ping_posix(monkeypatch):
 def test_ping_windows(monkeypatch):
     def fake_run(cmd, capture_output, text, check):
         assert cmd == ["ping", "-n", "1", "host"]
-        return SimpleNamespace(stdout="pong")
+        return SimpleNamespace(stdout="pong", returncode=0)
 
     monkeypatch.setattr(nettests.platform, "system", lambda: "Windows")
     monkeypatch.setattr(nettests.subprocess, "run", fake_run)
     assert nettests.ping("host") == "pong"
+
+
+def test_ping_failure(monkeypatch):
+    def fake_run(cmd, capture_output, text, check):
+        assert cmd == ["ping", "-c", "1", "host"]
+        return SimpleNamespace(stdout="error", returncode=1)
+
+    monkeypatch.setattr(nettests.platform, "system", lambda: "Linux")
+    monkeypatch.setattr(nettests.subprocess, "run", fake_run)
+    assert nettests.ping("host") == ""
 
 
 def test_traceroute_posix(monkeypatch):
