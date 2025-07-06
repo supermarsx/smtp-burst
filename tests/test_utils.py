@@ -56,6 +56,18 @@ def test_parse_server_bad_port():
     assert port == 25
 
 
+def test_parse_server_ipv6_with_port():
+    host, port = burstGen.parse_server("[2001:db8::1]:587")
+    assert host == "2001:db8::1"
+    assert port == 587
+
+
+def test_parse_server_ipv6_default_port():
+    host, port = burstGen.parse_server("[2001:db8::1]")
+    assert host == "2001:db8::1"
+    assert port == 25
+
+
 def test_open_sockets_creates_connections(monkeypatch):
     connections = []
 

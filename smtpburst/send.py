@@ -208,7 +208,23 @@ def sendmail(
 
 def parse_server(server: str) -> Tuple[str, int]:
     """Return ``(host, port)`` parsed from ``server`` string."""
-    if ":" in server:
+    if server.startswith("["):
+        end = server.find("]")
+        if end != -1:
+            host = server[1:end]
+            rest = server[end + 1 :]
+        else:
+            host = server[1:]
+            rest = ""
+        if rest.startswith(":"):
+            port_str = rest[1:]
+            try:
+                port = int(port_str)
+            except ValueError:
+                port = 25
+        else:
+            port = 25
+    elif ":" in server:
         host, port_str = server.rsplit(":", 1)
         try:
             port = int(port_str)
