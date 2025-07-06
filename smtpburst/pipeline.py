@@ -86,7 +86,7 @@ class PipelineRunner:
 def load_pipeline(path: str) -> PipelineRunner:
     """Load pipeline YAML file and return a :class:`PipelineRunner`."""
     if yaml is None:
-        raise RuntimeError("PyYAML not installed")
+        raise SystemExit("Pipeline feature requires PyYAML")
     with open(path, "r", encoding="utf-8") as fh:
         data = yaml.safe_load(fh) or {}
     if not isinstance(data, dict) or "steps" not in data:
