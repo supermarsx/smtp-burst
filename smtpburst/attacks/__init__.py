@@ -160,7 +160,12 @@ def connection_setup_time(host: str, port: int = 25) -> float:
     return end - start
 
 
-def smtp_handshake_time(host: str, port: int = 25, use_ssl: bool = False, start_tls: bool = False) -> float:
+def smtp_handshake_time(
+    host: str,
+    port: int = 25,
+    use_ssl: bool = False,
+    start_tls: bool = False,
+) -> float:
     """Return time to complete SMTP handshake with ``host``."""
     smtp_cls = smtplib.SMTP_SSL if use_ssl else smtplib.SMTP
     start = time.monotonic()
@@ -193,11 +198,20 @@ def message_send_time(
 def ping_latency(host: str) -> float:
     """Return latency of a single ICMP ping to ``host``."""
     start = time.monotonic()
-    subprocess.run(["ping", "-c", "1", host], capture_output=True, text=True, check=False)
+    subprocess.run(
+        ["ping", "-c", "1", host],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
     return time.monotonic() - start
 
 
-def performance_test(host: str, port: int = 25, baseline: str | None = None) -> Dict[str, Any]:
+def performance_test(
+    host: str,
+    port: int = 25,
+    baseline: str | None = None,
+) -> Dict[str, Any]:
     """Run latency tests against ``host`` and optionally ``baseline``."""
 
     def _measure(target: str, p: int) -> Dict[str, float]:

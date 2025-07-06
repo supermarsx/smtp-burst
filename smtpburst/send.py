@@ -283,7 +283,11 @@ def _attempt_auth(
         return False
 
 
-def _smtp_authenticate(cfg: Config, users: List[str], passwords: List[str]) -> dict[str, bool]:
+def _smtp_authenticate(
+    cfg: Config,
+    users: List[str],
+    passwords: List[str],
+) -> dict[str, bool]:
     """Try authentication attempts for ``users``/``passwords`` and return results."""
 
     host, port = parse_server(cfg.SB_SERVER)

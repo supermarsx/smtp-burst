@@ -29,14 +29,28 @@ CLI_OPTIONS: Iterable[CLIOption] = [
     }),
     (("--subject",), {"default_attr": "SB_SUBJECT", "help": "Email subject line"}),
     (("--body-file",), {"help": "File containing email body text"}),
-    (("--attach",), {"nargs": "+", "metavar": "FILE", "help": "Files to attach to each message"}),
+    (
+        ("--attach",),
+        {
+            "nargs": "+",
+            "metavar": "FILE",
+            "help": "Files to attach to each message",
+        },
+    ),
 
     (("--emails-per-burst",), {
         "type": int,
         "default_attr": "SB_SGEMAILS",
         "help": "Number of emails per burst",
     }),
-    (("--bursts",), {"type": int, "default_attr": "SB_BURSTS", "help": "Number of bursts to send"}),
+    (
+        ("--bursts",),
+        {
+            "type": int,
+            "default_attr": "SB_BURSTS",
+            "help": "Number of bursts to send",
+        },
+    ),
     (("--email-delay",), {
         "type": float,
         "default_attr": "SB_SGEMAILSPSEC",
@@ -68,9 +82,28 @@ CLI_OPTIONS: Iterable[CLIOption] = [
         "default": 0,
         "help": "Open N TCP sockets and hold them open instead of sending email",
     }),
-    (("--socket-duration",), {"type": float, "help": "Close open sockets after SECONDS"}),
-    (("--socket-iterations",), {"type": int, "help": "Run the socket loop this many times before closing"}),
-    (("--port",), {"type": int, "default": 25, "help": "TCP port to use for socket mode"}),
+    (
+        ("--socket-duration",),
+        {
+            "type": float,
+            "help": "Close open sockets after SECONDS",
+        },
+    ),
+    (
+        ("--socket-iterations",),
+        {
+            "type": int,
+            "help": "Run the socket loop this many times before closing",
+        },
+    ),
+    (
+        ("--port",),
+        {
+            "type": int,
+            "default": 25,
+            "help": "TCP port to use for socket mode",
+        },
+    ),
 
     (("--size",), {
         "type": int,
@@ -83,7 +116,13 @@ CLI_OPTIONS: Iterable[CLIOption] = [
         "help": "Payload generation mode",
     }),
     (("--dict-file",), {"help": "Word list for dictionary mode"}),
-    (("--repeat-string",), {"default_attr": "SB_REPEAT_STRING", "help": "String to repeat for repeat mode"}),
+    (
+        ("--repeat-string",),
+        {
+            "default_attr": "SB_REPEAT_STRING",
+            "help": "String to repeat for repeat mode",
+        },
+    ),
     (("--per-burst-data",), {
         "action": "store_true",
         "default_attr": "SB_PER_BURST_DATA",
@@ -144,11 +183,29 @@ CLI_OPTIONS: Iterable[CLIOption] = [
     (("--passlist",), {"help": "Password wordlist for SMTP AUTH"}),
     (("--template-file",), {"help": "Phishing template file"}),
     (("--enum-list",), {"help": "Wordlist for enumeration"}),
-    (("--vrfy-enum",), {"action": "store_true", "help": "Use VRFY to enumerate users"}),
-    (("--expn-enum",), {"action": "store_true", "help": "Use EXPN to enumerate lists"}),
-    (("--rcpt-enum",), {"action": "store_true", "help": "Use RCPT TO to enumerate users"}),
-    (("--login-test",), {"action": "store_true", "help": "Attempt SMTP AUTH logins using wordlists"}),
-    (("--auth-test",), {"action": "store_true", "help": "Test advertised AUTH methods using --username/--password"}),
+    (
+        ("--vrfy-enum",),
+        {"action": "store_true", "help": "Use VRFY to enumerate users"},
+    ),
+    (
+        ("--expn-enum",),
+        {"action": "store_true", "help": "Use EXPN to enumerate lists"},
+    ),
+    (
+        ("--rcpt-enum",),
+        {"action": "store_true", "help": "Use RCPT TO to enumerate users"},
+    ),
+    (
+        ("--login-test",),
+        {"action": "store_true", "help": "Attempt SMTP AUTH logins using wordlists"},
+    ),
+    (
+        ("--auth-test",),
+        {
+            "action": "store_true",
+            "help": "Test advertised AUTH methods using --username/--password",
+        },
+    ),
     (("--username",), {"help": "Username for --auth-test"}),
     (("--password",), {"help": "Password for --auth-test"}),
 
@@ -172,11 +229,26 @@ CLI_OPTIONS: Iterable[CLIOption] = [
     (("--lookup-mx",), {"help": "Domain to query MX records for"}),
     (("--smtp-extensions",), {"help": "Host to discover SMTP extensions"}),
     (("--cert-check",), {"help": "Host to retrieve TLS certificate from"}),
-    (("--port-scan",), {"nargs": "+", "help": "Host followed by one or more ports to scan"}),
-    (("--probe-honeypot",), {"help": "Host to probe for SMTP honeypot"}),
-    (("--tls-discovery",), {"help": "Host to probe TLS versions and certificate validity"}),
-    (("--ssl-discovery",), {"help": "Host to discover supported legacy SSL versions"}),
-    (("--blacklist-check",), {"nargs": "+", "help": "IP followed by one or more DNSBL zones to query"}),
+    (
+        ("--port-scan",),
+        {"nargs": "+", "help": "Host followed by one or more ports to scan"},
+    ),
+    (
+        ("--probe-honeypot",),
+        {"help": "Host to probe for SMTP honeypot"},
+    ),
+    (
+        ("--tls-discovery",),
+        {"help": "Host to probe TLS versions and certificate validity"},
+    ),
+    (
+        ("--ssl-discovery",),
+        {"help": "Host to discover supported legacy SSL versions"},
+    ),
+    (
+        ("--blacklist-check",),
+        {"nargs": "+", "help": "IP followed by one or more DNSBL zones to query"},
+    ),
     (("--imap-check",), {
         "nargs": 4,
         "metavar": ("HOST", "USER", "PASS", "CRITERIA"),
@@ -187,18 +259,61 @@ CLI_OPTIONS: Iterable[CLIOption] = [
         "metavar": ("HOST", "USER", "PASS", "PATTERN"),
         "help": "Check POP3 inbox for messages containing PATTERN",
     }),
-    (("--open-relay-test",), {"action": "store_true", "help": "Test if the target SMTP server is an open relay"}),
-    (("--ping-test",), {"help": "Host to ping"}),
-    (("--traceroute-test",), {"help": "Host to traceroute"}),
-    (("--perf-test",), {"help": "Host to run performance test against"}),
-    (("--baseline-host",), {"help": "Baseline host for performance comparison"}),
-    (("--rdns-test",), {"action": "store_true", "help": "Verify reverse DNS for the configured server"}),
-    (("--banner-check",), {"action": "store_true", "help": "Read SMTP banner and verify reverse DNS"}),
-    (("--outbound-test",), {"action": "store_true", "help": "Send one test email and exit"}),
+    (
+        ("--open-relay-test",),
+        {
+            "action": "store_true",
+            "help": "Test if the target SMTP server is an open relay",
+        },
+    ),
+    (
+        ("--ping-test",),
+        {"help": "Host to ping"},
+    ),
+    (
+        ("--traceroute-test",),
+        {"help": "Host to traceroute"},
+    ),
+    (
+        ("--perf-test",),
+        {"help": "Host to run performance test against"},
+    ),
+    (
+        ("--baseline-host",),
+        {"help": "Baseline host for performance comparison"},
+    ),
+    (
+        ("--rdns-test",),
+        {
+            "action": "store_true",
+            "help": "Verify reverse DNS for the configured server",
+        },
+    ),
+    (
+        ("--banner-check",),
+        {"action": "store_true", "help": "Read SMTP banner and verify reverse DNS"},
+    ),
+    (
+        ("--outbound-test",),
+        {"action": "store_true", "help": "Send one test email and exit"},
+    ),
 
-    (("--silent",), {"action": "store_true", "group": "log", "help": "Suppress all log output"}),
-    (("--errors-only",), {"action": "store_true", "group": "log", "help": "Show only error messages"}),
-    (("--warnings",), {"action": "store_true", "group": "log", "help": "Show warnings and errors only"}),
+    (
+        ("--silent",),
+        {"action": "store_true", "group": "log", "help": "Suppress all log output"},
+    ),
+    (
+        ("--errors-only",),
+        {"action": "store_true", "group": "log", "help": "Show only error messages"},
+    ),
+    (
+        ("--warnings",),
+        {
+            "action": "store_true",
+            "group": "log",
+            "help": "Show warnings and errors only",
+        },
+    ),
 ]
 
 
