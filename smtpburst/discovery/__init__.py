@@ -86,8 +86,10 @@ def smtp_extensions(host: str, port: int = 25) -> List[str]:
 def check_certificate(host: str, port: int = 443) -> Dict[str, Any]:
     """Return TLS certificate details for ``host``."""
     try:
-        pem = ssl.get_server_certificate((host, port))
-        cert = ssl._ssl._test_decode_cert(pem)
+        ctx = ssl.create_default_context()
+        with socket.create_connection((host, port), timeout=3) as raw:
+            with ctx.wrap_socket(raw, server_hostname=host) as sock:
+                cert = sock.getpeercert()
         return {
             "subject": cert.get("subject"),
             "issuer": cert.get("issuer"),
