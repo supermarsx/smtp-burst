@@ -7,6 +7,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 
 from smtpburst import cli as burst_cli
 from smtpburst.config import Config
+from smtpburst import __version__
 
 import logging
 from smtpburst import __main__ as main_mod
@@ -327,3 +328,10 @@ def test_parse_args_missing_config(tmp_path):
     cfg_path = tmp_path / "missing.json"
     with pytest.raises(SystemExit):
         burst_cli.parse_args(["--config", str(cfg_path)], Config())
+
+
+def test_version_option(capsys):
+    with pytest.raises(SystemExit):
+        burst_cli.parse_args(["--version"], Config())
+    out = capsys.readouterr().out
+    assert out.strip() == __version__
