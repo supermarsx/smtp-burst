@@ -1,6 +1,3 @@
-import os
-import sys
-
 # Ensure project root is on sys.path for imports
 
 from smtpburst import __main__ as main_mod
@@ -129,6 +126,7 @@ def test_logging_modes(monkeypatch, caplog):
     caplog.clear()
     main_mod.main(["--silent"])
     assert not caplog.records
+
 
 def test_main_tls_discovery(monkeypatch):
     called = {}

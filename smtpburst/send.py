@@ -385,7 +385,6 @@ def auth_test(cfg: Config) -> dict[str, bool]:
     return results
 
 
-
 def send_test_email(cfg: Config) -> None:
     """Send a single minimal email using ``sendmail`` helper."""
 

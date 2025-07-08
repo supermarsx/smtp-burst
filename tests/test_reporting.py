@@ -15,4 +15,4 @@ def test_ascii_report_long_keys():
     assert lines[2] == border
     assert lines[-1] == border
     assert lines[3] == f"short{' ' * (width - len('short'))}: 1"
-    assert lines[4] == f"this_is_a_really_long_key: 2"
+    assert lines[4] == "this_is_a_really_long_key: 2"

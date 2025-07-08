@@ -7,6 +7,7 @@ def _monkey_time(monkeypatch, *values):
 
 
 def test_connection_setup_time(monkeypatch):
+
     class DummySock:
         def close(self):
             pass
@@ -17,15 +18,20 @@ def test_connection_setup_time(monkeypatch):
 
 
 def test_smtp_handshake_time(monkeypatch):
+
     class DummySMTP:
         def __init__(self, *a, **k):
             pass
+
         def __enter__(self):
             return self
+
         def __exit__(self, exc_type, exc, tb):
             pass
+
         def starttls(self):
             pass
+
         def ehlo(self):
             pass
 
@@ -36,15 +42,20 @@ def test_smtp_handshake_time(monkeypatch):
 
 
 def test_message_send_time(monkeypatch):
+
     class DummySMTP:
         def __init__(self, *a, **k):
             pass
+
         def __enter__(self):
             return self
+
         def __exit__(self, exc_type, exc, tb):
             pass
+
         def starttls(self):
             pass
+
         def sendmail(self, *a, **k):
             pass
 

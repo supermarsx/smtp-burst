@@ -8,12 +8,7 @@ import ssl
 import socket
 from typing import Any, Dict, List
 
-from .nettests import (
-    ping,
-    traceroute,
-    blacklist_check as check_rbl,
-    open_relay_test as test_open_relay,
-)
+# Import discovery tests individually when used to avoid unused imports
 
 from .. import send, rdns
 
@@ -58,9 +53,6 @@ def check_txt(domain: str) -> List[str]:
     return _lookup(domain, "TXT")
 
 
-
-
-
 def lookup_mx(domain: str) -> List[str]:
     """Return MX records for ``domain``."""
     try:
@@ -78,7 +70,6 @@ def smtp_extensions(host: str, port: int = 25) -> List[str]:
             return list(smtp.esmtp_features.keys())
     except Exception as exc:  # pragma: no cover - network failures
         return [f"error: {exc}"]
-
 
 
 def check_certificate(host: str, port: int = 443) -> Dict[str, Any]:
