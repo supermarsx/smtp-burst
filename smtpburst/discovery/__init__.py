@@ -17,6 +17,18 @@ from typing import Any, Dict, List
 from .. import send, rdns
 
 __all__ = [
+    "check_dmarc",
+    "check_spf",
+    "check_dkim",
+    "check_srv",
+    "check_soa",
+    "check_txt",
+    "lookup_mx",
+    "smtp_extensions",
+    "check_certificate",
+    "port_scan",
+    "probe_honeypot",
+    "banner_check",
     "ping",
     "traceroute",
     "check_rbl",
