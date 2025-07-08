@@ -1,6 +1,10 @@
 from __future__ import annotations
 
-"""DNS and network discovery utilities."""
+"""DNS and network discovery utilities.
+
+This module exposes ``ping``, ``traceroute``, ``check_rbl`` and
+``test_open_relay`` from :mod:`smtpburst.discovery.nettests` for convenience.
+"""
 
 from dns import resolver
 import smtplib
@@ -16,6 +20,13 @@ from .nettests import (
 )
 
 from .. import send, rdns
+
+__all__ = [
+    "ping",
+    "traceroute",
+    "check_rbl",
+    "test_open_relay",
+]
 
 
 def _lookup(domain: str, record: str) -> List[str]:
