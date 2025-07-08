@@ -310,6 +310,71 @@ def test_sendmail_calls_starttls(monkeypatch):
     assert called.get("starttls")
 
 
+def test_sendmail_uses_proxy_socket(monkeypatch):
+    import types
+    import sys
+
+    class DummySock:
+        created = False
+        proxy = None
+        connected = None
+
+        def __init__(self, *a, **k):
+            DummySock.created = True
+
+        def set_proxy(self, typ, host, port):
+            DummySock.proxy = (typ, host, port)
+
+        def settimeout(self, timeout):
+            pass
+
+        def bind(self, addr):
+            pass
+
+        def connect(self, addr):
+            DummySock.connected = addr
+
+    dummy_socks = types.SimpleNamespace(socksocket=DummySock, SOCKS5=1)
+    monkeypatch.setitem(sys.modules, "socks", dummy_socks)
+
+    class DummySMTP:
+        def __init__(self, *args, **kwargs):
+            self.debuglevel = 0
+            self.source_address = None
+            self._get_socket(args[0], args[1], kwargs.get("timeout"))
+
+        def starttls(self):
+            pass
+
+        def sendmail(self, *a, **k):
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            pass
+
+        def _get_socket(self, host, port, timeout):  # pragma: no cover - replaced
+            return object()
+
+    monkeypatch.setattr(burstGen.smtplib, "SMTP", DummySMTP)
+    monkeypatch.setattr(burstGen.smtplib, "SMTP_SSL", DummySMTP)
+
+    orig_socket = burstGen.socket.socket
+
+    class Counter:
+        value = 0
+
+    cfg = Config()
+    sendmail(1, 1, Counter(), b"m", cfg, server="h:25", proxy="p:1080")
+
+    assert burstGen.socket.socket is orig_socket
+    assert DummySock.created
+    assert DummySock.proxy == (1, "p", 1080)
+    assert DummySock.connected == ("h", 25)
+
+
 def test_append_message_uses_subject_and_body(monkeypatch):
     cfg = Config()
     cfg.SB_SENDER = "a@b.com"

@@ -125,19 +125,41 @@ def sendmail(
 
     logger.info("%s/%s, Burst %s : Sending Email", number, cfg.SB_TOTAL, burst)
     host, port = parse_server(server)
-    orig_socket = socket.socket
+    smtp_cls = smtplib.SMTP_SSL if use_ssl else smtplib.SMTP
     if proxy:
         try:  # pragma: no cover - depends on PySocks
             import socks
 
             ph, pp = parse_server(proxy)
-            socks.setdefaultproxy(socks.SOCKS5, ph, pp)
-            socket.socket = socks.socksocket
+
+            class ProxySMTP(smtp_cls):
+                """SMTP subclass creating connections via a SOCKS proxy."""
+
+                def _get_socket(self, host, port, timeout):
+                    if timeout is not None and not timeout:
+                        raise ValueError(
+                            "Non-blocking socket (timeout=0) is not supported"
+                        )
+                    if self.debuglevel > 0:
+                        self._print_debug("connect: to", (host, port), self.source_address)
+                    sock = socks.socksocket()
+                    sock.set_proxy(socks.SOCKS5, ph, pp)
+                    if timeout is not None:
+                        sock.settimeout(timeout)
+                    if self.source_address:
+                        sock.bind(self.source_address)
+                    sock.connect((host, port))
+                    if smtp_cls is smtplib.SMTP_SSL:
+                        sock = self.context.wrap_socket(
+                            sock, server_hostname=self._host
+                        )
+                    return sock
+
+            smtp_cls = ProxySMTP
         except Exception:
             pass
     throttle(cfg)
     try:
-        smtp_cls = smtplib.SMTP_SSL if use_ssl else smtplib.SMTP
         with smtp_cls(host, port, timeout=cfg.SB_TIMEOUT) as smtpObj:
             if start_tls and not use_ssl:
                 smtpObj.starttls()
@@ -201,9 +223,6 @@ def sendmail(
             SB_FAILCOUNT.value,
             cfg.SB_STOPFQNT,
         )
-    finally:
-        if proxy:
-            socket.socket = orig_socket
 
 
 def parse_server(server: str) -> Tuple[str, int]:
