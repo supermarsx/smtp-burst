@@ -1,5 +1,4 @@
 import os
-import os
 import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -11,8 +10,10 @@ def test_banner_check_success(monkeypatch):
     class DummyConn:
         def __enter__(self):
             return self
+
         def __exit__(self, exc_type, exc, tb):
             pass
+
         def recv(self, n):
             return b"220 test banner"
 
@@ -36,8 +37,10 @@ def test_banner_check_rdns_fail(monkeypatch):
     class DummyConn:
         def __enter__(self):
             return self
+
         def __exit__(self, exc_type, exc, tb):
             pass
+
         def recv(self, n):
             return b"220 test"
 

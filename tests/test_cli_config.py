@@ -11,6 +11,7 @@ from smtpburst.config import Config
 import logging
 from smtpburst import __main__ as main_mod
 
+
 def test_json_config_parsing(tmp_path):
     cfg = {"server": "json.example.com", "bursts": 2}
     cfg_path = tmp_path / "config.json"

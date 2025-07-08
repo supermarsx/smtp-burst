@@ -64,4 +64,3 @@ def test_versions(
 
         results[name] = info
     return results
-

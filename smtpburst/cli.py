@@ -10,7 +10,6 @@ try:
 except ImportError:  # pragma: no cover - library may not be installed
     yaml = None
 
-
 CLIOption = Tuple[Tuple[str, ...], Dict[str, Any]]
 
 # Each tuple contains positional flags and argument keyword options.  Any entry
@@ -331,8 +330,6 @@ def load_config(path: str) -> Dict[str, Any]:
     return data
 
 
-
-
 def build_parser(cfg: Config) -> argparse.ArgumentParser:
     """Return argument parser for smtp-burst."""
     parser = argparse.ArgumentParser(
@@ -350,8 +347,6 @@ def build_parser(cfg: Config) -> argparse.ArgumentParser:
         target.add_argument(*flags, **opts)
 
     return parser
-
-
 
 
 def parse_args(args=None, cfg: Config | None = None) -> argparse.Namespace:
@@ -378,6 +373,7 @@ def parse_args(args=None, cfg: Config | None = None) -> argparse.Namespace:
             )
         parser.set_defaults(**config_data)
     return parser.parse_args(args)
+
 
 
 def apply_args_to_config(cfg: Config, args: argparse.Namespace) -> None:
@@ -416,4 +412,3 @@ def apply_args_to_config(cfg: Config, args: argparse.Namespace) -> None:
         value = getattr(args, arg_name, None)
         if value is not None:
             setattr(cfg, cfg_attr, value)
-
