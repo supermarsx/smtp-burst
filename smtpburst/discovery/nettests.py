@@ -71,7 +71,7 @@ def blacklist_check(ip: str, zones: List[str]) -> Dict[str, str]:
     if ip_obj.version == 4:
         reversed_ip = ".".join(reversed(ip.split(".")))
     else:  # pragma: no cover - IPv6 rarely used in tests
-        reversed_ip = ".".join(reversed(ip_obj.exploded.split(":")))
+        reversed_ip = ".".join(reversed(ip_obj.exploded.replace(":", "")))
 
     for zone in zones:
         qname = f"{reversed_ip}.{zone}"

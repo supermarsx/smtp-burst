@@ -99,6 +99,23 @@ def test_check_rbl(monkeypatch):
     assert calls == ["4.3.2.1.listed.example", "4.3.2.1.clean.example"]
 
 
+def test_check_rbl_ipv6(monkeypatch):
+    calls = []
+
+    def fake_resolve(domain, record):
+        calls.append(domain)
+        raise discovery.resolver.NXDOMAIN
+
+    monkeypatch.setattr(nettests.resolver, "resolve", fake_resolve)
+    res = nettests.blacklist_check("2001:db8::1", ["zone.example"])
+    expected = (
+        "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2"
+        ".zone.example"
+    )
+    assert res == {"zone.example": "not listed"}
+    assert calls == [expected]
+
+
 def test_open_relay_test(monkeypatch):
     class DummySMTP:
         def __init__(self, *args, **kwargs):
