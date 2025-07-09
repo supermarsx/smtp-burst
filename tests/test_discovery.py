@@ -188,8 +188,16 @@ def test_check_certificate(monkeypatch):
         def wrap_socket(self, sock, server_hostname=None):
             return DummySock()
 
-    monkeypatch.setattr(discovery.ssl, "create_default_context", lambda: DummyCtx())
-    monkeypatch.setattr(discovery.socket, "create_connection", lambda addr, timeout=3: DummyRaw())
+    monkeypatch.setattr(
+        discovery.ssl,
+        "create_default_context",
+        lambda: DummyCtx(),
+    )
+    monkeypatch.setattr(
+        discovery.socket,
+        "create_connection",
+        lambda addr, timeout=3: DummyRaw(),
+    )
 
     res = discovery.check_certificate("h")
     assert res["subject"] == "s"
