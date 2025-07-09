@@ -96,7 +96,11 @@ def smtp_extensions(host: str, port: int = 25) -> List[str]:
 
 
 def check_certificate(host: str, port: int = 443) -> Dict[str, Any]:
-    """Return TLS certificate details for ``host``."""
+    """Return TLS certificate details for ``host``.
+
+    A secure connection is established using :func:`ssl.create_default_context`
+    and the peer certificate is retrieved with :meth:`ssl.SSLSocket.getpeercert`.
+    """
     try:
         ctx = ssl.create_default_context()
         with socket.create_connection((host, port), timeout=3) as raw:
