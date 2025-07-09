@@ -1,5 +1,4 @@
 import smtplib
-import socket
 import time
 import sys
 import logging
@@ -141,7 +140,11 @@ def sendmail(
                             "Non-blocking socket (timeout=0) is not supported"
                         )
                     if self.debuglevel > 0:
-                        self._print_debug("connect: to", (host, port), self.source_address)
+                        self._print_debug(
+                            "connect: to",
+                            (host, port),
+                            self.source_address,
+                        )
                     sock = socks.socksocket()
                     sock.set_proxy(socks.SOCKS5, ph, pp)
                     if timeout is not None:

@@ -18,7 +18,14 @@ CLIOption = Tuple[Tuple[str, ...], Dict[str, Any]]
 # for the default value.  A ``group`` key specifies the mutually exclusive
 # logging group.
 CLI_OPTIONS: Iterable[CLIOption] = [
-    (("--version",), {"action": "version", "version": __version__, "help": "Show program version and exit"}),
+    (
+        ("--version",),
+        {
+            "action": "version",
+            "version": __version__,
+            "help": "Show program version and exit",
+        },
+    ),
     (("--config",), {"help": "Path to JSON/YAML config file"}),
     (("--pipeline-file",), {"help": "YAML file describing discovery/attack pipeline"}),
     (("--server",), {"default_attr": "SB_SERVER", "help": "SMTP server to connect to"}),
@@ -375,7 +382,6 @@ def parse_args(args=None, cfg: Config | None = None) -> argparse.Namespace:
             )
         parser.set_defaults(**config_data)
     return parser.parse_args(args)
-
 
 
 def apply_args_to_config(cfg: Config, args: argparse.Namespace) -> None:
