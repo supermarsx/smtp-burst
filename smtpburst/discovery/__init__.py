@@ -14,6 +14,13 @@ from typing import Any, Dict, List
 
 # Import discovery tests individually when used to avoid unused imports
 
+from .nettests import (
+    ping,
+    traceroute,
+    blacklist_check as check_rbl,
+    open_relay_test as test_open_relay,
+)
+
 from .. import send, rdns
 
 __all__ = [
