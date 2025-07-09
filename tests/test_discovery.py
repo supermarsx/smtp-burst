@@ -173,12 +173,24 @@ def test_smtp_extensions(monkeypatch):
 
 
 def test_check_certificate(monkeypatch):
-    monkeypatch.setattr(discovery.ssl, "get_server_certificate", lambda addr: "PEM")
-    monkeypatch.setattr(
-        discovery.ssl._ssl,
-        "_test_decode_cert",
-        lambda pem: {"subject": "s", "issuer": "i", "notBefore": "b", "notAfter": "a"},
-    )
+    class DummyRaw:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            pass
+
+    class DummySock(DummyRaw):
+        def getpeercert(self):
+            return {"subject": "s", "issuer": "i", "notBefore": "b", "notAfter": "a"}
+
+    class DummyCtx:
+        def wrap_socket(self, sock, server_hostname=None):
+            return DummySock()
+
+    monkeypatch.setattr(discovery.ssl, "create_default_context", lambda: DummyCtx())
+    monkeypatch.setattr(discovery.socket, "create_connection", lambda addr, timeout=3: DummyRaw())
+
     res = discovery.check_certificate("h")
     assert res["subject"] == "s"
     assert res["issuer"] == "i"
