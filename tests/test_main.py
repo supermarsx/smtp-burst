@@ -2,6 +2,7 @@
 
 from smtpburst import __main__ as main_mod
 from smtpburst import send
+from smtpburst import pipeline
 import logging
 
 
@@ -162,3 +163,15 @@ def test_main_banner_check(monkeypatch):
     main_mod.main(['--banner-check', '--server', 'srv'])
 
     assert called['server'] == 'srv'
+
+
+def test_main_pipeline_error(monkeypatch, capsys):
+    def fake_load(path):
+        raise pipeline.PipelineError("bad pipeline")
+
+    monkeypatch.setattr(pipeline, "load_pipeline", fake_load)
+
+    main_mod.main(["--pipeline-file", "p.yml"])
+
+    out = capsys.readouterr().out
+    assert "bad pipeline" in out

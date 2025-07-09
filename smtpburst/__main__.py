@@ -34,7 +34,7 @@ def main(argv=None):
 
         try:
             runner = pipeline.load_pipeline(args.pipeline_file)
-        except SystemExit as exc:
+        except (SystemExit, pipeline.PipelineError) as exc:
             print(exc)
             return
         runner.run()
