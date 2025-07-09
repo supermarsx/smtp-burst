@@ -80,7 +80,8 @@ def test_open_sockets_creates_connections(monkeypatch):
     def fake_sleep(_):
         raise KeyboardInterrupt
 
-    monkeypatch.setattr(burstGen.socket, "create_connection", fake_create_connection)
+    att_socket = burstGen.attacks.socket
+    monkeypatch.setattr(att_socket, "create_connection", fake_create_connection)
     monkeypatch.setattr(burstGen.time, "sleep", fake_sleep)
 
     burstGen.open_sockets("host", 3, port=123)
@@ -104,7 +105,8 @@ def test_open_sockets_continues_on_errors(monkeypatch, caplog):
     def fake_sleep(_):
         raise KeyboardInterrupt
 
-    monkeypatch.setattr(burstGen.socket, "create_connection", fake_create_connection)
+    att_socket = burstGen.attacks.socket
+    monkeypatch.setattr(att_socket, "create_connection", fake_create_connection)
     monkeypatch.setattr(burstGen.time, "sleep", fake_sleep)
 
     with caplog.at_level(logging.WARNING, logger="smtpburst.attacks"):
@@ -121,7 +123,8 @@ def test_open_sockets_duration(monkeypatch):
         def close(self):
             closed.append(True)
 
-    monkeypatch.setattr(burstGen.socket, "create_connection", lambda a: DummySocket())
+    att_socket = burstGen.attacks.socket
+    monkeypatch.setattr(att_socket, "create_connection", lambda a: DummySocket())
 
     vals = iter([0, 0, 1, 2])
 
@@ -146,7 +149,8 @@ def test_open_sockets_iterations(monkeypatch):
         def close(self):
             closed.append(True)
 
-    monkeypatch.setattr(burstGen.socket, "create_connection", lambda a: DummySocket())
+    att_socket = burstGen.attacks.socket
+    monkeypatch.setattr(att_socket, "create_connection", lambda a: DummySocket())
     sleep_calls = []
     monkeypatch.setattr(burstGen.time, "sleep", lambda x: sleep_calls.append(x))
 
@@ -314,27 +318,20 @@ def test_sendmail_uses_proxy_socket(monkeypatch):
     import types
     import sys
 
+    calls = {}
+
     class DummySock:
-        created = False
-        proxy = None
-        connected = None
+        pass
 
-        def __init__(self, *a, **k):
-            DummySock.created = True
+    def fake_create(dest_pair, timeout=None, proxy_type=None, proxy_addr=None,
+                    proxy_port=None, source_address=None, **kwargs):
+        calls["dest"] = dest_pair
+        calls["proxy"] = (proxy_type, proxy_addr, proxy_port)
+        calls["timeout"] = timeout
+        calls["source"] = source_address
+        return DummySock()
 
-        def set_proxy(self, typ, host, port):
-            DummySock.proxy = (typ, host, port)
-
-        def settimeout(self, timeout):
-            pass
-
-        def bind(self, addr):
-            pass
-
-        def connect(self, addr):
-            DummySock.connected = addr
-
-    dummy_socks = types.SimpleNamespace(socksocket=DummySock, SOCKS5=1)
+    dummy_socks = types.SimpleNamespace(create_connection=fake_create, SOCKS5=1)
     monkeypatch.setitem(sys.modules, "socks", dummy_socks)
 
     class DummySMTP:
@@ -361,7 +358,8 @@ def test_sendmail_uses_proxy_socket(monkeypatch):
     monkeypatch.setattr(burstGen.smtplib, "SMTP", DummySMTP)
     monkeypatch.setattr(burstGen.smtplib, "SMTP_SSL", DummySMTP)
 
-    orig_socket = burstGen.socket.socket
+    import socket as py_socket
+    orig_socket = py_socket.socket
 
     class Counter:
         value = 0
@@ -369,10 +367,9 @@ def test_sendmail_uses_proxy_socket(monkeypatch):
     cfg = Config()
     sendmail(1, 1, Counter(), b"m", cfg, server="h:25", proxy="p:1080")
 
-    assert burstGen.socket.socket is orig_socket
-    assert DummySock.created
-    assert DummySock.proxy == (1, "p", 1080)
-    assert DummySock.connected == ("h", 25)
+    assert py_socket.socket is orig_socket
+    assert calls["dest"] == ("h", 25)
+    assert calls["proxy"] == (1, "p", 1080)
 
 
 def test_append_message_uses_subject_and_body(monkeypatch):

@@ -1,5 +1,4 @@
 import smtplib
-import socket
 import time
 import sys
 import logging
@@ -146,13 +145,14 @@ def sendmail(
                             (host, port),
                             self.source_address,
                         )
-                    sock = socks.socksocket()
-                    sock.set_proxy(socks.SOCKS5, ph, pp)
-                    if timeout is not None:
-                        sock.settimeout(timeout)
-                    if self.source_address:
-                        sock.bind(self.source_address)
-                    sock.connect((host, port))
+                    sock = socks.create_connection(
+                        (host, port),
+                        timeout=timeout,
+                        proxy_type=socks.SOCKS5,
+                        proxy_addr=ph,
+                        proxy_port=pp,
+                        source_address=self.source_address,
+                    )
                     if smtp_cls is smtplib.SMTP_SSL:
                         sock = self.context.wrap_socket(
                             sock, server_hostname=self._host
