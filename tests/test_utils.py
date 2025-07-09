@@ -73,15 +73,15 @@ def test_open_sockets_creates_connections(monkeypatch):
         def close(self):
             pass
 
-    def fake_create_connection(addr):
+    def fake_create_connection(addr, timeout=None):
         connections.append(addr)
         return DummySocket()
 
     def fake_sleep(_):
         raise KeyboardInterrupt
 
-    monkeypatch.setattr(burstGen.socket, "create_connection", fake_create_connection)
-    monkeypatch.setattr(burstGen.time, "sleep", fake_sleep)
+    monkeypatch.setattr(burstGen.attacks.socket, "create_connection", fake_create_connection)
+    monkeypatch.setattr(burstGen.attacks.time, "sleep", fake_sleep)
 
     burstGen.open_sockets("host", 3, port=123)
 
@@ -95,7 +95,7 @@ def test_open_sockets_continues_on_errors(monkeypatch, caplog):
         def close(self):
             pass
 
-    def fake_create_connection(addr):
+    def fake_create_connection(addr, timeout=None):
         attempts.append(addr)
         if len(attempts) == 1:
             raise OSError("boom")
@@ -104,8 +104,8 @@ def test_open_sockets_continues_on_errors(monkeypatch, caplog):
     def fake_sleep(_):
         raise KeyboardInterrupt
 
-    monkeypatch.setattr(burstGen.socket, "create_connection", fake_create_connection)
-    monkeypatch.setattr(burstGen.time, "sleep", fake_sleep)
+    monkeypatch.setattr(burstGen.attacks.socket, "create_connection", fake_create_connection)
+    monkeypatch.setattr(burstGen.attacks.time, "sleep", fake_sleep)
 
     with caplog.at_level(logging.WARNING, logger="smtpburst.attacks"):
         burstGen.open_sockets("host", 3, port=123)
@@ -121,7 +121,7 @@ def test_open_sockets_duration(monkeypatch):
         def close(self):
             closed.append(True)
 
-    monkeypatch.setattr(burstGen.socket, "create_connection", lambda a: DummySocket())
+    monkeypatch.setattr(burstGen.attacks.socket, "create_connection", lambda a, timeout=None: DummySocket())
 
     vals = iter([0, 0, 1, 2])
 
@@ -130,8 +130,8 @@ def test_open_sockets_duration(monkeypatch):
 
     sleep_calls = []
 
-    monkeypatch.setattr(burstGen.time, "monotonic", fake_monotonic)
-    monkeypatch.setattr(burstGen.time, "sleep", lambda x: sleep_calls.append(x))
+    monkeypatch.setattr(burstGen.attacks.time, "monotonic", fake_monotonic)
+    monkeypatch.setattr(burstGen.attacks.time, "sleep", lambda x: sleep_calls.append(x))
 
     burstGen.open_sockets("host", 2, port=25, duration=2)
 
@@ -146,14 +146,48 @@ def test_open_sockets_iterations(monkeypatch):
         def close(self):
             closed.append(True)
 
-    monkeypatch.setattr(burstGen.socket, "create_connection", lambda a: DummySocket())
+    monkeypatch.setattr(burstGen.attacks.socket, "create_connection", lambda a, timeout=None: DummySocket())
     sleep_calls = []
-    monkeypatch.setattr(burstGen.time, "sleep", lambda x: sleep_calls.append(x))
+    monkeypatch.setattr(burstGen.attacks.time, "sleep", lambda x: sleep_calls.append(x))
 
     burstGen.open_sockets("host", 1, port=25, iterations=3)
 
     assert len(closed) == 1
     assert len(sleep_calls) == 3
+
+
+def test_attacks_open_sockets_uses_timeout(monkeypatch):
+    captured = []
+
+    class DummySocket:
+        def close(self):
+            pass
+
+    def fake_create_connection(addr, timeout=None):
+        captured.append(timeout)
+        return DummySocket()
+
+    monkeypatch.setattr(burstGen.attacks.socket, "create_connection", fake_create_connection)
+    monkeypatch.setattr(burstGen.attacks.time, "sleep", lambda x: (_ for _ in ()).throw(KeyboardInterrupt))
+
+    burstGen.attacks.open_sockets("h", 1, port=25, timeout=5.5)
+
+    assert captured == [pytest.approx(5.5)]
+
+
+def test_send_open_sockets_forwards_timeout(monkeypatch):
+    called = {}
+
+    def fake_open(host, count, port, delay, cfg, *, duration=None, iterations=None, timeout=None):
+        called["timeout"] = timeout
+
+    monkeypatch.setattr(burstGen.attacks, "open_sockets", fake_open)
+
+    cfg = Config()
+    cfg.SB_TIMEOUT = 8.2
+    burstGen.open_sockets("host", 1, port=25, cfg=cfg)
+
+    assert called["timeout"] == pytest.approx(8.2)
 
 
 def test_sendmail_reports_auth_success(monkeypatch, caplog):
