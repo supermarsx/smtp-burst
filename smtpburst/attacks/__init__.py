@@ -23,17 +23,19 @@ def open_sockets(
     *,
     duration: float | None = None,
     iterations: int | None = None,
+    timeout: float = 10.0,
 ) -> None:
     """Open ``count`` TCP sockets to ``host`` and keep them open.
 
     ``duration`` limits how long sockets remain open in seconds.
     ``iterations`` limits how many delay loops run before closing.
+    ``timeout`` is passed to :func:`socket.create_connection`.
     ``KeyboardInterrupt`` still exits immediately.
     """
     sockets: List[socket.socket] = []
     for _ in range(count):
         try:
-            s = socket.create_connection((host, port))
+            s = socket.create_connection((host, port), timeout=timeout)
         except Exception as exc:  # pragma: no cover - logging path tested separately
             logger.warning("Failed to open socket to %s:%s: %s", host, port, exc)
             continue

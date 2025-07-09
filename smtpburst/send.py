@@ -270,6 +270,7 @@ def open_sockets(
 ) -> None:
     """Delegate to :mod:`smtpburst.attacks` implementation."""
     delay = cfg.SB_OPEN_SOCKETS_DELAY if cfg else 1.0
+    timeout = cfg.SB_TIMEOUT if cfg else 10.0
     return attacks.open_sockets(
         host,
         count,
@@ -278,6 +279,7 @@ def open_sockets(
         cfg,
         duration=duration,
         iterations=iterations,
+        timeout=timeout,
     )
 
 
