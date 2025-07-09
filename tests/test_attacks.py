@@ -22,3 +22,13 @@ def test_performance_test(monkeypatch):
     }
 
     assert res == {"target": expected, "baseline": expected}
+
+
+def test_smurf_test_delay(monkeypatch):
+    calls = []
+
+    monkeypatch.setattr(attacks.time, "sleep", lambda d: calls.append(d))
+
+    attacks.smurf_test("t", 3, delay=0.05)
+
+    assert calls == [0.05, 0.05, 0.05]

@@ -6,6 +6,8 @@ import smtplib
 import subprocess
 from typing import List, Dict, Any
 
+from ..config import Config
+
 from .. import send
 
 
@@ -114,10 +116,10 @@ def tcp_reset_flood(host: str, port: int, count: int):
     logger.info("Performed %s TCP resets on %s:%s", count, host, port)
 
 
-def smurf_test(target: str, count: int):
+def smurf_test(target: str, count: int, delay: float = Config.SB_SMURF_DELAY) -> None:
     """Simulate a smurf attack by issuing ping requests."""
     for _ in range(count):
-        time.sleep(0.01)
+        time.sleep(delay)
     logger.info("Simulated smurf attack against %s %s times", target, count)
 
 
