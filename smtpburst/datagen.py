@@ -87,6 +87,8 @@ def generate(
     stream: Optional[TextIO] = None,
 ) -> bytes:
     """Generate ``size`` bytes of data using ``mode``."""
+    if size < 0:
+        raise ValueError("size must be non-negative")
     if isinstance(mode, str):
         try:
             mode = DataMode(mode.lower())

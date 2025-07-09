@@ -1,4 +1,5 @@
 import secrets
+import pytest
 from smtpburst import datagen
 
 
@@ -18,3 +19,8 @@ def test_generate_secure_ascii_uses_system_random(monkeypatch):
     assert (
         datagen.generate(5, mode=datagen.DataMode.ASCII, secure=True) == b"a" * 5
     )
+
+
+def test_generate_negative_size():
+    with pytest.raises(ValueError):
+        datagen.generate(-1)
