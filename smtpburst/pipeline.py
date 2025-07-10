@@ -66,6 +66,8 @@ class PipelineRunner:
 
     def run(self) -> List[Any]:
         for step in self.steps:
+            if not isinstance(step, dict):
+                raise PipelineError("Step must be a mapping")
             action = step.get("action")
             if not action:
                 raise PipelineError("Step missing action")
