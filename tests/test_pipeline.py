@@ -119,3 +119,16 @@ def test_pipeline_runner_stop_threshold(monkeypatch, tmp_path):
     res = runner.run()
     assert calls == ["bad", "bad"]
     assert len(res) == 2
+
+
+@pytest.mark.skipif(pipeline.yaml is None, reason="PyYAML not installed")
+def test_pipeline_step_not_mapping(tmp_path):
+    import yaml
+
+    cfg = {"steps": ["oops"]}
+    path = tmp_path / "p.yaml"
+    path.write_text(yaml.safe_dump(cfg))
+
+    runner = pipeline.load_pipeline(str(path))
+    with pytest.raises(pipeline.PipelineError, match="mapping"):
+        runner.run()
