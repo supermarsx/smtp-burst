@@ -302,7 +302,12 @@ def _attempt_auth(
                 sm.starttls()
             sm.ehlo()
             sm.user, sm.password = user, pwd
-            sm.auth(mech, getattr(sm, auth_attr))
+            try:
+                auth_func = getattr(sm, auth_attr)
+            except AttributeError:
+                logger.info("Authentication mechanism %s unsupported", mech)
+                return False
+            sm.auth(mech, auth_func)
         return True
     except smtplib.SMTPAuthenticationError:
         return False
