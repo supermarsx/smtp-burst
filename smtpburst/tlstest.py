@@ -1,6 +1,6 @@
-from __future__ import annotations
-
 """TLS connection testing utilities."""
+
+from __future__ import annotations
 
 from typing import Dict, Any
 import socket

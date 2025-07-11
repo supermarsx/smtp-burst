@@ -1,5 +1,5 @@
 import smtplib
-import socket
+import socket  # noqa: F401 - used by tests for monkeypatching
 import time
 import sys
 import logging

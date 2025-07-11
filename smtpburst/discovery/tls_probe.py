@@ -1,6 +1,6 @@
-from __future__ import annotations
-
 """TLS version discovery utilities."""
+
+from __future__ import annotations
 
 from typing import Dict
 import socket

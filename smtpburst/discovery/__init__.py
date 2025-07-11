@@ -1,10 +1,10 @@
-from __future__ import annotations
-
 """DNS and network discovery utilities.
 
 This module exposes ``ping``, ``traceroute``, ``check_rbl`` and
 ``test_open_relay`` from :mod:`smtpburst.discovery.nettests` for convenience.
 """
+
+from __future__ import annotations
 
 from dns import resolver
 import smtplib

@@ -1,6 +1,6 @@
-from __future__ import annotations
-
 """Simple pipeline runner for smtp-burst discovery and attack actions."""
+
+from __future__ import annotations
 
 from typing import Any, Dict, List, Callable
 import logging

@@ -1,6 +1,6 @@
-from __future__ import annotations
-
 """Utilities for handling SOCKS proxies."""
+
+from __future__ import annotations
 
 import random
 import socket
