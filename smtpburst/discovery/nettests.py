@@ -1,6 +1,6 @@
-from __future__ import annotations
-
 """Network test utilities such as ping, traceroute and open relay checks."""
+
+from __future__ import annotations
 
 from dns import resolver
 import ipaddress
