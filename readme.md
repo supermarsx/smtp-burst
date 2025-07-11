@@ -190,6 +190,16 @@ Run a DNS check and save the report:
 $ python -m smtpburst --check-dmarc example.com --ping-test example.com > report.txt
 ```
 
+## Development
+
+Install the additional tools for linting and running tests:
+
+```bash
+$ pip install -r requirements-dev.txt
+```
+
+This installs `pytest` with coverage reporting and `ruff` for code style checks.
+
 ## Running Tests
 
 Execute the unit tests using the helper scripts:
