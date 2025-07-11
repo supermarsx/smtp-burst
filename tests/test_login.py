@@ -278,3 +278,33 @@ def test_auth_test_passes_timeout(monkeypatch):
     res = send.auth_test(cfg)
     assert res == {"PLAIN": True}
     assert timeouts == [3.0, 3.0]
+
+
+def test_login_test_unknown_mechanism(monkeypatch):
+    class DummySMTP:
+        def __init__(self, host, port, timeout=None):
+            self.esmtp_features = {"auth": "UNKNOWN"}
+            self.user = None
+            self.password = None
+
+        def starttls(self):
+            pass
+
+        def ehlo(self):
+            pass
+
+        def auth(self, mech, authobj, initial_response_ok=True):
+            return (235, b"ok")
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            pass
+
+    monkeypatch.setattr(send.smtplib, "SMTP", DummySMTP)
+    cfg = Config()
+    cfg.SB_USERLIST = ["u"]
+    cfg.SB_PASSLIST = ["p"]
+    res = send.login_test(cfg)
+    assert res == {"UNKNOWN": False}
