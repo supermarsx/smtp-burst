@@ -130,7 +130,7 @@ def sendmail(
         try:  # pragma: no cover - depends on PySocks
             import socks
         except ImportError:
-            logger.warning("PySocks not installed, ignoring proxy")
+            logger.warning("PySocks is not installed, ignoring proxy")
         else:
             try:
                 ph, pp = parse_server(proxy)
