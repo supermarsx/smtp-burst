@@ -248,11 +248,15 @@ def parse_server(server: str) -> Tuple[str, int]:
         else:
             port = 25
     elif ":" in server:
-        host, port_str = server.rsplit(":", 1)
-        try:
-            port = int(port_str)
-        except ValueError:
+        if server.count(":") > 1 and not server.startswith("["):
+            host = server
             port = 25
+        else:
+            host, port_str = server.rsplit(":", 1)
+            try:
+                port = int(port_str)
+            except ValueError:
+                port = 25
     else:
         host = server
         port = 25
