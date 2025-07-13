@@ -409,6 +409,44 @@ def test_sendmail_uses_proxy_socket(monkeypatch):
     assert DummySock.connected == ("h", 25)
 
 
+def test_sendmail_proxy_missing_pysocks(monkeypatch, caplog):
+    import builtins
+
+    orig_import = builtins.__import__
+
+    def fake_import(name, globals=None, locals=None, fromlist=(), level=0):
+        if name == "socks":
+            raise ImportError
+        return orig_import(name, globals, locals, fromlist, level)
+
+    monkeypatch.setattr(builtins, "__import__", fake_import)
+
+    class DummySMTP:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def sendmail(self, *a, **k):
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            pass
+
+    monkeypatch.setattr(burstGen.smtplib, "SMTP", DummySMTP)
+    monkeypatch.setattr(burstGen.smtplib, "SMTP_SSL", DummySMTP)
+
+    class Counter:
+        value = 0
+
+    cfg = Config()
+    with caplog.at_level(logging.WARNING, logger="smtpburst.send"):
+        sendmail(1, 1, Counter(), b"m", cfg, server="h:25", proxy="p:1080")
+
+    assert any("PySocks" in r.getMessage() for r in caplog.records)
+
+
 def test_append_message_uses_subject_and_body(monkeypatch):
     cfg = Config()
     cfg.SB_SENDER = "a@b.com"

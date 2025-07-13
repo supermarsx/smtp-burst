@@ -129,39 +129,42 @@ def sendmail(
     if proxy:
         try:  # pragma: no cover - depends on PySocks
             import socks
+        except ImportError:
+            logger.warning("PySocks not installed, ignoring proxy")
+        else:
+            try:
+                ph, pp = parse_server(proxy)
 
-            ph, pp = parse_server(proxy)
+                class ProxySMTP(smtp_cls):
+                    """SMTP subclass creating connections via a SOCKS proxy."""
 
-            class ProxySMTP(smtp_cls):
-                """SMTP subclass creating connections via a SOCKS proxy."""
+                    def _get_socket(self, host, port, timeout):
+                        if timeout is not None and not timeout:
+                            raise ValueError(
+                                "Non-blocking socket (timeout=0) is not supported"
+                            )
+                        if self.debuglevel > 0:
+                            self._print_debug(
+                                "connect: to",
+                                (host, port),
+                                self.source_address,
+                            )
+                        sock = socks.socksocket()
+                        sock.set_proxy(socks.SOCKS5, ph, pp)
+                        if timeout is not None:
+                            sock.settimeout(timeout)
+                        if self.source_address:
+                            sock.bind(self.source_address)
+                        sock.connect((host, port))
+                        if smtp_cls is smtplib.SMTP_SSL:
+                            sock = self.context.wrap_socket(
+                                sock, server_hostname=self._host
+                            )
+                        return sock
 
-                def _get_socket(self, host, port, timeout):
-                    if timeout is not None and not timeout:
-                        raise ValueError(
-                            "Non-blocking socket (timeout=0) is not supported"
-                        )
-                    if self.debuglevel > 0:
-                        self._print_debug(
-                            "connect: to",
-                            (host, port),
-                            self.source_address,
-                        )
-                    sock = socks.socksocket()
-                    sock.set_proxy(socks.SOCKS5, ph, pp)
-                    if timeout is not None:
-                        sock.settimeout(timeout)
-                    if self.source_address:
-                        sock.bind(self.source_address)
-                    sock.connect((host, port))
-                    if smtp_cls is smtplib.SMTP_SSL:
-                        sock = self.context.wrap_socket(
-                            sock, server_hostname=self._host
-                        )
-                    return sock
-
-            smtp_cls = ProxySMTP
-        except Exception:
-            pass
+                smtp_cls = ProxySMTP
+            except Exception:
+                pass
     throttle(cfg)
     try:
         with smtp_cls(host, port, timeout=cfg.SB_TIMEOUT) as smtpObj:
