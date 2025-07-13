@@ -66,6 +66,12 @@ def test_parse_server_ipv6_default_port():
     assert port == 25
 
 
+def test_parse_server_bare_ipv6():
+    host, port = burstGen.parse_server("2001:db8::1")
+    assert host == "2001:db8::1"
+    assert port == 25
+
+
 def test_open_sockets_creates_connections(monkeypatch):
     connections = []
 
