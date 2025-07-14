@@ -192,13 +192,17 @@ $ python -m smtpburst --check-dmarc example.com --ping-test example.com > report
 
 ## Development
 
-Install the additional tools for linting and running tests:
+Install the additional tools for linting and running tests and install the
+package in editable mode:
 
 ```bash
 $ pip install -r requirements-dev.txt
+$ pip install -e .
 ```
 
-This installs `pytest` with coverage reporting and `ruff` for code style checks.
+This installs `pytest` with coverage reporting, `ruff` for code style checks and
+the optional dependencies (`dnspython` and `PyYAML`) so that the full test suite
+can run.
 
 ## Running Tests
 
