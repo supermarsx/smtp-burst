@@ -1,3 +1,5 @@
+dnspython
+PyYAML
 pytest
 pytest-cov
 ruff
