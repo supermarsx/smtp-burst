@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import smtplib
 import socket  # noqa: F401 - used by tests for monkeypatching
 import time
