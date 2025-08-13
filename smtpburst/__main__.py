@@ -189,7 +189,7 @@ def main(argv=None):
             results["rcpt"] = nettests.rcpt_enum(host, enum_items, port=port)
     if args.rdns_test:
         host, _ = send.parse_server(args.server)
-        from smtpburst import rdns
+        from smtpburst.discovery import rdns
 
         ok = rdns.verify(host)
         msg = "Reverse DNS: PASS" if ok else "Reverse DNS: FAIL"
