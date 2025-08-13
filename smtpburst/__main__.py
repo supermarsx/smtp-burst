@@ -1,5 +1,6 @@
 import logging
 from pathlib import Path
+import asyncio
 
 from smtpburst.config import Config
 from smtpburst import send
@@ -108,7 +109,10 @@ def main(argv=None):
         return
 
     logger.info("Starting smtp-burst")
-    send.bombing_mode(cfg, attachments=args.attach)
+    if args.async_mode:
+        asyncio.run(send.async_bombing_mode(cfg, attachments=args.attach))
+    else:
+        send.bombing_mode(cfg, attachments=args.attach)
 
     results = {}
     if args.check_dmarc:

@@ -230,6 +230,12 @@ CLI_OPTIONS: Iterable[CLIOption] = [
         "help": "Issue STARTTLS after connecting",
     }),
 
+    (("--async",), {
+        "action": "store_true",
+        "dest": "async_mode",
+        "help": "Use asyncio-based sending",
+    }),
+
     (("--check-dmarc",), {"help": "Domain to query DMARC record for"}),
     (("--check-spf",), {"help": "Domain to query SPF record for"}),
     (("--check-dkim",), {"help": "Domain to query DKIM record for"}),
