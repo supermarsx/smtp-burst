@@ -37,73 +37,93 @@ def test_check_spf(monkeypatch):
 
 
 def test_ping_posix(monkeypatch):
-    def fake_run(cmd, capture_output, text, check):
+    def fake_run(cmd, capture_output, text, check, timeout):
         assert cmd == ["ping", "-c", "2", "-W", "3", "host"]
+        assert timeout == 3
         return SimpleNamespace(stdout="pong", returncode=0)
 
     monkeypatch.setattr(nettests.platform, "system", lambda: "Linux")
+    monkeypatch.setattr(nettests.shutil, "which", lambda x: "/bin/" + x)
     monkeypatch.setattr(nettests.subprocess, "run", fake_run)
     assert nettests.ping("host", count=2, timeout=3) == "pong"
 
 
 def test_ping_windows(monkeypatch):
-    def fake_run(cmd, capture_output, text, check):
+    def fake_run(cmd, capture_output, text, check, timeout):
         assert cmd == ["ping", "-n", "2", "-w", "3000", "host"]
+        assert timeout == 3
         return SimpleNamespace(stdout="pong", returncode=0)
 
     monkeypatch.setattr(nettests.platform, "system", lambda: "Windows")
+    monkeypatch.setattr(nettests.shutil, "which", lambda x: "C:/" + x)
     monkeypatch.setattr(nettests.subprocess, "run", fake_run)
     assert nettests.ping("host", count=2, timeout=3) == "pong"
 
 
 def test_ping_failure(monkeypatch):
-    def fake_run(cmd, capture_output, text, check):
+    def fake_run(cmd, capture_output, text, check, timeout):
         assert cmd == ["ping", "-c", "1", "-W", "1", "host"]
+        assert timeout == 1
         return SimpleNamespace(stdout="error", returncode=1)
 
     monkeypatch.setattr(nettests.platform, "system", lambda: "Linux")
+    monkeypatch.setattr(nettests.shutil, "which", lambda x: "/bin/" + x)
     monkeypatch.setattr(nettests.subprocess, "run", fake_run)
     assert nettests.ping("host") == ""
 
 
 def test_ping_missing_command(monkeypatch):
-    def fake_run(cmd, capture_output, text, check):
-        raise FileNotFoundError
-
     monkeypatch.setattr(nettests.platform, "system", lambda: "Linux")
+    monkeypatch.setattr(nettests.shutil, "which", lambda x: None)
+
+    called = False
+
+    def fake_run(*args, **kwargs):  # pragma: no cover - should not run
+        nonlocal called
+        called = True
+
     monkeypatch.setattr(nettests.subprocess, "run", fake_run)
-    with pytest.raises(nettests.CommandNotFoundError):
-        nettests.ping("host")
+    assert nettests.ping("host") == "ping command not found"
+    assert not called
 
 
 def test_traceroute_posix(monkeypatch):
-    def fake_run(cmd, capture_output, text, check):
+    def fake_run(cmd, capture_output, text, check, timeout):
         assert cmd == ["traceroute", "-m", "5", "-w", "2", "host"]
+        assert timeout == 2
         return SimpleNamespace(stdout="trace")
 
     monkeypatch.setattr(nettests.platform, "system", lambda: "Linux")
+    monkeypatch.setattr(nettests.shutil, "which", lambda x: "/bin/" + x)
     monkeypatch.setattr(nettests.subprocess, "run", fake_run)
     assert nettests.traceroute("host", count=5, timeout=2) == "trace"
 
 
 def test_traceroute_windows(monkeypatch):
-    def fake_run(cmd, capture_output, text, check):
+    def fake_run(cmd, capture_output, text, check, timeout):
         assert cmd == ["tracert", "-h", "5", "-w", "2000", "host"]
+        assert timeout == 2
         return SimpleNamespace(stdout="trace")
 
     monkeypatch.setattr(nettests.platform, "system", lambda: "Windows")
+    monkeypatch.setattr(nettests.shutil, "which", lambda x: "C:/" + x)
     monkeypatch.setattr(nettests.subprocess, "run", fake_run)
     assert nettests.traceroute("host", count=5, timeout=2) == "trace"
 
 
 def test_traceroute_missing_command(monkeypatch):
-    def fake_run(cmd, capture_output, text, check):
-        raise FileNotFoundError
-
     monkeypatch.setattr(nettests.platform, "system", lambda: "Linux")
+    monkeypatch.setattr(nettests.shutil, "which", lambda x: None)
+
+    called = False
+
+    def fake_run(*args, **kwargs):  # pragma: no cover - should not run
+        nonlocal called
+        called = True
+
     monkeypatch.setattr(nettests.subprocess, "run", fake_run)
-    with pytest.raises(nettests.CommandNotFoundError):
-        nettests.traceroute("host")
+    assert nettests.traceroute("host") == "traceroute command not found"
+    assert not called
 
 
 def test_check_rbl(monkeypatch):

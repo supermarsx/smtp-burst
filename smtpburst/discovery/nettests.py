@@ -7,6 +7,7 @@ import ipaddress
 import smtplib
 import subprocess
 import platform
+import shutil
 from typing import Callable, Dict, List
 
 
@@ -16,54 +17,60 @@ class CommandNotFoundError(Exception):
 
 def ping(host: str, count: int = 1, timeout: int = 1) -> str:
     """Return output of ``ping`` command for ``host``."""
+    cmd = ["ping", "-c", str(count), "-W", str(timeout), host]
+    if platform.system().lower() == "windows":
+        cmd = [
+            "ping",
+            "-n",
+            str(count),
+            "-w",
+            str(int(timeout * 1000)),
+            host,
+        ]
+    if shutil.which(cmd[0]) is None:  # pragma: no cover - depends on environment
+        return f"{cmd[0]} command not found"
     try:
-        cmd = ["ping", "-c", str(count), "-W", str(timeout), host]
-        if platform.system().lower() == "windows":
-            cmd = [
-                "ping",
-                "-n",
-                str(count),
-                "-w",
-                str(int(timeout * 1000)),
-                host,
-            ]
         proc = subprocess.run(
             cmd,
             capture_output=True,
             text=True,
             check=False,
+            timeout=timeout,
         )
         if proc.returncode == 0:
             return proc.stdout.strip()
         return ""
-    except FileNotFoundError as exc:  # pragma: no cover - ping may not exist
-        raise CommandNotFoundError("ping command not found") from exc
+    except subprocess.TimeoutExpired:  # pragma: no cover - depends on runtime
+        return f"{cmd[0]} command timed out"
     except Exception as exc:  # pragma: no cover - other errors
         return str(exc)
 
 
 def traceroute(host: str, count: int = 30, timeout: int = 5) -> str:
     """Return output of ``traceroute`` command for ``host``."""
+    cmd = ["traceroute", "-m", str(count), "-w", str(timeout), host]
+    if platform.system().lower() == "windows":
+        cmd = [
+            "tracert",
+            "-h",
+            str(count),
+            "-w",
+            str(int(timeout * 1000)),
+            host,
+        ]
+    if shutil.which(cmd[0]) is None:  # pragma: no cover - depends on environment
+        return f"{cmd[0]} command not found"
     try:
-        cmd = ["traceroute", "-m", str(count), "-w", str(timeout), host]
-        if platform.system().lower() == "windows":
-            cmd = [
-                "tracert",
-                "-h",
-                str(count),
-                "-w",
-                str(int(timeout * 1000)),
-                host,
-            ]
         proc = subprocess.run(
             cmd,
             capture_output=True,
             text=True,
             check=False,
+            timeout=timeout,
         )
         return proc.stdout.strip()
-    except FileNotFoundError as exc:  # pragma: no cover - traceroute may not exist
-        raise CommandNotFoundError("traceroute command not found") from exc
+    except subprocess.TimeoutExpired:  # pragma: no cover - depends on runtime
+        return f"{cmd[0]} command timed out"
     except Exception as exc:  # pragma: no cover - other errors
         return str(exc)
 
