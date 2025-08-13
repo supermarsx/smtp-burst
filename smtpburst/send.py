@@ -15,6 +15,8 @@ from typing import Tuple, List, Optional
 from email.message import EmailMessage
 import mimetypes
 from pathlib import Path
+from urllib.parse import urlsplit
+import ipaddress
 
 from .config import Config
 from . import datagen
@@ -235,36 +237,41 @@ def sendmail(
 
 
 def parse_server(server: str) -> Tuple[str, int]:
-    """Return ``(host, port)`` parsed from ``server`` string."""
-    if server.startswith("["):
-        end = server.find("]")
-        if end != -1:
-            host = server[1:end]
-            rest = server[end + 1 :]
-        else:
-            host = server[1:]
-            rest = ""
-        if rest.startswith(":"):
-            port_str = rest[1:]
-            try:
-                port = int(port_str)
-            except ValueError:
-                port = 25
-        else:
-            port = 25
-    elif ":" in server:
-        if server.count(":") > 1 and not server.startswith("["):
+    """Return ``(host, port)`` parsed from ``server`` string.
+
+    ``server`` may contain IPv4/IPv6 addresses or hostnames with an optional
+    port.  The port defaults to ``25`` when it is not supplied or cannot be
+    parsed.  ``urllib.parse`` is used for extraction while ``ipaddress`` helps
+    recognise bare IPv6 inputs and malformed values.
+    """
+    default_port = 25
+    if not server:
+        return "", default_port
+
+    try:
+        parts = urlsplit(f"//{server}", allow_fragments=False)
+        host, port = parts.hostname, parts.port
+    except ValueError:
+        host, port = None, None
+
+    if host is None:
+        # ``urlsplit`` can fail to determine the hostname for bare IPv6
+        # addresses or strings with an invalid port.  ``ipaddress`` is used to
+        # detect valid IP literals.
+        try:
+            ipaddress.ip_address(server)
             host = server
-            port = 25
-        else:
-            host, port_str = server.rsplit(":", 1)
-            try:
-                port = int(port_str)
-            except ValueError:
-                port = 25
-    else:
-        host = server
-        port = 25
+        except ValueError:
+            if ":" in server and not server.startswith("["):
+                host = server.rsplit(":", 1)[0]
+            elif server.startswith("[") and "]" in server:
+                host = server[1 : server.find("]")]
+            else:
+                host = server
+
+    if port is None:
+        port = default_port
+
     return host, port
 
 

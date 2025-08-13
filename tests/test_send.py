@@ -1,3 +1,4 @@
+import pytest
 import smtpburst.send as send
 from smtpburst.config import Config
 
@@ -27,3 +28,18 @@ def test_send_test_email(monkeypatch):
     ).encode("utf-8")
     assert msg == expected
     assert passed_cfg is cfg
+
+
+@pytest.mark.parametrize(
+    "server,host,port",
+    [
+        ("127.0.0.1", "127.0.0.1", 25),
+        ("127.0.0.1:2525", "127.0.0.1", 2525),
+        ("[2001:db8::1]", "2001:db8::1", 25),
+        ("[2001:db8::1]:587", "2001:db8::1", 587),
+        ("bad:port", "bad", 25),
+    ],
+)
+def test_parse_server_matrix(server, host, port):
+    """Verify parse_server with IPv4, IPv6 and malformed inputs."""
+    assert send.parse_server(server) == (host, port)
