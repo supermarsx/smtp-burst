@@ -88,7 +88,11 @@ def append_message(cfg: Config, attachments: Optional[List[str]] = None) -> byte
 
     if attachments:
         for path in attachments:
-            data = Path(path).read_bytes()
+            try:
+                data = Path(path).read_bytes()
+            except (FileNotFoundError, OSError) as err:
+                logger.warning("Skipping attachment %s: %s", path, err)
+                continue
             ctype, _ = mimetypes.guess_type(path)
             if ctype:
                 maintype, subtype = ctype.split("/", 1)
