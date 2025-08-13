@@ -10,12 +10,23 @@ import platform
 from typing import Callable, Dict, List
 
 
-def ping(host: str) -> str:
+class CommandNotFoundError(Exception):
+    """Raised when required network command is unavailable."""
+
+
+def ping(host: str, count: int = 1, timeout: int = 1) -> str:
     """Return output of ``ping`` command for ``host``."""
     try:
-        cmd = ["ping", "-c", "1", host]
+        cmd = ["ping", "-c", str(count), "-W", str(timeout), host]
         if platform.system().lower() == "windows":
-            cmd = ["ping", "-n", "1", host]
+            cmd = [
+                "ping",
+                "-n",
+                str(count),
+                "-w",
+                str(int(timeout * 1000)),
+                host,
+            ]
         proc = subprocess.run(
             cmd,
             capture_output=True,
@@ -25,16 +36,25 @@ def ping(host: str) -> str:
         if proc.returncode == 0:
             return proc.stdout.strip()
         return ""
-    except Exception as exc:  # pragma: no cover - ping may not exist
+    except FileNotFoundError as exc:  # pragma: no cover - ping may not exist
+        raise CommandNotFoundError("ping command not found") from exc
+    except Exception as exc:  # pragma: no cover - other errors
         return str(exc)
 
 
-def traceroute(host: str) -> str:
+def traceroute(host: str, count: int = 30, timeout: int = 5) -> str:
     """Return output of ``traceroute`` command for ``host``."""
     try:
-        cmd = ["traceroute", host]
+        cmd = ["traceroute", "-m", str(count), "-w", str(timeout), host]
         if platform.system().lower() == "windows":
-            cmd = ["tracert", host]
+            cmd = [
+                "tracert",
+                "-h",
+                str(count),
+                "-w",
+                str(int(timeout * 1000)),
+                host,
+            ]
         proc = subprocess.run(
             cmd,
             capture_output=True,
@@ -42,7 +62,9 @@ def traceroute(host: str) -> str:
             check=False,
         )
         return proc.stdout.strip()
-    except Exception as exc:  # pragma: no cover - traceroute may not exist
+    except FileNotFoundError as exc:  # pragma: no cover - traceroute may not exist
+        raise CommandNotFoundError("traceroute command not found") from exc
+    except Exception as exc:  # pragma: no cover - other errors
         return str(exc)
 
 
