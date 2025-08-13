@@ -1,3 +1,4 @@
+import argparse
 import json
 import os
 import sys
@@ -318,11 +319,24 @@ def test_load_config_yaml(tmp_path):
     assert burst_cli.load_config(str(cfg_path)) == {"server": "yaml.test", "bursts": 2}
 
 
-def test_parse_args_unknown_keys(tmp_path):
+def test_parse_args_unknown_keys(tmp_path, monkeypatch):
     cfg_path = tmp_path / "unknown.json"
     cfg_path.write_text(json.dumps({"bogus": 1}))
+
+    calls = []
+    original = argparse.ArgumentParser.parse_args
+
+    def track_parse_args(self, args=None, **kwargs):
+        calls.append(args)
+        return original(self, args, **kwargs)
+
+    monkeypatch.setattr(argparse.ArgumentParser, "parse_args", track_parse_args)
+
     with pytest.warns(RuntimeWarning):
         burst_cli.parse_args(["--config", str(cfg_path)], Config())
+
+    assert calls[0] == []
+    assert calls[1] == ["--config", str(cfg_path)]
 
 
 def test_parse_args_missing_config(tmp_path):
