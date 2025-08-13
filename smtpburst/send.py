@@ -19,11 +19,6 @@ from pathlib import Path
 from urllib.parse import urlsplit
 import ipaddress
 
-try:  # pragma: no cover - optional dependency
-    import aiosmtplib
-except ImportError:  # pragma: no cover - dependency may be missing
-    aiosmtplib = None
-
 from .config import Config
 from . import datagen
 from . import attacks
@@ -253,76 +248,10 @@ def sendmail(
         )
 
 
-async def async_sendmail(
-    number: int,
-    burst: int,
-    fail_count,
-    message: bytes,
-    cfg: Config,
-    server: str | None = None,
-    users=None,
-    passwords=None,
-    use_ssl: bool | None = None,
-    start_tls: bool | None = None,
-):
-    """Asynchronous equivalent of :func:`sendmail`."""
+async def async_sendmail(*args, **kwargs):
+    """Run :func:`sendmail` in a thread for asynchronous use."""
 
-    if aiosmtplib is None:  # pragma: no cover - dependency missing
-        raise RuntimeError("aiosmtplib is required for async mode")
-
-    if server is None:
-        server = cfg.SB_SERVER
-    if use_ssl is None:
-        use_ssl = cfg.SB_SSL
-    if start_tls is None:
-        start_tls = cfg.SB_STARTTLS
-
-    if fail_count.value >= cfg.SB_STOPFQNT and cfg.SB_STOPFAIL:
-        return
-
-    logger.info("%s/%s, Burst %s : Sending Email", number, cfg.SB_TOTAL, burst)
-    host, port = parse_server(server)
-
-    smtp = aiosmtplib.SMTP(hostname=host, port=port, timeout=cfg.SB_TIMEOUT, use_tls=use_ssl)
-    try:
-        await smtp.connect()
-        if start_tls and not use_ssl:
-            await smtp.starttls()
-        if users and passwords:
-            success = False
-            for user in users:
-                for pwd in passwords:
-                    try:
-                        await smtp.login(user, pwd)
-                        logger.info("Auth success: %s:%s", user, pwd)
-                        success = True
-                        break
-                    except aiosmtplib.SMTPException:
-                        continue
-                if success:
-                    break
-        start_t = time.monotonic()
-        await smtp.sendmail(cfg.SB_SENDER, cfg.SB_RECEIVERS, message)
-        latency = time.monotonic() - start_t
-        if latency > cfg.SB_TARPIT_THRESHOLD:
-            logger.warning("Possible tarpit detected: %.2fs latency", latency)
-        logger.info("%s/%s, Burst %s : Email Sent", number, cfg.SB_TOTAL, burst)
-    except aiosmtplib.SMTPException:
-        fail_count.value += 1
-        logger.error(
-            "%s/%s, Burst %s/%s : Failure %s/%s, Unable to send email",
-            number,
-            cfg.SB_TOTAL,
-            burst,
-            cfg.SB_BURSTS,
-            fail_count.value,
-            cfg.SB_STOPFQNT,
-        )
-    finally:
-        try:
-            await smtp.quit()
-        except Exception:  # pragma: no cover - cleanup best effort
-            pass
+    await asyncio.to_thread(sendmail, *args, **kwargs)
 
 
 def parse_server(server: str) -> Tuple[str, int]:
