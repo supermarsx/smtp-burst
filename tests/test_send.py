@@ -1,5 +1,4 @@
 import pytest
-import types
 import smtpburst.send as send
 from smtpburst.config import Config
 import logging
@@ -60,31 +59,23 @@ def test_append_message_missing_attachment(tmp_path, caplog):
 
 @pytest.mark.asyncio
 async def test_async_bombing_mode(monkeypatch):
+    """Async mode should send expected emails without spawning processes."""
+
     sent = []
 
-    class DummySMTP:
-        def __init__(self, *args, **kwargs):
-            pass
+    def fake_sendmail(number, burst, counter, msg, cfg, **kwargs):
+        sent.append((number, burst, msg))
 
-        async def connect(self):
-            return
-
-        async def starttls(self):
-            return
-
-        async def sendmail(self, sender, receivers, msg):
-            sent.append((sender, receivers, msg))
-
-        async def quit(self):
-            return
-
-        async def login(self, user, pwd):
-            return
-
-    dummy_module = types.SimpleNamespace(SMTP=DummySMTP, SMTPException=Exception)
-    monkeypatch.setattr(send, "aiosmtplib", dummy_module)
+    monkeypatch.setattr(send, "sendmail", fake_sendmail)
     monkeypatch.setattr(send, "append_message", lambda cfg, attachments=None: b"msg")
     monkeypatch.setattr(send, "sizeof_fmt", lambda n: str(n))
+
+    import multiprocessing
+
+    def boom(*args, **kwargs):  # pragma: no cover - should not be called
+        raise AssertionError("Process should not be spawned in async mode")
+
+    monkeypatch.setattr(multiprocessing, "Process", boom)
 
     cfg = Config()
     cfg.SB_SGEMAILS = 2
@@ -94,7 +85,7 @@ async def test_async_bombing_mode(monkeypatch):
     await send.async_bombing_mode(cfg)
 
     assert len(sent) == 2
-    for sender, receivers, msg in sent:
-        assert sender == cfg.SB_SENDER
-        assert receivers == cfg.SB_RECEIVERS
+    for number, burst, msg in sent:
+        assert number in {1, 2}
+        assert burst == 1
         assert msg == b"msg"
