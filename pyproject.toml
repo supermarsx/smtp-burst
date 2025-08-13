@@ -12,6 +12,7 @@ requires-python = ">=3.11"
 dependencies = [
     "PyYAML",
     "dnspython",
+    "aiosmtplib",
 ]
 
 [project.scripts]

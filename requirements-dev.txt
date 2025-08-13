@@ -3,3 +3,5 @@ PyYAML
 pytest
 pytest-cov
 ruff
+aiosmtplib
+pytest-asyncio

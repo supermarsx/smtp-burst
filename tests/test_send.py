@@ -1,4 +1,5 @@
 import pytest
+import types
 import smtpburst.send as send
 from smtpburst.config import Config
 
@@ -43,3 +44,45 @@ def test_send_test_email(monkeypatch):
 def test_parse_server_matrix(server, host, port):
     """Verify parse_server with IPv4, IPv6 and malformed inputs."""
     assert send.parse_server(server) == (host, port)
+
+
+@pytest.mark.asyncio
+async def test_async_bombing_mode(monkeypatch):
+    sent = []
+
+    class DummySMTP:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        async def connect(self):
+            return
+
+        async def starttls(self):
+            return
+
+        async def sendmail(self, sender, receivers, msg):
+            sent.append((sender, receivers, msg))
+
+        async def quit(self):
+            return
+
+        async def login(self, user, pwd):
+            return
+
+    dummy_module = types.SimpleNamespace(SMTP=DummySMTP, SMTPException=Exception)
+    monkeypatch.setattr(send, "aiosmtplib", dummy_module)
+    monkeypatch.setattr(send, "append_message", lambda cfg, attachments=None: b"msg")
+    monkeypatch.setattr(send, "sizeof_fmt", lambda n: str(n))
+
+    cfg = Config()
+    cfg.SB_SGEMAILS = 2
+    cfg.SB_BURSTS = 1
+    cfg.SB_SGEMAILSPSEC = 0
+    cfg.SB_BURSTSPSEC = 0
+    await send.async_bombing_mode(cfg)
+
+    assert len(sent) == 2
+    for sender, receivers, msg in sent:
+        assert sender == cfg.SB_SENDER
+        assert receivers == cfg.SB_RECEIVERS
+        assert msg == b"msg"
