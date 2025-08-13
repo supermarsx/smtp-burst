@@ -190,6 +190,27 @@ Run a DNS check and save the report:
 $ python -m smtpburst --check-dmarc example.com --ping-test example.com > report.txt
 ```
 
+## Pipeline Actions
+
+`smtpburst` includes a lightweight pipeline runner for chaining discovery and
+attack actions. Pipelines are defined in YAML files with each step specifying an
+`action` and keyword arguments for that action.
+
+Custom actions can be added at runtime using
+`smtpburst.pipeline.register_action(name, func)`. The registered callable will be
+invoked when a pipeline step references its name:
+
+```python
+from smtpburst import pipeline
+
+def greet(name: str) -> str:
+    return f"hello {name}"
+
+pipeline.register_action("greet", greet)
+runner = pipeline.PipelineRunner([{"action": "greet", "name": "alice"}])
+print(runner.run())  # ['hello alice']
+```
+
 ## Development
 
 Install the additional tools for linting and running tests and install the

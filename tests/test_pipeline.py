@@ -33,8 +33,9 @@ def test_pipeline_runner_stop(monkeypatch, tmp_path):
         calls.append("bad")
         return False
 
-    monkeypatch.setitem(pipeline.ACTION_MAP, "ok", lambda: ok())
-    monkeypatch.setitem(pipeline.ACTION_MAP, "bad", lambda: bad())
+    monkeypatch.setattr(pipeline, "ACTION_MAP", {})
+    pipeline.register_action("ok", lambda: ok())
+    pipeline.register_action("bad", lambda: bad())
 
     cfg = {
         "steps": [
@@ -98,8 +99,9 @@ def test_pipeline_runner_stop_threshold(monkeypatch, tmp_path):
         calls.append("ok")
         return True
 
-    monkeypatch.setitem(pipeline.ACTION_MAP, "bad", lambda: bad())
-    monkeypatch.setitem(pipeline.ACTION_MAP, "ok", lambda: ok())
+    monkeypatch.setattr(pipeline, "ACTION_MAP", {})
+    pipeline.register_action("bad", lambda: bad())
+    pipeline.register_action("ok", lambda: ok())
 
     cfg = {
         "steps": [
@@ -132,3 +134,12 @@ def test_pipeline_step_not_mapping(tmp_path):
     runner = pipeline.load_pipeline(str(path))
     with pytest.raises(pipeline.PipelineError, match="mapping"):
         runner.run()
+
+
+def test_dynamic_action_registration(monkeypatch):
+    monkeypatch.setattr(pipeline, "ACTION_MAP", {})
+
+    pipeline.register_action("mul", lambda value: value * 2)
+
+    runner = pipeline.PipelineRunner([{"action": "mul", "value": 4}])
+    assert runner.run() == [8]
