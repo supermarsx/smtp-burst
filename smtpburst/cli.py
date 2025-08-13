@@ -375,8 +375,9 @@ def parse_args(args=None, cfg: Config | None = None) -> argparse.Namespace:
             config_data = load_config(config_args.config)
         except FileNotFoundError:
             raise SystemExit(f"Config file not found: {config_args.config}")
-        known = {action.dest for action in parser._actions}
-        unknown = [k for k in config_data.keys() if k not in known]
+        # Derive known option names using the public parse_args API
+        defaults = vars(parser.parse_args([]))
+        unknown = [k for k in config_data.keys() if k not in defaults]
         if unknown:
             warnings.warn(
                 f"Unknown config options: {', '.join(unknown)}",
