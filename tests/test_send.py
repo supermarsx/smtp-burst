@@ -2,6 +2,7 @@ import pytest
 import types
 import smtpburst.send as send
 from smtpburst.config import Config
+import logging
 
 
 def test_send_test_email(monkeypatch):
@@ -44,6 +45,17 @@ def test_send_test_email(monkeypatch):
 def test_parse_server_matrix(server, host, port):
     """Verify parse_server with IPv4, IPv6 and malformed inputs."""
     assert send.parse_server(server) == (host, port)
+
+
+def test_append_message_missing_attachment(tmp_path, caplog):
+    cfg = Config()
+    cfg.SB_SIZE = 0
+    missing = tmp_path / "missing.txt"
+    with caplog.at_level(logging.WARNING):
+        msg = send.append_message(cfg, attachments=[str(missing)])
+    assert isinstance(msg, bytes)
+    assert str(missing) in caplog.text
+    assert missing.name not in msg.decode("utf-8", errors="ignore")
 
 
 @pytest.mark.asyncio
