@@ -34,12 +34,21 @@ def gen_binary(
 ) -> bytes:
     """Return ``size`` random bytes, optionally reading from ``stream``."""
     if stream is not None:
-        data = stream.read(size)
-        if isinstance(data, str):
-            data = data.encode()
+        data = bytearray()
+        while len(data) < size:
+            chunk = stream.read(size - len(data))
+            if not chunk:
+                break
+            if isinstance(chunk, str):
+                chunk = chunk.encode()
+            data.extend(chunk)
         if len(data) < size:
-            data += gen_binary(size - len(data), secure)
-        return data
+            remaining = size - len(data)
+            if secure:
+                data.extend(secrets.token_bytes(remaining))
+            else:
+                data.extend(random.getrandbits(8) for _ in range(remaining))
+        return bytes(data)
     if secure:
         return secrets.token_bytes(size)
     return bytes(random.getrandbits(8) for _ in range(size))
