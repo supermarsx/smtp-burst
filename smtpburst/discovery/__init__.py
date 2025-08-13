@@ -21,7 +21,8 @@ from .nettests import (
     open_relay_test as test_open_relay,
 )
 
-from .. import send, rdns
+from .. import send
+from . import rdns
 
 __all__ = [
     "check_dmarc",
