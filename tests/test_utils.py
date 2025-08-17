@@ -49,9 +49,8 @@ def test_parse_server_with_port():
 
 
 def test_parse_server_bad_port():
-    host, port = burstGen.parse_server("example.com:bad")
-    assert host == "example.com"
-    assert port == 25
+    with pytest.raises(ValueError):
+        burstGen.parse_server("example.com:bad")
 
 
 def test_parse_server_ipv6_with_port():

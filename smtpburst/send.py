@@ -255,37 +255,60 @@ async def async_sendmail(*args, **kwargs):
 
 
 def parse_server(server: str) -> Tuple[str, int]:
-    """Return ``(host, port)`` parsed from ``server`` string.
+    """Return ``(host, port)`` parsed from ``server``.
 
-    ``server`` may contain IPv4/IPv6 addresses or hostnames with an optional
-    port.  The port defaults to ``25`` when it is not supplied or cannot be
-    parsed.  ``urllib.parse`` is used for extraction while ``ipaddress`` helps
-    recognise bare IPv6 inputs and malformed values.
+    ``server`` may contain IPv4/IPv6 literals or hostnames with an optional
+    port.  The port defaults to ``25`` when omitted.  Unsupported formats, such
+    as IPv6 addresses with a port but without brackets or non-numeric ports,
+    raise :class:`ValueError` with a clear message.
     """
+
     default_port = 25
     if not server:
-        return "", default_port
+        raise ValueError("Server must not be empty")
+
+    # ``urlsplit`` cannot correctly parse bare IPv6 addresses; detect those
+    # early.  Any string with multiple ``:`` characters and no leading ``[`` is
+    # treated as a potential IPv6 literal.
+    if server.count(":") >= 2 and not server.startswith("["):
+        host_part, _, tail = server.rpartition(":")
+        if tail.isdigit():
+            try:
+                ipaddress.ip_address(host_part)
+            except ValueError:
+                try:
+                    ipaddress.ip_address(server)
+                except ValueError:
+                    raise ValueError(
+                        f"Invalid server '{server}': IPv6 addresses with ports must be enclosed in '[' and ']'"
+                    ) from None
+                else:
+                    return server, default_port
+            else:
+                raise ValueError(
+                    f"Invalid server '{server}': IPv6 addresses with ports must be enclosed in '[' and ']'"
+                ) from None
+        else:
+            try:
+                ipaddress.ip_address(server)
+            except ValueError:
+                raise ValueError(f"Invalid server '{server}'") from None
+            else:
+                return server, default_port
 
     try:
         parts = urlsplit(f"//{server}", allow_fragments=False)
-        host, port = parts.hostname, parts.port
-    except ValueError:
-        host, port = None, None
+    except ValueError as exc:  # e.g. unmatched brackets
+        raise ValueError(f"Invalid server '{server}': {exc}") from None
 
+    host = parts.hostname
     if host is None:
-        # ``urlsplit`` can fail to determine the hostname for bare IPv6
-        # addresses or strings with an invalid port.  ``ipaddress`` is used to
-        # detect valid IP literals.
-        try:
-            ipaddress.ip_address(server)
-            host = server
-        except ValueError:
-            if ":" in server and not server.startswith("["):
-                host = server.rsplit(":", 1)[0]
-            elif server.startswith("[") and "]" in server:
-                host = server[1 : server.find("]")]
-            else:
-                host = server
+        raise ValueError(f"Invalid server '{server}'")
+
+    try:
+        port = parts.port
+    except ValueError as exc:  # non-numeric port
+        raise ValueError(f"Invalid port in server '{server}': {exc}") from None
 
     if port is None:
         port = default_port
