@@ -330,6 +330,14 @@ CLI_OPTIONS: Iterable[CLIOption] = [
             "help": "Show warnings and errors only",
         },
     ),
+    (
+        ("--report-format",),
+        {
+            "choices": ["ascii", "json", "yaml"],
+            "default": "ascii",
+            "help": "Output report format",
+        },
+    ),
 ]
 
 

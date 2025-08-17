@@ -7,7 +7,7 @@ from smtpburst import send
 from smtpburst import cli
 from smtpburst import discovery
 from smtpburst.discovery import nettests
-from smtpburst.reporting import ascii_report
+from smtpburst.reporting import ascii_report, json_report, yaml_report
 from smtpburst import inbox
 from smtpburst import attacks
 from smtpburst.datagen import load_wordlist
@@ -18,6 +18,13 @@ logger = logging.getLogger(__name__)
 def main(argv=None):
     cfg = Config()
     args = cli.parse_args(argv, cfg)
+
+    reporters = {
+        "ascii": ascii_report,
+        "json": json_report,
+        "yaml": yaml_report,
+    }
+    report = reporters.get(args.report_format, ascii_report)
 
     if args.silent:
         level = logging.CRITICAL
@@ -95,7 +102,7 @@ def main(argv=None):
         logger.info("Running SMTP login test")
         res = send.login_test(cfg)
         if res:
-            logger.info(ascii_report(res))
+            logger.info(report(res))
         return
 
     if args.auth_test:
@@ -105,7 +112,7 @@ def main(argv=None):
             return
         res = send.auth_test(cfg)
         if res:
-            logger.info(ascii_report(res))
+            logger.info(report(res))
         return
 
     logger.info("Starting smtp-burst")
@@ -200,7 +207,7 @@ def main(argv=None):
         msg = "Reverse DNS: PASS" if ok else "Reverse DNS: FAIL"
         print(msg)
     if results:
-        logger.info(ascii_report(results))
+        logger.info(report(results))
 
 
 if __name__ == "__main__":
