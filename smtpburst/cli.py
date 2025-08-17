@@ -188,6 +188,11 @@ CLI_OPTIONS: Iterable[CLIOption] = [
         "default_attr": "SB_CHECK_PROXIES",
         "help": "Validate proxies before use",
     }),
+    (("--proxy-timeout",), {
+        "type": float,
+        "default_attr": "SB_PROXY_TIMEOUT",
+        "help": "Timeout in seconds when validating proxies",
+    }),
 
     (("--userlist",), {"help": "Username wordlist for SMTP AUTH"}),
     (("--passlist",), {"help": "Password wordlist for SMTP AUTH"}),
@@ -431,6 +436,7 @@ def apply_args_to_config(cfg: Config, args: argparse.Namespace) -> None:
         "starttls": "SB_STARTTLS",
         "proxy_order": "SB_PROXY_ORDER",
         "check_proxies": "SB_CHECK_PROXIES",
+        "proxy_timeout": "SB_PROXY_TIMEOUT",
     }
 
     for arg_name, cfg_attr in MAP.items():

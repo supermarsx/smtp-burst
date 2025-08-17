@@ -75,9 +75,11 @@ def main(argv=None):
             Path(args.proxy_file),
             order=args.proxy_order,
             check=args.check_proxies,
+            timeout=args.proxy_timeout,
         )
     cfg.SB_PROXY_ORDER = args.proxy_order
     cfg.SB_CHECK_PROXIES = args.check_proxies
+    cfg.SB_PROXY_TIMEOUT = args.proxy_timeout
     if args.userlist:
         cfg.SB_USERLIST = load_wordlist(Path(args.userlist))
     if args.passlist:

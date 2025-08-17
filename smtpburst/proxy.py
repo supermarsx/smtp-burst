@@ -27,10 +27,13 @@ def check_proxy(
     ph, pp = parse_server(proxy)
 
     if not ping(ph):
+        logger.warning("Ping to proxy %s failed", proxy)
         return False
+
     try:
         socket.gethostbyname(ph)
-    except Exception:
+    except Exception as exc:  # pragma: no cover - resolution failures rare
+        logger.warning("DNS lookup for proxy %s failed: %s", proxy, exc)
         return False
 
     try:
@@ -44,26 +47,36 @@ def check_proxy(
                     reply.startswith(b"HTTP/1.1 200")
                     or reply.startswith(b"HTTP/1.0 200")
                 ):
+                    logger.warning(
+                        "Proxy %s returned unexpected status", proxy
+                    )
                     return False
             except socket.timeout:
                 logger.warning("Proxy %s timed out during CONNECT", proxy)
                 return False
-            except Exception:
+            except Exception as exc:
+                logger.warning("Proxy %s failed during CONNECT: %s", proxy, exc)
                 return False
     except socket.timeout:
         logger.warning("Connection to proxy %s timed out", proxy)
         return False
-    except Exception:
+    except Exception as exc:  # pragma: no cover - network errors vary
+        logger.warning("Connection to proxy %s failed: %s", proxy, exc)
         return False
     return True
 
 
-def load_proxies(path: str, order: str = "asc", check: bool = False) -> List[str]:
+def load_proxies(
+    path: str,
+    order: str = "asc",
+    check: bool = False,
+    timeout: float = 5,
+) -> List[str]:
     """Return list of proxies from ``path`` respecting ``order``.
 
     ``order`` must be one of ``"asc"``, ``"desc"`` or ``"random"``. If
     ``check`` is True, invalid proxies are filtered out using
-    :func:`check_proxy`.
+    :func:`check_proxy` with ``timeout``.
     """
     if order not in {"asc", "desc", "random"}:
         raise ValueError(f"Unsupported order: {order}")
@@ -77,7 +90,7 @@ def load_proxies(path: str, order: str = "asc", check: bool = False) -> List[str
         random.shuffle(proxies)
 
     if check:
-        proxies = [p for p in proxies if check_proxy(p)]
+        proxies = [p for p in proxies if check_proxy(p, timeout=timeout)]
 
     return proxies
 

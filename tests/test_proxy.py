@@ -61,7 +61,7 @@ def test_check_proxy(monkeypatch):
             pass
 
         def settimeout(self, t):
-            pass
+            calls["timeout"] = t
 
         def sendall(self, data):
             calls["send"] = True
@@ -71,19 +71,23 @@ def test_check_proxy(monkeypatch):
 
     def fake_create(addr, timeout=5):
         calls["conn"] = addr
+        calls["create_timeout"] = timeout
         return DummySock()
 
     monkeypatch.setattr(proxy, "ping", fake_ping)
     monkeypatch.setattr(proxy.socket, "gethostbyname", fake_dns)
     monkeypatch.setattr(proxy.socket, "create_connection", fake_create)
 
-    assert proxy.check_proxy("h:1")
+    assert proxy.check_proxy("h:1", timeout=7)
     assert calls["ping"] == "h" and calls["dns"] == "h" and calls["conn"] == ("h", 1)
+    assert calls["create_timeout"] == 7 and calls["timeout"] == 7
 
 
-def test_check_proxy_failure(monkeypatch):
+def test_check_proxy_failure(monkeypatch, caplog):
     monkeypatch.setattr(proxy, "ping", lambda h: "")
-    assert not proxy.check_proxy("bad:1")
+    with caplog.at_level(logging.WARNING):
+        assert not proxy.check_proxy("bad:1")
+        assert "Ping" in caplog.text
 
 
 def test_check_proxy_bad_status(monkeypatch):
@@ -111,6 +115,20 @@ def test_check_proxy_bad_status(monkeypatch):
     monkeypatch.setattr(proxy.socket, "create_connection", fake_create)
 
     assert not proxy.check_proxy("h:1")
+
+
+def test_load_proxies_timeout(monkeypatch, tmp_path):
+    path = tmp_path / "p.txt"
+    path.write_text("a:1\n")
+    called = {}
+
+    def fake_check(p, timeout=None):
+        called["timeout"] = timeout
+        return True
+
+    monkeypatch.setattr(proxy, "check_proxy", fake_check)
+    proxy.load_proxies(str(path), check=True, timeout=9)
+    assert called["timeout"] == 9
 
 
 def test_check_proxy_timeout(monkeypatch, caplog):
