@@ -179,9 +179,11 @@ def main(argv=None):
         host, port = send.parse_server(args.server)
         results["open_relay"] = nettests.open_relay_test(host, port)
     if args.ping_test:
-        results["ping"] = nettests.ping(args.ping_test)
+        results["ping"] = nettests.ping(args.ping_test, timeout=args.ping_timeout)
     if args.traceroute_test:
-        results["traceroute"] = nettests.traceroute(args.traceroute_test)
+        results["traceroute"] = nettests.traceroute(
+            args.traceroute_test, timeout=args.traceroute_timeout
+        )
     if args.perf_test:
         host, port = send.parse_server(args.perf_test)
         results["performance"] = attacks.performance_test(

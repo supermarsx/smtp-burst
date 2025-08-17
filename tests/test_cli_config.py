@@ -127,10 +127,25 @@ def test_per_burst_flag():
 
 def test_discovery_options():
     args = burst_cli.parse_args(
-        ["--check-dmarc", "ex.com", "--ping-test", "host"], Config()
+        [
+            "--check-dmarc",
+            "ex.com",
+            "--ping-test",
+            "host",
+            "--ping-timeout",
+            "4",
+            "--traceroute-test",
+            "thost",
+            "--traceroute-timeout",
+            "6",
+        ],
+        Config(),
     )
     assert args.check_dmarc == "ex.com"
     assert args.ping_test == "host"
+    assert args.ping_timeout == 4
+    assert args.traceroute_test == "thost"
+    assert args.traceroute_timeout == 6
 
 
 def test_perf_cli_options():
