@@ -38,12 +38,26 @@ def test_send_test_email(monkeypatch):
         ("127.0.0.1:2525", "127.0.0.1", 2525),
         ("[2001:db8::1]", "2001:db8::1", 25),
         ("[2001:db8::1]:587", "2001:db8::1", 587),
-        ("bad:port", "bad", 25),
+        ("2001:db8::1", "2001:db8::1", 25),
     ],
 )
 def test_parse_server_matrix(server, host, port):
-    """Verify parse_server with IPv4, IPv6 and malformed inputs."""
+    """Verify parse_server with IPv4 and IPv6 variants."""
     assert send.parse_server(server) == (host, port)
+
+
+@pytest.mark.parametrize(
+    "server",
+    [
+        "bad:port",  # non-numeric port
+        "2001:db8::1:587",  # IPv6 with port but missing brackets
+        "[2001:db8::1",  # unmatched bracket
+    ],
+)
+def test_parse_server_malformed(server):
+    """Malformed server strings should raise ValueError."""
+    with pytest.raises(ValueError):
+        send.parse_server(server)
 
 
 def test_append_message_missing_attachment(tmp_path, caplog):
