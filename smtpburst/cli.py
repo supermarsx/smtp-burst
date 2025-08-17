@@ -125,12 +125,23 @@ CLI_OPTIONS: Iterable[CLIOption] = [
         "default_attr": "SB_DATA_MODE",
         "help": "Payload generation mode",
     }),
-    (("--dict-file",), {"help": "Word list for dictionary mode"}),
+    (
+        ("--dict-file",),
+        {
+            "help": (
+                "Word list for dictionary mode "
+                "(required with --data-mode dict)"
+            )
+        },
+    ),
     (
         ("--repeat-string",),
         {
             "default_attr": "SB_REPEAT_STRING",
-            "help": "String to repeat for repeat mode",
+            "help": (
+                "String to repeat for repeat mode "
+                "(required with --data-mode repeat)"
+            ),
         },
     ),
     (("--per-burst-data",), {

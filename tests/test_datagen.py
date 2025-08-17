@@ -41,6 +41,20 @@ def test_gen_binary_stream_partial(monkeypatch):
     assert stream.chunks == []
 
 
+def test_generate_dict_requires_words():
+    with pytest.raises(ValueError):
+        datagen.generate(10, mode=datagen.DataMode.DICT, words=None)
+    with pytest.raises(ValueError):
+        datagen.generate(10, mode=datagen.DataMode.DICT, words=[])
+
+
+def test_generate_repeat_requires_string():
+    with pytest.raises(ValueError):
+        datagen.generate(10, mode=datagen.DataMode.REPEAT, repeat=None)
+    with pytest.raises(ValueError):
+        datagen.generate(10, mode=datagen.DataMode.REPEAT, repeat="")
+
+
 def test_gen_binary_stream_partial_secure(monkeypatch):
     class PartialStream:
         def __init__(self, chunks):
