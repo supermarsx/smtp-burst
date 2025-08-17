@@ -17,13 +17,16 @@ def imap_search(
 ) -> List[bytes]:
     """Return message IDs matching ``criteria`` from IMAP server."""
     cls = imaplib.IMAP4_SSL if ssl else imaplib.IMAP4
-    with cls(host, port) as imap:
-        imap.login(user, password)
-        imap.select(mailbox)
-        typ, data = imap.search(None, criteria)
-        if typ != "OK" or not data:
-            return []
-        return data[0].split()
+    try:
+        with cls(host, port) as imap:
+            imap.login(user, password)
+            imap.select(mailbox)
+            typ, data = imap.search(None, criteria)
+            if typ != "OK" or not data:
+                return []
+            return data[0].split()
+    except (imaplib.IMAP4.error, OSError):
+        return []
 
 
 def pop3_search(
@@ -37,8 +40,9 @@ def pop3_search(
 ) -> List[int]:
     """Return message numbers containing ``pattern`` via POP3."""
     cls = poplib.POP3_SSL if ssl else poplib.POP3
-    pop = cls(host, port)
+    pop: poplib.POP3 | None = None
     try:
+        pop = cls(host, port)
         pop.user(user)
         pop.pass_(password)
         ids: List[int] = []
@@ -49,8 +53,11 @@ def pop3_search(
             if pattern is None or pattern in msg:
                 ids.append(i)
         return ids
+    except (poplib.error_proto, OSError):
+        return []
     finally:
-        try:
-            pop.quit()
-        except Exception:
-            pass
+        if pop is not None:
+            try:
+                pop.quit()
+            except Exception:
+                pass
