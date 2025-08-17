@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import random
 import socket
 from typing import List
@@ -9,8 +10,15 @@ from typing import List
 from .discovery.nettests import ping
 from .send import parse_server
 
+logger = logging.getLogger(__name__)
 
-def check_proxy(proxy: str, host: str = "example.com", port: int = 80) -> bool:
+
+def check_proxy(
+    proxy: str,
+    host: str = "example.com",
+    port: int = 80,
+    timeout: float = 5,
+) -> bool:
     """Return ``True`` if ``proxy`` appears reachable.
 
     A basic validation is performed using ping, DNS resolution and a TCP
@@ -26,7 +34,8 @@ def check_proxy(proxy: str, host: str = "example.com", port: int = 80) -> bool:
         return False
 
     try:
-        with socket.create_connection((ph, pp), timeout=5) as sock:
+        with socket.create_connection((ph, pp), timeout=timeout) as sock:
+            sock.settimeout(timeout)
             request = f"CONNECT {host}:{port} HTTP/1.1\r\n\r\n".encode()
             try:
                 sock.sendall(request)
@@ -36,8 +45,14 @@ def check_proxy(proxy: str, host: str = "example.com", port: int = 80) -> bool:
                     or reply.startswith(b"HTTP/1.0 200")
                 ):
                     return False
+            except socket.timeout:
+                logger.warning("Proxy %s timed out during CONNECT", proxy)
+                return False
             except Exception:
                 return False
+    except socket.timeout:
+        logger.warning("Connection to proxy %s timed out", proxy)
+        return False
     except Exception:
         return False
     return True

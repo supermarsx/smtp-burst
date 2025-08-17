@@ -3,6 +3,9 @@ import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
+import logging
+import socket
+
 from smtpburst import proxy
 
 
@@ -42,6 +45,9 @@ def test_check_proxy(monkeypatch):
             return self
 
         def __exit__(self, exc_type, exc, tb):
+            pass
+
+        def settimeout(self, t):
             pass
 
         def sendall(self, data):
@@ -92,3 +98,35 @@ def test_check_proxy_bad_status(monkeypatch):
     monkeypatch.setattr(proxy.socket, "create_connection", fake_create)
 
     assert not proxy.check_proxy("h:1")
+
+
+def test_check_proxy_timeout(monkeypatch, caplog):
+    def fake_ping(host):
+        return True
+
+    class DummySock:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            pass
+
+        def settimeout(self, t):
+            pass
+
+        def sendall(self, data):
+            pass
+
+        def recv(self, n):
+            raise socket.timeout()
+
+    def fake_create(addr, timeout=5):
+        return DummySock()
+
+    monkeypatch.setattr(proxy, "ping", fake_ping)
+    monkeypatch.setattr(proxy.socket, "gethostbyname", lambda h: "1.2.3.4")
+    monkeypatch.setattr(proxy.socket, "create_connection", fake_create)
+
+    with caplog.at_level(logging.WARNING):
+        assert not proxy.check_proxy("h:1")
+        assert "timed out" in caplog.text
