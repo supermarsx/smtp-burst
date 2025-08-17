@@ -6,6 +6,8 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 import logging
 import socket
 
+import pytest
+
 from smtpburst import proxy
 
 
@@ -24,6 +26,17 @@ def test_select_proxy_orders():
     assert proxy.select_proxy(proxies, "desc", 1) == "b"
     p = proxy.select_proxy(proxies, "random", 5)
     assert p in proxies
+
+
+def test_invalid_order(tmp_path):
+    path = tmp_path / "p.txt"
+    path.write_text("a\nb\n")
+
+    with pytest.raises(ValueError):
+        proxy.load_proxies(str(path), order="bad")
+
+    with pytest.raises(ValueError):
+        proxy.select_proxy(["a", "b"], "bad", 0)
 
 
 def test_check_proxy(monkeypatch):

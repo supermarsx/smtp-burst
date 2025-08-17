@@ -61,9 +61,13 @@ def check_proxy(
 def load_proxies(path: str, order: str = "asc", check: bool = False) -> List[str]:
     """Return list of proxies from ``path`` respecting ``order``.
 
-    If ``check`` is True, invalid proxies are filtered out using
+    ``order`` must be one of ``"asc"``, ``"desc"`` or ``"random"``. If
+    ``check`` is True, invalid proxies are filtered out using
     :func:`check_proxy`.
     """
+    if order not in {"asc", "desc", "random"}:
+        raise ValueError(f"Unsupported order: {order}")
+
     with open(path, "r", encoding="utf-8") as fh:
         proxies = [line.strip() for line in fh if line.strip()]
 
@@ -79,7 +83,12 @@ def load_proxies(path: str, order: str = "asc", check: bool = False) -> List[str
 
 
 def select_proxy(proxies: List[str], order: str, index: int) -> str | None:
-    """Return proxy for ``index`` using ``order`` strategy."""
+    """Return proxy for ``index`` using ``order`` strategy.
+
+    ``order`` must be one of ``"asc"``, ``"desc"`` or ``"random"``.
+    """
+    if order not in {"asc", "desc", "random"}:
+        raise ValueError(f"Unsupported order: {order}")
     if not proxies:
         return None
     if order == "random":
