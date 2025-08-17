@@ -121,9 +121,17 @@ def generate(
     if mode is DataMode.UTF8:
         return gen_utf8(size, secure=secure).encode("utf-8")
     if mode is DataMode.DICT:
-        return gen_dictionary(size, words or []).encode("utf-8")
+        if not words:
+            raise ValueError(
+                "words list required for dictionary mode; provide --dict-file"
+            )
+        return gen_dictionary(size, words).encode("utf-8")
     if mode is DataMode.REPEAT:
-        return gen_repeat(repeat or "", size).encode("utf-8")
+        if not repeat:
+            raise ValueError(
+                "repeat string required for repeat mode; provide --repeat-string"
+            )
+        return gen_repeat(repeat, size).encode("utf-8")
 
     # default ascii
     return gen_ascii(size, secure=secure).encode("ascii")
