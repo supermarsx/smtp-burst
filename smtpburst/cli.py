@@ -303,8 +303,20 @@ CLI_OPTIONS: Iterable[CLIOption] = [
         {"help": "Host to ping"},
     ),
     (
+        ("--ping-timeout",),
+        {"type": int, "default": 1, "help": "Ping timeout in seconds"},
+    ),
+    (
         ("--traceroute-test",),
         {"help": "Host to traceroute"},
+    ),
+    (
+        ("--traceroute-timeout",),
+        {
+            "type": int,
+            "default": 5,
+            "help": "Traceroute timeout in seconds",
+        },
     ),
     (
         ("--perf-test",),

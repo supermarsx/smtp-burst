@@ -182,6 +182,44 @@ def test_main_banner_check(monkeypatch):
     assert called['server'] == 'srv'
 
 
+def test_main_ping_timeout(monkeypatch):
+    called = {}
+
+    def fake_bomb(cfg, attachments=None):
+        pass
+
+    def fake_ping(host, count=1, timeout=1):
+        called["host"] = host
+        called["timeout"] = timeout
+        return "ok"
+
+    monkeypatch.setattr(main_mod.send, "bombing_mode", fake_bomb)
+    monkeypatch.setattr(main_mod.nettests, "ping", fake_ping)
+
+    main_mod.main(["--ping-test", "host", "--ping-timeout", "7"])
+
+    assert called == {"host": "host", "timeout": 7}
+
+
+def test_main_traceroute_timeout(monkeypatch):
+    called = {}
+
+    def fake_bomb(cfg, attachments=None):
+        pass
+
+    def fake_traceroute(host, count=30, timeout=5):
+        called["host"] = host
+        called["timeout"] = timeout
+        return "ok"
+
+    monkeypatch.setattr(main_mod.send, "bombing_mode", fake_bomb)
+    monkeypatch.setattr(main_mod.nettests, "traceroute", fake_traceroute)
+
+    main_mod.main(["--traceroute-test", "host", "--traceroute-timeout", "9"])
+
+    assert called == {"host": "host", "timeout": 9}
+
+
 def test_main_pipeline_error(monkeypatch, capsys):
     def fake_load(path):
         raise pipeline.PipelineError("bad pipeline")
