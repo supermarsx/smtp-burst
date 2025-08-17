@@ -32,7 +32,14 @@ def gen_utf8(size: int, secure: bool = False) -> str:
 def gen_binary(
     size: int, secure: bool = False, stream: Optional[TextIO] = None
 ) -> bytes:
-    """Return ``size`` random bytes, optionally reading from ``stream``."""
+    """Return ``size`` random bytes, optionally reading from ``stream``.
+
+    When ``stream`` is provided, the function keeps reading from it until the
+    requested ``size`` is satisfied.  Any remaining bytes are filled with
+    random data using either ``random`` or ``secrets`` depending on the
+    ``secure`` flag.
+    """
+
     if stream is not None:
         data = bytearray()
         while len(data) < size:
@@ -42,13 +49,18 @@ def gen_binary(
             if isinstance(chunk, str):
                 chunk = chunk.encode()
             data.extend(chunk)
-        if len(data) < size:
-            remaining = size - len(data)
-            if secure:
-                data.extend(secrets.token_bytes(remaining))
-            else:
-                data.extend(random.getrandbits(8) for _ in range(remaining))
+
+        remaining = size - len(data)
+        if remaining > 0:
+            filler = (
+                secrets.token_bytes(remaining)
+                if secure
+                else bytes(random.getrandbits(8) for _ in range(remaining))
+            )
+            data.extend(filler)
+
         return bytes(data)
+
     if secure:
         return secrets.token_bytes(size)
     return bytes(random.getrandbits(8) for _ in range(size))
