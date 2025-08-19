@@ -6,11 +6,12 @@ This module exposes ``ping``, ``traceroute``, ``check_rbl`` and
 
 from __future__ import annotations
 
-from dns import resolver
 import smtplib
-import ssl
 import socket
+import ssl
 from typing import Any, Dict, List
+
+from dns import resolver
 
 # Import discovery tests individually when used to avoid unused imports
 
