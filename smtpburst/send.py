@@ -112,6 +112,22 @@ def sizeof_fmt(num: int, suffix: str = "B") -> str:
     return "%.1f%s%s" % (num, "Yi", suffix)
 
 
+async def _async_increment(counter, lock: asyncio.Lock) -> None:
+    async with lock:
+        counter.value += 1
+
+
+def _increment(counter, lock: asyncio.Lock | None = None, loop: asyncio.AbstractEventLoop | None = None) -> None:
+    """Increment ``counter`` in a threadsafe manner using ``lock`` if provided."""
+    if lock is not None:
+        if loop is None:
+            loop = asyncio.get_event_loop()
+        fut = asyncio.run_coroutine_threadsafe(_async_increment(counter, lock), loop)
+        fut.result()
+    else:
+        counter.value += 1
+
+
 def sendmail(
     number: int,
     burst: int,
@@ -124,6 +140,9 @@ def sendmail(
     passwords=None,
     use_ssl: bool | None = None,
     start_tls: bool | None = None,
+    *,
+    fail_lock: asyncio.Lock | None = None,
+    loop: asyncio.AbstractEventLoop | None = None,
 ):
     """Send a single email if failure threshold not reached.
 
@@ -206,7 +225,7 @@ def sendmail(
                 logger.warning("Possible tarpit detected: %.2fs latency", latency)
         logger.info("%s/%s, Burst %s : Email Sent", number, cfg.SB_TOTAL, burst)
     except SMTPException:
-        SB_FAILCOUNT.value += 1
+        _increment(SB_FAILCOUNT, fail_lock, loop)
         logger.error(
             "%s/%s, Burst %s/%s : Failure %s/%s, Unable to send email",
             number,
@@ -217,7 +236,7 @@ def sendmail(
             cfg.SB_STOPFQNT,
         )
     except SMTPSenderRefused:
-        SB_FAILCOUNT.value += 1
+        _increment(SB_FAILCOUNT, fail_lock, loop)
         logger.error(
             "%s/%s, Burst %s : Failure %s/%s, Sender refused",
             number,
@@ -227,7 +246,7 @@ def sendmail(
             cfg.SB_STOPFQNT,
         )
     except SMTPRecipientsRefused:
-        SB_FAILCOUNT.value += 1
+        _increment(SB_FAILCOUNT, fail_lock, loop)
         logger.error(
             "%s/%s, Burst %s : Failure %s/%s, Recipients refused",
             number,
@@ -237,7 +256,7 @@ def sendmail(
             cfg.SB_STOPFQNT,
         )
     except SMTPDataError:
-        SB_FAILCOUNT.value += 1
+        _increment(SB_FAILCOUNT, fail_lock, loop)
         logger.error(
             "%s/%s, Burst %s : Failure %s/%s, Data Error",
             number,
@@ -248,10 +267,14 @@ def sendmail(
         )
 
 
-async def async_sendmail(*args, **kwargs):
-    """Run :func:`sendmail` in a thread for asynchronous use."""
+async def async_sendmail(*args, fail_lock: asyncio.Lock | None = None, **kwargs):
+    """Run :func:`sendmail` in a thread for asynchronous use.
 
-    await asyncio.to_thread(sendmail, *args, **kwargs)
+    ``fail_lock`` guards updates to the shared failure counter.
+    """
+
+    loop = asyncio.get_running_loop()
+    await asyncio.to_thread(sendmail, *args, **kwargs, fail_lock=fail_lock, loop=loop)
 
 
 def parse_server(server: str) -> Tuple[str, int]:
@@ -565,6 +588,7 @@ async def async_bombing_mode(
             self.value = 0
 
     fail_count = Counter()
+    fail_lock = asyncio.Lock()
     message = append_message(cfg, attachments)
     logger.info("Message using %s of random data", sizeof_fmt(sys.getsizeof(message)))
 
@@ -587,6 +611,7 @@ async def async_bombing_mode(
                         fail_count,
                         message,
                         cfg,
+                        fail_lock=fail_lock,
                         server=cfg.SB_SERVER,
                         users=cfg.SB_USERLIST,
                         passwords=cfg.SB_PASSLIST,
