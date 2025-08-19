@@ -115,9 +115,17 @@ def blacklist_check(ip: str, zones: List[str]) -> Dict[str, str]:
 
 
 def _enum(
-    host: str, port: int, items: List[str], func: Callable[[smtplib.SMTP, str], tuple]
+    host: str,
+    port: int,
+    items: List[str],
+    func: Callable[[smtplib.SMTP, str], tuple],
+    reset: bool = False,
 ) -> Dict[str, bool]:
-    """Return mapping of ``items`` to success status using ``func``."""
+    """Return mapping of ``items`` to success status using ``func``.
+
+    If ``reset`` is ``True``, an SMTP ``RSET`` command is issued after each
+    item to reset the session state.
+    """
     results: Dict[str, bool] = {}
     try:
         with smtplib.SMTP(host, port, timeout=10) as smtp:
@@ -128,7 +136,7 @@ def _enum(
                 except smtplib.SMTPException:
                     code = 500
                 results[item] = code < 400
-                if getattr(smtp, "rcpt", None) and func == smtp.rcpt:
+                if reset:
                     try:
                         smtp.rset()
                     except smtplib.SMTPException:
@@ -155,4 +163,4 @@ def rcpt_enum(host: str, items: List[str], port: int = 25) -> Dict[str, bool]:
         smtp.mail("enum@example.com")
         return smtp.rcpt(rcpt)
 
-    return _enum(host, port, items, _rcpt)
+    return _enum(host, port, items, _rcpt, reset=True)
