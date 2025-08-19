@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from dns import resolver
-import ipaddress
 import smtplib
+import ipaddress
+from dns import resolver
 import subprocess
 import platform
 import shutil
