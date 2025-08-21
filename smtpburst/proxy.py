@@ -25,8 +25,8 @@ def check_proxy(
     handshake to ``proxy`` followed by an optional HTTP CONNECT request.
     """
     ph, pp = parse_server(proxy)
-
-    if not ping(ph):
+    result = ping(ph)
+    if not result or "not found" in result.lower() or "timed out" in result.lower():
         logger.warning("Ping to proxy %s failed", proxy)
         return False
 

@@ -90,9 +90,17 @@ def test_check_proxy_failure(monkeypatch, caplog):
         assert "Ping" in caplog.text
 
 
+@pytest.mark.parametrize("msg", ["ping command not found", "ping command timed out"])
+def test_check_proxy_ping_errors(monkeypatch, caplog, msg):
+    monkeypatch.setattr(proxy, "ping", lambda h: msg)
+    with caplog.at_level(logging.WARNING):
+        assert not proxy.check_proxy("bad:1")
+        assert "Ping" in caplog.text
+
+
 def test_check_proxy_bad_status(monkeypatch):
     def fake_ping(host):
-        return True
+        return "pong"
 
     class DummySock:
         def __enter__(self):
@@ -133,7 +141,7 @@ def test_load_proxies_timeout(monkeypatch, tmp_path):
 
 def test_check_proxy_timeout(monkeypatch, caplog):
     def fake_ping(host):
-        return True
+        return "pong"
 
     class DummySock:
         def __enter__(self):
