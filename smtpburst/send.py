@@ -224,17 +224,6 @@ def sendmail(
             if latency > cfg.SB_TARPIT_THRESHOLD:
                 logger.warning("Possible tarpit detected: %.2fs latency", latency)
         logger.info("%s/%s, Burst %s : Email Sent", number, cfg.SB_TOTAL, burst)
-    except SMTPException:
-        _increment(SB_FAILCOUNT, fail_lock, loop)
-        logger.error(
-            "%s/%s, Burst %s/%s : Failure %s/%s, Unable to send email",
-            number,
-            cfg.SB_TOTAL,
-            burst,
-            cfg.SB_BURSTS,
-            SB_FAILCOUNT.value,
-            cfg.SB_STOPFQNT,
-        )
     except SMTPSenderRefused:
         _increment(SB_FAILCOUNT, fail_lock, loop)
         logger.error(
@@ -262,6 +251,17 @@ def sendmail(
             number,
             cfg.SB_TOTAL,
             burst,
+            SB_FAILCOUNT.value,
+            cfg.SB_STOPFQNT,
+        )
+    except SMTPException:
+        _increment(SB_FAILCOUNT, fail_lock, loop)
+        logger.error(
+            "%s/%s, Burst %s/%s : Failure %s/%s, Unable to send email",
+            number,
+            cfg.SB_TOTAL,
+            burst,
+            cfg.SB_BURSTS,
             SB_FAILCOUNT.value,
             cfg.SB_STOPFQNT,
         )
