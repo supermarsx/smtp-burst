@@ -193,6 +193,11 @@ CLI_OPTIONS: Iterable[CLIOption] = [
         "default_attr": "SB_STOPFQNT",
         "help": "Number of failed emails that triggers stopping",
     }),
+    (("--retry-count",), {
+        "type": int,
+        "default_attr": "SB_RETRY_COUNT",
+        "help": "Number of times to retry sending after failure",
+    }),
 
     (("--proxy-file",), {"help": "File containing SOCKS proxies to rotate through"}),
     (("--proxy-order",), {
@@ -463,6 +468,7 @@ def apply_args_to_config(cfg: Config, args: argparse.Namespace) -> None:
         "control_char_test": "SB_TEST_CONTROL",
         "stop_on_fail": "SB_STOPFAIL",
         "stop_fail_count": "SB_STOPFQNT",
+        "retry_count": "SB_RETRY_COUNT",
         "ssl": "SB_SSL",
         "starttls": "SB_STARTTLS",
         "proxy_order": "SB_PROXY_ORDER",

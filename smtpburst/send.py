@@ -200,71 +200,81 @@ def sendmail(
                 smtp_cls = ProxySMTP
             except Exception:
                 pass
-    throttle(cfg)
-    try:
-        with smtp_cls(host, port, timeout=cfg.SB_TIMEOUT) as smtpObj:
-            if start_tls and not use_ssl:
-                smtpObj.starttls()
-            if users and passwords:
-                success = False
-                for user in users:
-                    for pwd in passwords:
-                        try:
-                            smtpObj.login(user, pwd)
-                            logger.info("Auth success: %s:%s", user, pwd)
-                            success = True
+    for attempt in range(cfg.SB_RETRY_COUNT + 1):
+        throttle(cfg)
+        try:
+            with smtp_cls(host, port, timeout=cfg.SB_TIMEOUT) as smtpObj:
+                if start_tls and not use_ssl:
+                    smtpObj.starttls()
+                if users and passwords:
+                    success = False
+                    for user in users:
+                        for pwd in passwords:
+                            try:
+                                smtpObj.login(user, pwd)
+                                logger.info("Auth success: %s:%s", user, pwd)
+                                success = True
+                                break
+                            except SMTPException:
+                                continue
+                        if success:
                             break
-                        except SMTPException:
-                            continue
-                    if success:
-                        break
-            start_t = time.monotonic()
-            smtpObj.sendmail(cfg.SB_SENDER, cfg.SB_RECEIVERS, SB_MESSAGE)
-            latency = time.monotonic() - start_t
-            if latency > cfg.SB_TARPIT_THRESHOLD:
-                logger.warning("Possible tarpit detected: %.2fs latency", latency)
-        logger.info("%s/%s, Burst %s : Email Sent", number, cfg.SB_TOTAL, burst)
-    except SMTPSenderRefused:
-        _increment(SB_FAILCOUNT, fail_lock, loop)
-        logger.error(
-            "%s/%s, Burst %s : Failure %s/%s, Sender refused",
-            number,
-            cfg.SB_TOTAL,
-            burst,
-            SB_FAILCOUNT.value,
-            cfg.SB_STOPFQNT,
-        )
-    except SMTPRecipientsRefused:
-        _increment(SB_FAILCOUNT, fail_lock, loop)
-        logger.error(
-            "%s/%s, Burst %s : Failure %s/%s, Recipients refused",
-            number,
-            cfg.SB_TOTAL,
-            burst,
-            SB_FAILCOUNT.value,
-            cfg.SB_STOPFQNT,
-        )
-    except SMTPDataError:
-        _increment(SB_FAILCOUNT, fail_lock, loop)
-        logger.error(
-            "%s/%s, Burst %s : Failure %s/%s, Data Error",
-            number,
-            cfg.SB_TOTAL,
-            burst,
-            SB_FAILCOUNT.value,
-            cfg.SB_STOPFQNT,
-        )
-    except SMTPException:
-        _increment(SB_FAILCOUNT, fail_lock, loop)
-        logger.error(
-            "%s/%s, Burst %s/%s : Failure %s/%s, Unable to send email",
-            number,
-            cfg.SB_TOTAL,
-            burst,
-            cfg.SB_BURSTS,
-            SB_FAILCOUNT.value,
-            cfg.SB_STOPFQNT,
-        )
+                start_t = time.monotonic()
+                smtpObj.sendmail(cfg.SB_SENDER, cfg.SB_RECEIVERS, SB_MESSAGE)
+                latency = time.monotonic() - start_t
+                if latency > cfg.SB_TARPIT_THRESHOLD:
+                    logger.warning("Possible tarpit detected: %.2fs latency", latency)
+            logger.info("%s/%s, Burst %s : Email Sent", number, cfg.SB_TOTAL, burst)
+            return
+        except SMTPSenderRefused:
+            if attempt < cfg.SB_RETRY_COUNT:
+                continue
+            _increment(SB_FAILCOUNT, fail_lock, loop)
+            logger.error(
+                "%s/%s, Burst %s : Failure %s/%s, Sender refused",
+                number,
+                cfg.SB_TOTAL,
+                burst,
+                SB_FAILCOUNT.value,
+                cfg.SB_STOPFQNT,
+            )
+        except SMTPRecipientsRefused:
+            if attempt < cfg.SB_RETRY_COUNT:
+                continue
+            _increment(SB_FAILCOUNT, fail_lock, loop)
+            logger.error(
+                "%s/%s, Burst %s : Failure %s/%s, Recipients refused",
+                number,
+                cfg.SB_TOTAL,
+                burst,
+                SB_FAILCOUNT.value,
+                cfg.SB_STOPFQNT,
+            )
+        except SMTPDataError:
+            if attempt < cfg.SB_RETRY_COUNT:
+                continue
+            _increment(SB_FAILCOUNT, fail_lock, loop)
+            logger.error(
+                "%s/%s, Burst %s : Failure %s/%s, Data Error",
+                number,
+                cfg.SB_TOTAL,
+                burst,
+                SB_FAILCOUNT.value,
+                cfg.SB_STOPFQNT,
+            )
+        except SMTPException:
+            if attempt < cfg.SB_RETRY_COUNT:
+                continue
+            _increment(SB_FAILCOUNT, fail_lock, loop)
+            logger.error(
+                "%s/%s, Burst %s/%s : Failure %s/%s, Unable to send email",
+                number,
+                cfg.SB_TOTAL,
+                burst,
+                cfg.SB_BURSTS,
+                SB_FAILCOUNT.value,
+                cfg.SB_STOPFQNT,
+            )
 
 
 async def async_sendmail(*args, fail_lock: asyncio.Lock | None = None, **kwargs):
