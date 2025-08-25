@@ -211,7 +211,10 @@ def main(argv=None):
         msg = "Reverse DNS: PASS" if ok else "Reverse DNS: FAIL"
         print(msg)
     if results:
-        logger.info(report(results))
+        formatted = report(results)
+        logger.info(formatted)
+        if args.report_file:
+            Path(args.report_file).write_text(formatted, encoding="utf-8")
 
 
 if __name__ == "__main__":
