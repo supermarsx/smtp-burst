@@ -1,3 +1,4 @@
+import asyncio
 import os
 import sys
 from types import SimpleNamespace
@@ -264,6 +265,24 @@ def test_port_scan(monkeypatch):
 
     monkeypatch.setattr(discovery.socket, "socket", DummySocket)
     res = discovery.port_scan("h", [25, 26])
+    assert res == {25: True, 26: False}
+
+
+def test_async_port_scan(monkeypatch):
+    class DummyWriter:
+        def close(self):
+            pass
+
+        async def wait_closed(self):
+            pass
+
+    async def fake_open_connection(host, port):
+        if port == 25:
+            return None, DummyWriter()
+        raise OSError
+
+    monkeypatch.setattr(asyncio, "open_connection", fake_open_connection)
+    res = asyncio.run(discovery.async_port_scan("h", [25, 26]))
     assert res == {25: True, 26: False}
 
 
