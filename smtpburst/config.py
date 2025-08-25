@@ -19,6 +19,7 @@ class Config:
     SB_SIZE: int = 5 * SZ_MEGABYTE * 2
     SB_STOPFAIL: bool = True
     SB_STOPFQNT: int = 3
+    SB_RETRY_COUNT: int = 0
 
     SB_SENDER: str = "from@sender.com"
     SB_RECEIVERS: List[str] = field(default_factory=lambda: ["to@receiver.com"])

@@ -71,6 +71,36 @@ def test_append_message_missing_attachment(tmp_path, caplog):
     assert missing.name not in msg.decode("utf-8", errors="ignore")
 
 
+def test_sendmail_retry(monkeypatch):
+    class FlakySMTP:
+        attempts = 0
+
+        def __init__(self, host, port, timeout=None):
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+        def sendmail(self, sender, receivers, msg):
+            type(self).attempts += 1
+            if type(self).attempts == 1:
+                raise send.SMTPException("temporary failure")
+
+    monkeypatch.setattr(send.smtplib, "SMTP", FlakySMTP)
+
+    cfg = Config()
+    cfg.SB_RETRY_COUNT = 1
+    counter = type("C", (), {"value": 0})()
+
+    send.sendmail(1, 1, counter, b"msg", cfg)
+
+    assert FlakySMTP.attempts == 2
+    assert counter.value == 0
+
+
 @pytest.mark.asyncio
 async def test_async_bombing_mode(monkeypatch):
     """Async mode should send expected emails without spawning processes."""
