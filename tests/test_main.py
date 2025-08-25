@@ -230,3 +230,20 @@ def test_main_pipeline_error(monkeypatch, capsys):
 
     out = capsys.readouterr().out
     assert "bad pipeline" in out
+
+
+def test_report_file(monkeypatch, tmp_path):
+    def fake_bomb(cfg, attachments=None):
+        pass
+
+    def fake_ping(host, count=1, timeout=1):
+        return "pong"
+
+    monkeypatch.setattr(main_mod.send, "bombing_mode", fake_bomb)
+    monkeypatch.setattr(main_mod.nettests, "ping", fake_ping)
+
+    out_file = tmp_path / "report.txt"
+    main_mod.main(["--ping-test", "host", "--report-file", str(out_file)])
+
+    expected = main_mod.ascii_report({"ping": "pong"})
+    assert out_file.read_text() == expected

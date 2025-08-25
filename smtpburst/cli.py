@@ -372,6 +372,7 @@ CLI_OPTIONS: Iterable[CLIOption] = [
             "help": "Output report format",
         },
     ),
+    (("--report-file",), {"metavar": "FILE", "help": "Write report to FILE"}),
 ]
 
 
