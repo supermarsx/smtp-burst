@@ -17,16 +17,26 @@ class CommandNotFoundError(Exception):
 
 def ping(host: str, count: int = 1, timeout: int = 1) -> str:
     """Return output of ``ping`` command for ``host``."""
-    cmd = ["ping", "-c", str(count), "-W", str(timeout), host]
-    if platform.system().lower() == "windows":
-        cmd = [
-            "ping",
-            "-n",
-            str(count),
-            "-w",
-            str(int(timeout * 1000)),
-            host,
-        ]
+    is_windows = platform.system().lower() == "windows"
+    ipv6 = False
+    try:
+        ipv6 = ipaddress.ip_address(host).version == 6
+    except ValueError:
+        pass
+
+    if is_windows:
+        cmd = ["ping", "-n", str(count), "-w", str(int(timeout * 1000))]
+        if ipv6:
+            cmd.append("-6")
+        cmd.append(host)
+    else:
+        if ipv6:
+            if shutil.which("ping6"):
+                cmd = ["ping6", "-c", str(count), "-W", str(timeout), host]
+            else:
+                cmd = ["ping", "-6", "-c", str(count), "-W", str(timeout), host]
+        else:
+            cmd = ["ping", "-c", str(count), "-W", str(timeout), host]
     if shutil.which(cmd[0]) is None:  # pragma: no cover - depends on environment
         return f"{cmd[0]} command not found"
     try:
