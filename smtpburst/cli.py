@@ -87,6 +87,12 @@ CLI_OPTIONS: Iterable[CLIOption] = [
         "help": "Latency in seconds considered a tarpit",
     }),
 
+    (("--timeout",), {
+        "type": float,
+        "default_attr": "SB_TIMEOUT",
+        "help": "Timeout in seconds for network operations",
+    }),
+
     (("--open-sockets",), {
         "type": int,
         "default": 0,
@@ -444,6 +450,7 @@ def apply_args_to_config(cfg: Config, args: argparse.Namespace) -> None:
         "global_delay": "SB_GLOBAL_DELAY",
         "socket_delay": "SB_OPEN_SOCKETS_DELAY",
         "tarpit_threshold": "SB_TARPIT_THRESHOLD",
+        "timeout": "SB_TIMEOUT",
         "size": "SB_SIZE",
         "data_mode": "SB_DATA_MODE",
         "repeat_string": "SB_REPEAT_STRING",

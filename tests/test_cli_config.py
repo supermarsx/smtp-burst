@@ -120,6 +120,13 @@ def test_new_delay_options():
     assert args.tarpit_threshold == 3
 
 
+def test_timeout_applies_to_config():
+    args = burst_cli.parse_args(["--timeout", "7"], Config())
+    cfg = Config()
+    burst_cli.apply_args_to_config(cfg, args)
+    assert cfg.SB_TIMEOUT == 7
+
+
 def test_per_burst_flag():
     args = burst_cli.parse_args(["--per-burst-data"], Config())
     assert args.per_burst_data
