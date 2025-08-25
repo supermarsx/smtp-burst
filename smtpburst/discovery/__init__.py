@@ -6,6 +6,7 @@ This module exposes ``ping``, ``traceroute``, ``check_rbl`` and
 
 from __future__ import annotations
 
+import asyncio
 import smtplib
 import socket
 import ssl
@@ -36,6 +37,7 @@ __all__ = [
     "smtp_extensions",
     "check_certificate",
     "port_scan",
+    "async_port_scan",
     "probe_honeypot",
     "banner_check",
     "ping",
@@ -138,6 +140,36 @@ def port_scan(host: str, ports: List[int], timeout: float = 1.0) -> Dict[int, bo
             results[p] = False
         finally:
             sock.close()
+    return results
+
+
+async def async_port_scan(
+    host: str,
+    ports: list[int],
+    timeout: float = 1.0,
+    limit: int = 100,
+) -> dict[int, bool]:
+    """Return mapping of ports to open status for ``host`` asynchronously."""
+    results: dict[int, bool] = {}
+    sem = asyncio.Semaphore(limit)
+
+    async def probe(p: int) -> None:
+        async with sem:
+            try:
+                _, writer = await asyncio.wait_for(
+                    asyncio.open_connection(host, p),
+                    timeout=timeout,
+                )
+                writer.close()
+                try:
+                    await writer.wait_closed()
+                except Exception:
+                    pass
+                results[p] = True
+            except Exception:
+                results[p] = False
+
+    await asyncio.gather(*(probe(p) for p in ports))
     return results
 
 
