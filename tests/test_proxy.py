@@ -28,6 +28,12 @@ def test_select_proxy_orders():
     assert p in proxies
 
 
+def test_parse_proxy_auth():
+    info = proxy.parse_proxy("user:pass@host:1080")
+    assert info.host == "host" and info.port == 1080
+    assert info.username == "user" and info.password == "pass"
+
+
 def test_invalid_order(tmp_path):
     path = tmp_path / "p.txt"
     path.write_text("a\nb\n")
@@ -78,7 +84,62 @@ def test_check_proxy(monkeypatch):
     monkeypatch.setattr(proxy.socket, "gethostbyname", fake_dns)
     monkeypatch.setattr(proxy.socket, "create_connection", fake_create)
 
-    assert proxy.check_proxy("h:1", timeout=7)
+    res = proxy.check_proxy("h:1", timeout=7)
+    assert isinstance(res, proxy.ProxyInfo)
+    assert (
+        res.host == "h"
+        and res.port == 1
+        and res.username is None
+        and res.password is None
+    )
+    assert calls["ping"] == "h" and calls["dns"] == "h" and calls["conn"] == ("h", 1)
+    assert calls["create_timeout"] == 7 and calls["timeout"] == 7
+
+
+def test_check_proxy_auth(monkeypatch):
+    calls = {}
+
+    def fake_ping(host):
+        calls["ping"] = host
+        return "pong"
+
+    def fake_dns(host):
+        calls["dns"] = host
+        return "1.2.3.4"
+
+    class DummySock:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            pass
+
+        def settimeout(self, t):
+            calls["timeout"] = t
+
+        def sendall(self, data):
+            calls["send"] = True
+
+        def recv(self, n):
+            return b"HTTP/1.1 200 OK\r\n\r\n"
+
+    def fake_create(addr, timeout=5):
+        calls["conn"] = addr
+        calls["create_timeout"] = timeout
+        return DummySock()
+
+    monkeypatch.setattr(proxy, "ping", fake_ping)
+    monkeypatch.setattr(proxy.socket, "gethostbyname", fake_dns)
+    monkeypatch.setattr(proxy.socket, "create_connection", fake_create)
+
+    res = proxy.check_proxy("user:pwd@h:1", timeout=7)
+    assert isinstance(res, proxy.ProxyInfo)
+    assert (
+        res.host == "h"
+        and res.port == 1
+        and res.username == "user"
+        and res.password == "pwd"
+    )
     assert calls["ping"] == "h" and calls["dns"] == "h" and calls["conn"] == ("h", 1)
     assert calls["create_timeout"] == 7 and calls["timeout"] == 7
 

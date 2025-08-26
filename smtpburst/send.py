@@ -22,6 +22,7 @@ import ipaddress
 from .config import Config
 from . import datagen
 from . import attacks
+from .proxy import parse_proxy
 
 logger = logging.getLogger(__name__)
 
@@ -168,7 +169,13 @@ def sendmail(
             logger.warning("PySocks is not installed, ignoring proxy")
         else:
             try:
-                ph, pp = parse_server(proxy)
+                pinfo = parse_proxy(proxy)
+                ph, pp, user, pwd = (
+                    pinfo.host,
+                    pinfo.port,
+                    pinfo.username,
+                    pinfo.password,
+                )
 
                 class ProxySMTP(smtp_cls):
                     """SMTP subclass creating connections via a SOCKS proxy."""
@@ -185,7 +192,16 @@ def sendmail(
                                 self.source_address,
                             )
                         sock = socks.socksocket()
-                        sock.set_proxy(socks.SOCKS5, ph, pp)
+                        if user or pwd:
+                            sock.set_proxy(
+                                socks.SOCKS5,
+                                ph,
+                                pp,
+                                username=user,
+                                password=pwd,
+                            )
+                        else:
+                            sock.set_proxy(socks.SOCKS5, ph, pp)
                         if timeout is not None:
                             sock.settimeout(timeout)
                         if self.source_address:

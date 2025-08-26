@@ -2,6 +2,7 @@ import pytest
 import smtpburst.send as send
 from smtpburst.config import Config
 import logging
+import sys
 
 
 def test_send_test_email(monkeypatch):
@@ -99,6 +100,61 @@ def test_sendmail_retry(monkeypatch):
 
     assert FlakySMTP.attempts == 2
     assert counter.value == 0
+
+
+def test_sendmail_proxy_auth(monkeypatch):
+    calls = {}
+
+    class DummySock:
+        def set_proxy(self, proxy_type, host, port, username=None, password=None):
+            calls["args"] = (proxy_type, host, port, username, password)
+
+        def settimeout(self, t):
+            pass
+
+        def bind(self, addr):
+            pass
+
+        def connect(self, addr):
+            pass
+
+    class DummySocksModule:
+        SOCKS5 = "socks5"
+
+        def socksocket(self):
+            return DummySock()
+
+    monkeypatch.setitem(sys.modules, "socks", DummySocksModule())
+
+    class DummySMTP:
+        def __init__(self, host, port, timeout=None):
+            self.source_address = None
+            self.debuglevel = 0
+            self._host = host
+            self.context = type("C", (), {"wrap_socket": lambda self, s, server_hostname=None: s})()
+            self._get_socket(host, port, timeout)
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+        def _get_socket(self, host, port, timeout):
+            return None
+
+        def sendmail(self, sender, receivers, msg):
+            pass
+
+    monkeypatch.setattr(send.smtplib, "SMTP", DummySMTP)
+    monkeypatch.setattr(send.smtplib, "SMTP_SSL", DummySMTP)
+
+    cfg = Config()
+    counter = type("C", (), {"value": 0})()
+
+    send.sendmail(1, 1, counter, b"msg", cfg, proxy="user:pass@h:1", use_ssl=False)
+
+    assert calls["args"] == ("socks5", "h", 1, "user", "pass")
 
 
 @pytest.mark.asyncio

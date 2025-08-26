@@ -5,12 +5,45 @@ from __future__ import annotations
 import logging
 import random
 import socket
-from typing import List
+from dataclasses import dataclass
+from typing import List, Optional
+from urllib.parse import urlsplit
 
 from .discovery.nettests import ping
-from .send import parse_server
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class ProxyInfo:
+    """Structured proxy details."""
+
+    host: str
+    port: int
+    username: Optional[str] = None
+    password: Optional[str] = None
+
+
+def parse_proxy(proxy: str) -> ProxyInfo:
+    """Return :class:`ProxyInfo` parsed from ``proxy`` string."""
+
+    if not proxy:
+        raise ValueError("Proxy must not be empty")
+    try:
+        parts = urlsplit(f"//{proxy}", allow_fragments=False)
+    except ValueError as exc:
+        raise ValueError(f"Invalid proxy '{proxy}': {exc}") from None
+
+    host = parts.hostname
+    if host is None:
+        raise ValueError(f"Invalid proxy '{proxy}'")
+
+    try:
+        port = parts.port if parts.port is not None else 1080
+    except ValueError as exc:
+        raise ValueError(f"Invalid port in proxy '{proxy}': {exc}") from None
+
+    return ProxyInfo(host, port, parts.username, parts.password)
 
 
 def check_proxy(
@@ -18,26 +51,28 @@ def check_proxy(
     host: str = "example.com",
     port: int = 80,
     timeout: float = 5,
-) -> bool:
-    """Return ``True`` if ``proxy`` appears reachable.
+) -> ProxyInfo | None:
+    """Return :class:`ProxyInfo` if ``proxy`` appears reachable.
 
     A basic validation is performed using ping, DNS resolution and a TCP
     handshake to ``proxy`` followed by an optional HTTP CONNECT request.
+    Authentication information in ``proxy`` is ignored during the validation
+    but is preserved in the returned :class:`ProxyInfo` object.
     """
-    ph, pp = parse_server(proxy)
-    result = ping(ph)
+    info = parse_proxy(proxy)
+    result = ping(info.host)
     if not result or "not found" in result.lower() or "timed out" in result.lower():
         logger.warning("Ping to proxy %s failed", proxy)
-        return False
+        return None
 
     try:
-        socket.gethostbyname(ph)
+        socket.gethostbyname(info.host)
     except Exception as exc:  # pragma: no cover - resolution failures rare
         logger.warning("DNS lookup for proxy %s failed: %s", proxy, exc)
-        return False
+        return None
 
     try:
-        with socket.create_connection((ph, pp), timeout=timeout) as sock:
+        with socket.create_connection((info.host, info.port), timeout=timeout) as sock:
             sock.settimeout(timeout)
             request = f"CONNECT {host}:{port} HTTP/1.1\r\n\r\n".encode()
             try:
@@ -50,20 +85,20 @@ def check_proxy(
                     logger.warning(
                         "Proxy %s returned unexpected status", proxy
                     )
-                    return False
+                    return None
             except socket.timeout:
                 logger.warning("Proxy %s timed out during CONNECT", proxy)
-                return False
+                return None
             except Exception as exc:
                 logger.warning("Proxy %s failed during CONNECT: %s", proxy, exc)
-                return False
+                return None
     except socket.timeout:
         logger.warning("Connection to proxy %s timed out", proxy)
-        return False
+        return None
     except Exception as exc:  # pragma: no cover - network errors vary
         logger.warning("Connection to proxy %s failed: %s", proxy, exc)
-        return False
-    return True
+        return None
+    return info
 
 
 def load_proxies(
