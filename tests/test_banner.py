@@ -55,3 +55,26 @@ def test_banner_check_rdns_fail(monkeypatch):
     banner, ok = discovery.banner_check("host")
     assert banner == "220 test"
     assert not ok
+
+
+from smtpburst import __main__ as main_mod
+
+
+def test_main_banner_check_report(monkeypatch):
+    called = {}
+
+    def fake_banner_check(server):
+        called["server"] = server
+        return ("banner", True)
+
+    def fake_report(res):
+        called["report"] = res
+        return "formatted"
+
+    monkeypatch.setattr(main_mod.discovery, "banner_check", fake_banner_check)
+    monkeypatch.setattr(main_mod, "ascii_report", fake_report)
+
+    main_mod.main(["--banner-check", "--server", "srv"])
+
+    assert called["server"] == "srv"
+    assert called["report"] == {"banner": "banner", "reverse_dns": "PASS"}
