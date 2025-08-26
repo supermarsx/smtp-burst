@@ -203,13 +203,11 @@ def main(argv=None):
         from smtpburst.discovery import rdns
 
         ok = rdns.verify(host)
-        msg = "Reverse DNS: PASS" if ok else "Reverse DNS: FAIL"
-        print(msg)
+        results["reverse_dns"] = "PASS" if ok else "FAIL"
     if args.banner_check:
         banner, ok = discovery.banner_check(args.server)
-        print(f"Banner: {banner}")
-        msg = "Reverse DNS: PASS" if ok else "Reverse DNS: FAIL"
-        print(msg)
+        results["banner"] = banner
+        results["reverse_dns"] = "PASS" if ok else "FAIL"
     if results:
         formatted = report(results)
         logger.info(formatted)
