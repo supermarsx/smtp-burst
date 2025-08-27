@@ -82,9 +82,7 @@ def check_proxy(
                     reply.startswith(b"HTTP/1.1 200")
                     or reply.startswith(b"HTTP/1.0 200")
                 ):
-                    logger.warning(
-                        "Proxy %s returned unexpected status", proxy
-                    )
+                    logger.warning("Proxy %s returned unexpected status", proxy)
                     return None
             except socket.timeout:
                 logger.warning("Proxy %s timed out during CONNECT", proxy)

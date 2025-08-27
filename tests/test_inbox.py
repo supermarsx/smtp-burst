@@ -5,7 +5,6 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 
 from smtpburst import inbox
 import imaplib
-import poplib
 
 
 def test_imap_search(monkeypatch):

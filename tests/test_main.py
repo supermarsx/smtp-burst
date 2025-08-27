@@ -13,16 +13,18 @@ def test_main_open_sockets(monkeypatch):
         called["args"] = (host, count, port, duration, iterations)
 
     monkeypatch.setattr(send, "open_sockets", fake_open)
-    main_mod.main([
-        "--open-sockets",
-        "2",
-        "--server",
-        "host.example:2525",
-        "--socket-duration",
-        "1",
-        "--socket-iterations",
-        "3",
-    ])
+    main_mod.main(
+        [
+            "--open-sockets",
+            "2",
+            "--server",
+            "host.example:2525",
+            "--socket-duration",
+            "1",
+            "--socket-iterations",
+            "3",
+        ]
+    )
     assert called["args"] == ("host.example", 2, 2525, 1.0, 3)
 
 
@@ -150,62 +152,62 @@ def test_main_tls_discovery(monkeypatch):
     called = {}
 
     def fake_test(host, port):
-        called['host'] = host
-        called['port'] = port
-        return {'TLSv1_2': {'supported': True}}
+        called["host"] = host
+        called["port"] = port
+        return {"TLSv1_2": {"supported": True}}
 
     def fake_report(res):
-        called['report'] = res
-        return 'R'
+        called["report"] = res
+        return "R"
 
-    monkeypatch.setattr(main_mod.send, 'parse_server', lambda s: ('h', 443))
-    monkeypatch.setattr('smtpburst.tlstest.test_versions', fake_test)
-    monkeypatch.setattr(main_mod, 'ascii_report', fake_report)
+    monkeypatch.setattr(main_mod.send, "parse_server", lambda s: ("h", 443))
+    monkeypatch.setattr("smtpburst.tlstest.test_versions", fake_test)
+    monkeypatch.setattr(main_mod, "ascii_report", fake_report)
 
-    main_mod.main(['--tls-discovery', 'h'])
+    main_mod.main(["--tls-discovery", "h"])
 
-    assert called['host'] == 'h'
-    assert called['report'] == {'tls': {'TLSv1_2': {'supported': True}}}
+    assert called["host"] == "h"
+    assert called["report"] == {"tls": {"TLSv1_2": {"supported": True}}}
 
 
 def test_main_banner_check(monkeypatch):
     called = {}
 
     def fake_banner_check(server):
-        called['server'] = server
-        return ('banner', True)
+        called["server"] = server
+        return ("banner", True)
 
     def fake_report(res):
-        called['report'] = res
-        return 'formatted'
+        called["report"] = res
+        return "formatted"
 
-    monkeypatch.setattr(main_mod.discovery, 'banner_check', fake_banner_check)
-    monkeypatch.setattr(main_mod, 'ascii_report', fake_report)
+    monkeypatch.setattr(main_mod.discovery, "banner_check", fake_banner_check)
+    monkeypatch.setattr(main_mod, "ascii_report", fake_report)
 
-    main_mod.main(['--banner-check', '--server', 'srv'])
+    main_mod.main(["--banner-check", "--server", "srv"])
 
-    assert called['server'] == 'srv'
-    assert called['report'] == {'banner': 'banner', 'reverse_dns': 'PASS'}
+    assert called["server"] == "srv"
+    assert called["report"] == {"banner": "banner", "reverse_dns": "PASS"}
 
 
 def test_main_rdns_test(monkeypatch):
     called = {}
 
     def fake_verify(host):
-        called['host'] = host
+        called["host"] = host
         return True
 
     def fake_report(res):
-        called['report'] = res
-        return 'formatted'
+        called["report"] = res
+        return "formatted"
 
-    monkeypatch.setattr(main_mod.discovery.rdns, 'verify', fake_verify)
-    monkeypatch.setattr(main_mod, 'ascii_report', fake_report)
+    monkeypatch.setattr(main_mod.discovery.rdns, "verify", fake_verify)
+    monkeypatch.setattr(main_mod, "ascii_report", fake_report)
 
-    main_mod.main(['--rdns-test', '--server', 'host'])
+    main_mod.main(["--rdns-test", "--server", "host"])
 
-    assert called['host'] == 'host'
-    assert called['report'] == {'reverse_dns': 'PASS'}
+    assert called["host"] == "host"
+    assert called["report"] == {"reverse_dns": "PASS"}
 
 
 def test_main_ping_timeout(monkeypatch):

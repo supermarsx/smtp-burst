@@ -32,11 +32,14 @@ CLI_OPTIONS: Iterable[CLIOption] = [
     (("--pipeline-file",), {"help": "YAML file describing discovery/attack pipeline"}),
     (("--server",), {"default_attr": "SB_SERVER", "help": "SMTP server to connect to"}),
     (("--sender",), {"default_attr": "SB_SENDER", "help": "Envelope sender address"}),
-    (("--receivers",), {
-        "nargs": "+",
-        "default_attr": "SB_RECEIVERS",
-        "help": "Space separated list of recipient addresses",
-    }),
+    (
+        ("--receivers",),
+        {
+            "nargs": "+",
+            "default_attr": "SB_RECEIVERS",
+            "help": "Space separated list of recipient addresses",
+        },
+    ),
     (("--subject",), {"default_attr": "SB_SUBJECT", "help": "Email subject line"}),
     (("--body-file",), {"help": "File containing email body text"}),
     (("--html-body-file",), {"help": "File containing HTML body text"}),
@@ -48,12 +51,14 @@ CLI_OPTIONS: Iterable[CLIOption] = [
             "help": "Files to attach to each message",
         },
     ),
-
-    (("--emails-per-burst",), {
-        "type": int,
-        "default_attr": "SB_SGEMAILS",
-        "help": "Number of emails per burst",
-    }),
+    (
+        ("--emails-per-burst",),
+        {
+            "type": int,
+            "default_attr": "SB_SGEMAILS",
+            "help": "Number of emails per burst",
+        },
+    ),
     (
         ("--bursts",),
         {
@@ -62,43 +67,62 @@ CLI_OPTIONS: Iterable[CLIOption] = [
             "help": "Number of bursts to send",
         },
     ),
-    (("--email-delay",), {
-        "type": float,
-        "default_attr": "SB_SGEMAILSPSEC",
-        "help": "Delay in seconds between individual emails",
-    }),
-    (("--burst-delay",), {
-        "type": float,
-        "default_attr": "SB_BURSTSPSEC",
-        "help": "Delay in seconds between bursts",
-    }),
-    (("--global-delay",), {
-        "type": float,
-        "default_attr": "SB_GLOBAL_DELAY",
-        "help": "Delay applied before any network action",
-    }),
-    (("--socket-delay",), {
-        "type": float,
-        "default_attr": "SB_OPEN_SOCKETS_DELAY",
-        "help": "Delay between open socket checks",
-    }),
-    (("--tarpit-threshold",), {
-        "type": float,
-        "default_attr": "SB_TARPIT_THRESHOLD",
-        "help": "Latency in seconds considered a tarpit",
-    }),
-
-    (("--timeout",), {
-        "type": float,
-        "default_attr": "SB_TIMEOUT",
-        "help": "Timeout in seconds for network operations",
-    }),
-
-    (("--open-sockets",), {
-        "type": int,
-        "default": 0,
-        "help": "Open N TCP sockets and hold them open instead of sending email",
-    }),
+    (
+        ("--email-delay",),
+        {
+            "type": float,
+            "default_attr": "SB_SGEMAILSPSEC",
+            "help": "Delay in seconds between individual emails",
+        },
+    ),
+    (
+        ("--burst-delay",),
+        {
+            "type": float,
+            "default_attr": "SB_BURSTSPSEC",
+            "help": "Delay in seconds between bursts",
+        },
+    ),
+    (
+        ("--global-delay",),
+        {
+            "type": float,
+            "default_attr": "SB_GLOBAL_DELAY",
+            "help": "Delay applied before any network action",
+        },
+    ),
+    (
+        ("--socket-delay",),
+        {
+            "type": float,
+            "default_attr": "SB_OPEN_SOCKETS_DELAY",
+            "help": "Delay between open socket checks",
+        },
+    ),
+    (
+        ("--tarpit-threshold",),
+        {
+            "type": float,
+            "default_attr": "SB_TARPIT_THRESHOLD",
+            "help": "Latency in seconds considered a tarpit",
+        },
+    ),
+    (
+        ("--timeout",),
+        {
+            "type": float,
+            "default_attr": "SB_TIMEOUT",
+            "help": "Timeout in seconds for network operations",
+        },
+    ),
+    (
+        ("--open-sockets",),
+        {
+            "type": int,
+            "default": 0,
+            "help": "Open N TCP sockets and hold them open instead of sending email",
+        },
+    ),
     (
         ("--socket-duration",),
         {
@@ -121,102 +145,133 @@ CLI_OPTIONS: Iterable[CLIOption] = [
             "help": "TCP port to use for socket mode",
         },
     ),
-
-    (("--size",), {
-        "type": int,
-        "default_attr": "SB_SIZE",
-        "help": "Random data size in bytes appended to each message",
-    }),
-    (("--data-mode",), {
-        "choices": ["ascii", "binary", "utf8", "dict", "repeat"],
-        "default_attr": "SB_DATA_MODE",
-        "help": "Payload generation mode",
-    }),
+    (
+        ("--size",),
+        {
+            "type": int,
+            "default_attr": "SB_SIZE",
+            "help": "Random data size in bytes appended to each message",
+        },
+    ),
+    (
+        ("--data-mode",),
+        {
+            "choices": ["ascii", "binary", "utf8", "dict", "repeat"],
+            "default_attr": "SB_DATA_MODE",
+            "help": "Payload generation mode",
+        },
+    ),
     (
         ("--dict-file",),
-        {
-            "help": (
-                "Word list for dictionary mode "
-                "(required with --data-mode dict)"
-            )
-        },
+        {"help": ("Word list for dictionary mode " "(required with --data-mode dict)")},
     ),
     (
         ("--repeat-string",),
         {
             "default_attr": "SB_REPEAT_STRING",
             "help": (
-                "String to repeat for repeat mode "
-                "(required with --data-mode repeat)"
+                "String to repeat for repeat mode " "(required with --data-mode repeat)"
             ),
         },
     ),
-    (("--per-burst-data",), {
-        "action": "store_true",
-        "default_attr": "SB_PER_BURST_DATA",
-        "help": "Generate new data each burst",
-    }),
-    (("--secure-random",), {
-        "action": "store_true",
-        "default_attr": "SB_SECURE_RANDOM",
-        "help": "Use secure random generator",
-    }),
+    (
+        ("--per-burst-data",),
+        {
+            "action": "store_true",
+            "default_attr": "SB_PER_BURST_DATA",
+            "help": "Generate new data each burst",
+        },
+    ),
+    (
+        ("--secure-random",),
+        {
+            "action": "store_true",
+            "default_attr": "SB_SECURE_RANDOM",
+            "help": "Use secure random generator",
+        },
+    ),
     (("--rand-stream",), {"help": "Path to randomness stream for binary mode"}),
-
-    (("--unicode-case-test",), {
-        "action": "store_true",
-        "default_attr": "SB_TEST_UNICODE",
-        "help": "Craft headers using Unicode/case tricks",
-    }),
-    (("--utf7-test",), {
-        "action": "store_true",
-        "default_attr": "SB_TEST_UTF7",
-        "help": "Encode message using UTF-7",
-    }),
-    (("--header-tunnel-test",), {
-        "action": "store_true",
-        "default_attr": "SB_TEST_TUNNEL",
-        "help": "Inject overlapping headers for tunneling",
-    }),
-    (("--control-char-test",), {
-        "action": "store_true",
-        "default_attr": "SB_TEST_CONTROL",
-        "help": "Insert encoded control characters",
-    }),
-
-    (("--stop-on-fail",), {
-        "action": "store_true",
-        "default_attr": "SB_STOPFAIL",
-        "help": "Stop execution when --stop-fail-count failures occur",
-    }),
-    (("--stop-fail-count",), {
-        "type": int,
-        "default_attr": "SB_STOPFQNT",
-        "help": "Number of failed emails that triggers stopping",
-    }),
-    (("--retry-count",), {
-        "type": int,
-        "default_attr": "SB_RETRY_COUNT",
-        "help": "Number of times to retry sending after failure",
-    }),
-
+    (
+        ("--unicode-case-test",),
+        {
+            "action": "store_true",
+            "default_attr": "SB_TEST_UNICODE",
+            "help": "Craft headers using Unicode/case tricks",
+        },
+    ),
+    (
+        ("--utf7-test",),
+        {
+            "action": "store_true",
+            "default_attr": "SB_TEST_UTF7",
+            "help": "Encode message using UTF-7",
+        },
+    ),
+    (
+        ("--header-tunnel-test",),
+        {
+            "action": "store_true",
+            "default_attr": "SB_TEST_TUNNEL",
+            "help": "Inject overlapping headers for tunneling",
+        },
+    ),
+    (
+        ("--control-char-test",),
+        {
+            "action": "store_true",
+            "default_attr": "SB_TEST_CONTROL",
+            "help": "Insert encoded control characters",
+        },
+    ),
+    (
+        ("--stop-on-fail",),
+        {
+            "action": "store_true",
+            "default_attr": "SB_STOPFAIL",
+            "help": "Stop execution when --stop-fail-count failures occur",
+        },
+    ),
+    (
+        ("--stop-fail-count",),
+        {
+            "type": int,
+            "default_attr": "SB_STOPFQNT",
+            "help": "Number of failed emails that triggers stopping",
+        },
+    ),
+    (
+        ("--retry-count",),
+        {
+            "type": int,
+            "default_attr": "SB_RETRY_COUNT",
+            "help": "Number of times to retry sending after failure",
+        },
+    ),
     (("--proxy-file",), {"help": "File containing SOCKS proxies to rotate through"}),
-    (("--proxy-order",), {
-        "choices": ["asc", "desc", "random"],
-        "default_attr": "SB_PROXY_ORDER",
-        "help": "Order to apply proxies",
-    }),
-    (("--check-proxies",), {
-        "action": "store_true",
-        "default_attr": "SB_CHECK_PROXIES",
-        "help": "Validate proxies before use",
-    }),
-    (("--proxy-timeout",), {
-        "type": float,
-        "default_attr": "SB_PROXY_TIMEOUT",
-        "help": "Timeout in seconds when validating proxies",
-    }),
-
+    (
+        ("--proxy-order",),
+        {
+            "choices": ["asc", "desc", "random"],
+            "default_attr": "SB_PROXY_ORDER",
+            "help": "Order to apply proxies",
+        },
+    ),
+    (
+        ("--check-proxies",),
+        {
+            "action": "store_true",
+            "default_attr": "SB_CHECK_PROXIES",
+            "help": "Validate proxies before use",
+        },
+    ),
+    (
+        ("--proxy-timeout",),
+        {
+            "type": float,
+            "default_attr": "SB_PROXY_TIMEOUT",
+            "help": "Timeout in seconds when validating proxies",
+        },
+    ),
     (("--userlist",), {"help": "Username wordlist for SMTP AUTH"}),
     (("--passlist",), {"help": "Password wordlist for SMTP AUTH"}),
     (("--template-file",), {"help": "Phishing template file"}),
@@ -246,24 +301,30 @@ CLI_OPTIONS: Iterable[CLIOption] = [
     ),
     (("--username",), {"help": "Username for --auth-test"}),
     (("--password",), {"help": "Password for --auth-test"}),
-
-    (("--ssl",), {
-        "action": "store_true",
-        "default_attr": "SB_SSL",
-        "help": "Use SMTPS (SSL/TLS) connection",
-    }),
-    (("--starttls",), {
-        "action": "store_true",
-        "default_attr": "SB_STARTTLS",
-        "help": "Issue STARTTLS after connecting",
-    }),
-
-    (("--async",), {
-        "action": "store_true",
-        "dest": "async_mode",
-        "help": "Use asyncio-based sending",
-    }),
-
+    (
+        ("--ssl",),
+        {
+            "action": "store_true",
+            "default_attr": "SB_SSL",
+            "help": "Use SMTPS (SSL/TLS) connection",
+        },
+    ),
+    (
+        ("--starttls",),
+        {
+            "action": "store_true",
+            "default_attr": "SB_STARTTLS",
+            "help": "Issue STARTTLS after connecting",
+        },
+    ),
+    (
+        ("--async",),
+        {
+            "action": "store_true",
+            "dest": "async_mode",
+            "help": "Use asyncio-based sending",
+        },
+    ),
     (("--check-dmarc",), {"help": "Domain to query DMARC record for"}),
     (("--check-spf",), {"help": "Domain to query SPF record for"}),
     (("--check-dkim",), {"help": "Domain to query DKIM record for"}),
@@ -293,16 +354,22 @@ CLI_OPTIONS: Iterable[CLIOption] = [
         ("--blacklist-check",),
         {"nargs": "+", "help": "IP followed by one or more DNSBL zones to query"},
     ),
-    (("--imap-check",), {
-        "nargs": 4,
-        "metavar": ("HOST", "USER", "PASS", "CRITERIA"),
-        "help": "Check IMAP inbox for messages matching CRITERIA",
-    }),
-    (("--pop3-check",), {
-        "nargs": 4,
-        "metavar": ("HOST", "USER", "PASS", "PATTERN"),
-        "help": "Check POP3 inbox for messages containing PATTERN",
-    }),
+    (
+        ("--imap-check",),
+        {
+            "nargs": 4,
+            "metavar": ("HOST", "USER", "PASS", "CRITERIA"),
+            "help": "Check IMAP inbox for messages matching CRITERIA",
+        },
+    ),
+    (
+        ("--pop3-check",),
+        {
+            "nargs": 4,
+            "metavar": ("HOST", "USER", "PASS", "PATTERN"),
+            "help": "Check POP3 inbox for messages containing PATTERN",
+        },
+    ),
     (
         ("--open-relay-test",),
         {
@@ -353,7 +420,6 @@ CLI_OPTIONS: Iterable[CLIOption] = [
         ("--outbound-test",),
         {"action": "store_true", "help": "Send one test email and exit"},
     ),
-
     (
         ("--silent",),
         {"action": "store_true", "group": "log", "help": "Suppress all log output"},

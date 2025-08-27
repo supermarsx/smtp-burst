@@ -62,10 +62,7 @@ def test_message_send_time(monkeypatch):
     monkeypatch.setattr(attacks.smtplib, "SMTP", DummySMTP)
     monkeypatch.setattr(attacks.smtplib, "SMTP_SSL", DummySMTP)
     _monkey_time(monkeypatch, 0.0, 0.7)
-    assert (
-        attacks.message_send_time("h", "s", ["r"], b"m")
-        == 0.7
-    )
+    assert attacks.message_send_time("h", "s", ["r"], b"m") == 0.7
 
 
 def test_ping_latency(monkeypatch):

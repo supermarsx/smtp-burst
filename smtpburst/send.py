@@ -120,7 +120,11 @@ async def _async_increment(counter, lock: asyncio.Lock) -> None:
         counter.value += 1
 
 
-def _increment(counter, lock: asyncio.Lock | None = None, loop: asyncio.AbstractEventLoop | None = None) -> None:
+def _increment(
+    counter,
+    lock: asyncio.Lock | None = None,
+    loop: asyncio.AbstractEventLoop | None = None,
+) -> None:
     """Increment ``counter`` in a threadsafe manner using ``lock`` if provided."""
     if lock is not None:
         if loop is None:
@@ -331,13 +335,17 @@ def parse_server(server: str) -> Tuple[str, int]:
                     ipaddress.ip_address(server)
                 except ValueError:
                     raise ValueError(
-                        f"Invalid server '{server}': IPv6 addresses with ports must be enclosed in '[' and ']'"
+                        f"Invalid server '{server}': "
+                        "IPv6 addresses with ports must be enclosed "
+                        "in '[' and ']'"
                     ) from None
                 else:
                     return server, default_port
             else:
                 raise ValueError(
-                    f"Invalid server '{server}': IPv6 addresses with ports must be enclosed in '[' and ']'"
+                    f"Invalid server '{server}': "
+                    "IPv6 addresses with ports must be enclosed "
+                    "in '[' and ']'"
                 ) from None
         else:
             try:
@@ -461,9 +469,7 @@ def _smtp_authenticate(
             if success:
                 break
         results[mech] = success
-        logger.info(
-            "Authentication %s %s", mech, "succeeded" if success else "failed"
-        )
+        logger.info("Authentication %s %s", mech, "succeeded" if success else "failed")
 
     return results
 
@@ -516,9 +522,7 @@ def auth_test(cfg: Config) -> dict[str, bool]:
             )
             results[mech] = success
         except smtplib.SMTPException:
-            logging.getLogger(__name__).info(
-                "Authentication %s failed", mech
-            )
+            logging.getLogger(__name__).info("Authentication %s failed", mech)
             results[mech] = False
     return results
 
@@ -572,9 +576,7 @@ def bombing_mode(cfg: Config, attachments: Optional[List[str]] = None) -> None:
                 from . import proxy as proxy_util
 
                 idx = number + (b * cfg.SB_SGEMAILS) - 1
-                proxy = proxy_util.select_proxy(
-                    cfg.SB_PROXIES, cfg.SB_PROXY_ORDER, idx
-                )
+                proxy = proxy_util.select_proxy(cfg.SB_PROXIES, cfg.SB_PROXY_ORDER, idx)
             proc = Process(
                 target=sendmail,
                 args=(
