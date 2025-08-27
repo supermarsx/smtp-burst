@@ -131,7 +131,9 @@ def test_sendmail_proxy_auth(monkeypatch):
             self.source_address = None
             self.debuglevel = 0
             self._host = host
-            self.context = type("C", (), {"wrap_socket": lambda self, s, server_hostname=None: s})()
+            self.context = type(
+                "C", (), {"wrap_socket": lambda self, s, server_hostname=None: s}
+            )()
             self._get_socket(host, port, timeout)
 
         def __enter__(self):

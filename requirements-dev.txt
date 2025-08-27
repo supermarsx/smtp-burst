@@ -2,6 +2,10 @@ dnspython
 PyYAML
 pytest
 pytest-cov
-ruff
-aiosmtplib
 pytest-asyncio
+flake8
+black
+build
+pyinstaller
+twine
+aiosmtplib

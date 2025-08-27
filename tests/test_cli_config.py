@@ -251,13 +251,16 @@ def test_login_test_flag():
 
 
 def test_auth_test_flag():
-    args = burst_cli.parse_args([
-        "--auth-test",
-        "--username",
-        "u",
-        "--password",
-        "p",
-    ], Config())
+    args = burst_cli.parse_args(
+        [
+            "--auth-test",
+            "--username",
+            "u",
+            "--password",
+            "p",
+        ],
+        Config(),
+    )
     assert args.auth_test and args.username == "u" and args.password == "p"
 
 

@@ -18,9 +18,7 @@ except ImportError:
 
 def _generate_cert(tmp_path):
     key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
-    subject = issuer = x509.Name(
-        [x509.NameAttribute(NameOID.COMMON_NAME, u"localhost")]
-    )
+    subject = issuer = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "localhost")])
     cert = (
         x509.CertificateBuilder()
         .subject_name(subject)
@@ -29,7 +27,7 @@ def _generate_cert(tmp_path):
         .serial_number(x509.random_serial_number())
         .not_valid_before(datetime.utcnow() - timedelta(days=1))
         .not_valid_after(datetime.utcnow() + timedelta(days=1))
-        .add_extension(x509.SubjectAlternativeName([x509.DNSName(u"localhost")]), False)
+        .add_extension(x509.SubjectAlternativeName([x509.DNSName("localhost")]), False)
         .sign(key, hashes.SHA256())
     )
     cert_path = tmp_path / "cert.pem"

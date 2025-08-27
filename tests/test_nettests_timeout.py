@@ -40,6 +40,7 @@ def test_ping_ipv6_prefers_ping6(monkeypatch):
         class Result:
             returncode = 0
             stdout = ""
+
         return Result()
 
     monkeypatch.setattr(nettests.subprocess, "run", fake_run)
@@ -62,6 +63,7 @@ def test_ping_ipv6_uses_dash6(monkeypatch):
         class Result:
             returncode = 0
             stdout = ""
+
         return Result()
 
     monkeypatch.setattr(nettests.subprocess, "run", fake_run)
@@ -81,6 +83,7 @@ def test_ping_ipv6_windows(monkeypatch):
         class Result:
             returncode = 0
             stdout = ""
+
         return Result()
 
     monkeypatch.setattr(nettests.subprocess, "run", fake_run)

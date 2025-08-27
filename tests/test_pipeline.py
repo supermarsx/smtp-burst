@@ -61,6 +61,7 @@ def test_pipeline_runner_stop(monkeypatch, tmp_path):
 @pytest.mark.skipif(pipeline.yaml is None, reason="PyYAML not installed")
 def test_load_pipeline_missing_steps(tmp_path):
     import yaml
+
     cfg = {"stop_on_fail": True}
     path = tmp_path / "p.yaml"
     path.write_text(yaml.safe_dump(cfg))
@@ -71,6 +72,7 @@ def test_load_pipeline_missing_steps(tmp_path):
 @pytest.mark.skipif(pipeline.yaml is None, reason="PyYAML not installed")
 def test_load_pipeline_steps_not_list(tmp_path):
     import yaml
+
     cfg = {"steps": {"action": "ok"}}
     path = tmp_path / "p.yaml"
     path.write_text(yaml.safe_dump(cfg))
@@ -114,6 +116,7 @@ def test_pipeline_runner_stop_threshold(monkeypatch, tmp_path):
     }
 
     import yaml
+
     path = tmp_path / "p.yaml"
     path.write_text(yaml.safe_dump(cfg))
 

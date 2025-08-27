@@ -85,7 +85,9 @@ def test_open_sockets_creates_connections(monkeypatch):
     def fake_sleep(_):
         raise KeyboardInterrupt
 
-    monkeypatch.setattr(burstGen.attacks.socket, "create_connection", fake_create_connection)
+    monkeypatch.setattr(
+        burstGen.attacks.socket, "create_connection", fake_create_connection
+    )
     monkeypatch.setattr(burstGen.attacks.time, "sleep", fake_sleep)
 
     burstGen.open_sockets("host", 3, port=123)
@@ -109,7 +111,9 @@ def test_open_sockets_continues_on_errors(monkeypatch, caplog):
     def fake_sleep(_):
         raise KeyboardInterrupt
 
-    monkeypatch.setattr(burstGen.attacks.socket, "create_connection", fake_create_connection)
+    monkeypatch.setattr(
+        burstGen.attacks.socket, "create_connection", fake_create_connection
+    )
     monkeypatch.setattr(burstGen.attacks.time, "sleep", fake_sleep)
 
     with caplog.at_level(logging.WARNING, logger="smtpburst.attacks"):
@@ -126,7 +130,11 @@ def test_open_sockets_duration(monkeypatch):
         def close(self):
             closed.append(True)
 
-    monkeypatch.setattr(burstGen.attacks.socket, "create_connection", lambda a, timeout=None: DummySocket())
+    monkeypatch.setattr(
+        burstGen.attacks.socket,
+        "create_connection",
+        lambda a, timeout=None: DummySocket(),
+    )
 
     vals = iter([0, 0, 1, 2])
 
@@ -151,7 +159,11 @@ def test_open_sockets_iterations(monkeypatch):
         def close(self):
             closed.append(True)
 
-    monkeypatch.setattr(burstGen.attacks.socket, "create_connection", lambda a, timeout=None: DummySocket())
+    monkeypatch.setattr(
+        burstGen.attacks.socket,
+        "create_connection",
+        lambda a, timeout=None: DummySocket(),
+    )
     sleep_calls = []
     monkeypatch.setattr(burstGen.attacks.time, "sleep", lambda x: sleep_calls.append(x))
 
@@ -172,8 +184,14 @@ def test_attacks_open_sockets_uses_timeout(monkeypatch):
         captured.append(timeout)
         return DummySocket()
 
-    monkeypatch.setattr(burstGen.attacks.socket, "create_connection", fake_create_connection)
-    monkeypatch.setattr(burstGen.attacks.time, "sleep", lambda x: (_ for _ in ()).throw(KeyboardInterrupt))
+    monkeypatch.setattr(
+        burstGen.attacks.socket, "create_connection", fake_create_connection
+    )
+    monkeypatch.setattr(
+        burstGen.attacks.time,
+        "sleep",
+        lambda x: (_ for _ in ()).throw(KeyboardInterrupt),
+    )
 
     burstGen.attacks.open_sockets("h", 1, port=25, timeout=5.5)
 
@@ -183,7 +201,9 @@ def test_attacks_open_sockets_uses_timeout(monkeypatch):
 def test_send_open_sockets_forwards_timeout(monkeypatch):
     called = {}
 
-    def fake_open(host, count, port, delay, cfg, *, duration=None, iterations=None, timeout=None):
+    def fake_open(
+        host, count, port, delay, cfg, *, duration=None, iterations=None, timeout=None
+    ):
         called["timeout"] = timeout
 
     monkeypatch.setattr(burstGen.attacks, "open_sockets", fake_open)
@@ -265,7 +285,7 @@ def test_sendmail_passes_timeout(monkeypatch):
 
     class DummySMTP:
         def __init__(self, *args, **kwargs):
-            captured['timeout'] = kwargs.get('timeout')
+            captured["timeout"] = kwargs.get("timeout")
 
         def sendmail(self, *args, **kwargs):
             pass
@@ -286,7 +306,7 @@ def test_sendmail_passes_timeout(monkeypatch):
     cfg.SB_TIMEOUT = 7.5
     counter = DummyCounter()
     sendmail(1, 1, counter, b"msg", cfg)
-    assert captured['timeout'] == pytest.approx(7.5)
+    assert captured["timeout"] == pytest.approx(7.5)
 
 
 def test_sendmail_passes_timeout_ssl(monkeypatch):
@@ -294,7 +314,7 @@ def test_sendmail_passes_timeout_ssl(monkeypatch):
 
     class DummySSL:
         def __init__(self, *args, **kwargs):
-            captured['timeout'] = kwargs.get('timeout')
+            captured["timeout"] = kwargs.get("timeout")
 
         def sendmail(self, *args, **kwargs):
             pass
@@ -315,7 +335,7 @@ def test_sendmail_passes_timeout_ssl(monkeypatch):
     cfg.SB_TIMEOUT = 6.0
     counter = DummyCounter()
     sendmail(1, 1, counter, b"msg", cfg, use_ssl=True)
-    assert captured['timeout'] == pytest.approx(6.0)
+    assert captured["timeout"] == pytest.approx(6.0)
 
 
 def test_sendmail_calls_starttls(monkeypatch):
@@ -590,6 +610,7 @@ def test_append_message_with_attachment(tmp_path):
     att.write_text("hello")
     msg_bytes = burstGen.append_message(cfg, [str(att)])
     import email
+
     m = email.message_from_bytes(msg_bytes)
     assert m.is_multipart()
     payload = m.get_payload()
