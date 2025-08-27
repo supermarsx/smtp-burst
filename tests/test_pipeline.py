@@ -143,3 +143,10 @@ def test_dynamic_action_registration(monkeypatch):
 
     runner = pipeline.PipelineRunner([{"action": "mul", "value": 4}])
     assert runner.run() == [8]
+
+
+def test_builtin_action_registration():
+    assert pipeline.ACTION_MAP["banner_check"] is pipeline.discovery.banner_check
+    assert pipeline.ACTION_MAP["blacklist_check"] is pipeline.nettests.blacklist_check
+    assert pipeline.ACTION_MAP["performance_test"] is pipeline.attacks.performance_test
+    assert pipeline.ACTION_MAP["rdns_verify"] is pipeline.discovery.rdns.verify
