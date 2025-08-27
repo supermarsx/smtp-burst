@@ -89,6 +89,13 @@ def test_body_file_option(tmp_path):
     assert args.body_file == str(body_file)
 
 
+def test_html_body_file_option(tmp_path):
+    body_file = tmp_path / "body.html"
+    body_file.write_text("<p>hello</p>")
+    args = burst_cli.parse_args(["--html-body-file", str(body_file)], Config())
+    assert args.html_body_file == str(body_file)
+
+
 def test_attach_option(tmp_path):
     f1 = tmp_path / "a.txt"
     f2 = tmp_path / "b.txt"

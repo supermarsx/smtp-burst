@@ -39,6 +39,7 @@ CLI_OPTIONS: Iterable[CLIOption] = [
     }),
     (("--subject",), {"default_attr": "SB_SUBJECT", "help": "Email subject line"}),
     (("--body-file",), {"help": "File containing email body text"}),
+    (("--html-body-file",), {"help": "File containing HTML body text"}),
     (
         ("--attach",),
         {
@@ -474,6 +475,7 @@ def apply_args_to_config(cfg: Config, args: argparse.Namespace) -> None:
         "proxy_order": "SB_PROXY_ORDER",
         "check_proxies": "SB_CHECK_PROXIES",
         "proxy_timeout": "SB_PROXY_TIMEOUT",
+        "html_body_file": "SB_HTML_BODY",
     }
 
     for arg_name, cfg_attr in MAP.items():

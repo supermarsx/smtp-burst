@@ -81,6 +81,8 @@ def append_message(cfg: Config, attachments: Optional[List[str]] = None) -> byte
         msg["X-Orig"] = "overlap"
 
     msg.set_content(payload, maintype="text", subtype="plain", cte="8bit")
+    if cfg.SB_HTML_BODY:
+        msg.add_alternative(cfg.SB_HTML_BODY, subtype="html")
 
     if attachments:
         for path in attachments:

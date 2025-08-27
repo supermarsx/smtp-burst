@@ -26,6 +26,7 @@ class Config:
     SB_SERVER: str = "smtp.mail.com"
     SB_SUBJECT: str = "smtp-burst test"
     SB_BODY: str = "smtp-burst message body"
+    SB_HTML_BODY: str = ""
     SB_TEMPLATE: str = ""
 
     # Proxy and authentication defaults
