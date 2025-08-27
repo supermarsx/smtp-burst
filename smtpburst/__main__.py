@@ -90,6 +90,8 @@ def main(argv=None):
         cfg.SB_PASSWORD = args.password
     if args.body_file:
         cfg.SB_BODY = Path(args.body_file).read_text(encoding="utf-8")
+    if args.html_body_file:
+        cfg.SB_HTML_BODY = Path(args.html_body_file).read_text(encoding="utf-8")
     if args.template_file:
         cfg.SB_TEMPLATE = Path(args.template_file).read_text(encoding="utf-8")
     if args.enum_list:

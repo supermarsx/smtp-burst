@@ -504,6 +504,26 @@ def test_append_message_uses_subject_and_body(monkeypatch):
     assert b"Body" in msg
 
 
+def test_append_message_html_body():
+    cfg = Config()
+    cfg.SB_SENDER = "a@b.com"
+    cfg.SB_RECEIVERS = ["c@d.com"]
+    cfg.SB_SUBJECT = "Sub"
+    cfg.SB_BODY = "Body"
+    cfg.SB_HTML_BODY = "<p>HTML</p>"
+    cfg.SB_SIZE = 0
+    msg_bytes = burstGen.append_message(cfg)
+    import email
+
+    msg = email.message_from_bytes(msg_bytes)
+    assert msg.is_multipart()
+    # first part is plain text with body, second part is html
+    parts = msg.get_payload()
+    assert len(parts) == 2
+    assert parts[1].get_content_type() == "text/html"
+    assert "<p>HTML</p>" in parts[1].get_payload()
+
+
 def test_append_message_template():
     cfg = Config()
     cfg.SB_SENDER = "a@b.com"
