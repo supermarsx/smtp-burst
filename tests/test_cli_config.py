@@ -77,6 +77,14 @@ def test_starttls_flag():
     assert args.starttls
 
 
+def test_helo_host_option():
+    args = burst_cli.parse_args(["--helo-host", "ehlo.example"], Config())
+    assert args.helo_host == "ehlo.example"
+    cfg = Config()
+    burst_cli.apply_args_to_config(cfg, args)
+    assert cfg.SB_HELO_HOST == "ehlo.example"
+
+
 def test_subject_option():
     args = burst_cli.parse_args(["--subject", "MySub"], Config())
     assert args.subject == "MySub"

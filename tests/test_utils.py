@@ -234,6 +234,9 @@ def test_sendmail_reports_auth_success(monkeypatch, caplog):
         def __exit__(self, exc_type, exc, tb):
             pass
 
+        def ehlo(self, host=None):
+            pass
+
     monkeypatch.setattr(burstGen.smtplib, "SMTP", DummySMTP)
 
     class DummyCounter:
@@ -263,9 +266,15 @@ def test_sendmail_uses_ssl(monkeypatch):
         def __exit__(self, exc_type, exc, tb):
             pass
 
+        def ehlo(self, host=None):
+            pass
+
     class DummySMTP:
         def __init__(self, *args, **kwargs):
             calls["smtp"] = True
+
+        def ehlo(self, host=None):
+            pass
 
     monkeypatch.setattr(burstGen.smtplib, "SMTP_SSL", DummySSL)
     monkeypatch.setattr(burstGen.smtplib, "SMTP", DummySMTP)
@@ -296,6 +305,9 @@ def test_sendmail_passes_timeout(monkeypatch):
         def __exit__(self, exc_type, exc, tb):
             pass
 
+        def ehlo(self, host=None):
+            pass
+
     monkeypatch.setattr(burstGen.smtplib, "SMTP", DummySMTP)
 
     class DummyCounter:
@@ -323,6 +335,9 @@ def test_sendmail_passes_timeout_ssl(monkeypatch):
             return self
 
         def __exit__(self, exc_type, exc, tb):
+            pass
+
+        def ehlo(self, host=None):
             pass
 
     monkeypatch.setattr(burstGen.smtplib, "SMTP_SSL", DummySSL)
@@ -355,6 +370,9 @@ def test_sendmail_calls_starttls(monkeypatch):
             return self
 
         def __exit__(self, exc_type, exc, tb):
+            pass
+
+        def ehlo(self, host=None):
             pass
 
     monkeypatch.setattr(burstGen.smtplib, "SMTP", DummySMTP)
@@ -417,6 +435,9 @@ def test_sendmail_uses_proxy_socket(monkeypatch):
         def _get_socket(self, host, port, timeout):  # pragma: no cover - replaced
             return object()
 
+        def ehlo(self, host=None):
+            pass
+
     monkeypatch.setattr(burstGen.smtplib, "SMTP", DummySMTP)
     monkeypatch.setattr(burstGen.smtplib, "SMTP_SSL", DummySMTP)
 
@@ -459,6 +480,9 @@ def test_sendmail_proxy_missing_pysocks(monkeypatch, caplog):
         def __exit__(self, exc_type, exc, tb):
             pass
 
+        def ehlo(self, host=None):
+            pass
+
     monkeypatch.setattr(burstGen.smtplib, "SMTP", DummySMTP)
     monkeypatch.setattr(burstGen.smtplib, "SMTP_SSL", DummySMTP)
 
@@ -496,6 +520,9 @@ def test_sendmail_proxy_warning(monkeypatch, caplog):
             return self
 
         def __exit__(self, exc_type, exc, tb):
+            pass
+
+        def ehlo(self, host=None):
             pass
 
     monkeypatch.setattr(burstGen.smtplib, "SMTP", DummySMTP)

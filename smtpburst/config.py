@@ -24,6 +24,7 @@ class Config:
     SB_SENDER: str = "from@sender.com"
     SB_RECEIVERS: List[str] = field(default_factory=lambda: ["to@receiver.com"])
     SB_SERVER: str = "smtp.mail.com"
+    SB_HELO_HOST: str = ""
     SB_SUBJECT: str = "smtp-burst test"
     SB_BODY: str = "smtp-burst message body"
     SB_HTML_BODY: str = ""
