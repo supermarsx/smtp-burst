@@ -30,7 +30,11 @@ CLI_OPTIONS: Iterable[CLIOption] = [
     ),
     (("--config",), {"help": "Path to JSON/YAML config file"}),
     (("--pipeline-file",), {"help": "YAML file describing discovery/attack pipeline"}),
-    (("--server",), {"default_attr": "SB_SERVER", "help": "SMTP server to connect to"}),
+    (
+        ("--server",),
+        {"default_attr": "SB_SERVER", "help": "SMTP server to connect to"},
+    ),
+    (("--helo-host",), {"default_attr": "SB_HELO_HOST", "help": "Host to use in EHLO/HELO"}),
     (("--sender",), {"default_attr": "SB_SENDER", "help": "Envelope sender address"}),
     (
         ("--receivers",),
@@ -513,6 +517,7 @@ def apply_args_to_config(cfg: Config, args: argparse.Namespace) -> None:
 
     MAP = {
         "server": "SB_SERVER",
+        "helo_host": "SB_HELO_HOST",
         "sender": "SB_SENDER",
         "receivers": "SB_RECEIVERS",
         "subject": "SB_SUBJECT",

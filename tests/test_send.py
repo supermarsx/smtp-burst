@@ -90,6 +90,9 @@ def test_sendmail_retry(monkeypatch):
             if type(self).attempts == 1:
                 raise send.SMTPException("temporary failure")
 
+        def ehlo(self, host=None):
+            pass
+
     monkeypatch.setattr(send.smtplib, "SMTP", FlakySMTP)
 
     cfg = Config()
@@ -100,6 +103,41 @@ def test_sendmail_retry(monkeypatch):
 
     assert FlakySMTP.attempts == 2
     assert counter.value == 0
+
+
+@pytest.mark.parametrize("helo_host", ["", "helo.example"])
+def test_sendmail_ehlo(monkeypatch, helo_host):
+    called = {}
+
+    class DummySMTP:
+        def __init__(self, host, port, timeout=None):
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+        def starttls(self):
+            called["starttls"] = True
+
+        def ehlo(self, host=None):
+            called["ehlo"] = host
+
+        def sendmail(self, sender, receivers, msg):
+            pass
+
+    monkeypatch.setattr(send.smtplib, "SMTP", DummySMTP)
+
+    cfg = Config()
+    cfg.SB_HELO_HOST = helo_host
+    counter = type("C", (), {"value": 0})()
+
+    send.sendmail(1, 1, counter, b"msg", cfg, use_ssl=False, start_tls=False)
+
+    expected = helo_host or None
+    assert called["ehlo"] == expected
 
 
 def test_sendmail_proxy_auth(monkeypatch):
@@ -146,6 +184,9 @@ def test_sendmail_proxy_auth(monkeypatch):
             return None
 
         def sendmail(self, sender, receivers, msg):
+            pass
+
+        def ehlo(self, host=None):
             pass
 
     monkeypatch.setattr(send.smtplib, "SMTP", DummySMTP)

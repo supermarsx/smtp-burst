@@ -228,6 +228,10 @@ def sendmail(
             with smtp_cls(host, port, timeout=cfg.SB_TIMEOUT) as smtpObj:
                 if start_tls and not use_ssl:
                     smtpObj.starttls()
+                if cfg.SB_HELO_HOST:
+                    smtpObj.ehlo(cfg.SB_HELO_HOST)
+                else:
+                    smtpObj.ehlo()
                 if users and passwords:
                     success = False
                     for user in users:
@@ -408,6 +412,7 @@ def _attempt_auth(
     pwd: str,
     start_tls: bool,
     timeout: float,
+    helo_host: str | None = None,
 ) -> bool:
     """Try authenticating ``user``/``pwd`` using ``mech`` and return success."""
 
@@ -416,7 +421,10 @@ def _attempt_auth(
         with smtp_cls(host, port, timeout=timeout) as sm:
             if start_tls:
                 sm.starttls()
-            sm.ehlo()
+            if helo_host:
+                sm.ehlo(helo_host)
+            else:
+                sm.ehlo()
             sm.user, sm.password = user, pwd
             try:
                 auth_func = getattr(sm, auth_attr)
@@ -441,7 +449,10 @@ def _smtp_authenticate(
     with smtp_cls(host, port, timeout=cfg.SB_TIMEOUT) as smtp:
         if cfg.SB_STARTTLS and not cfg.SB_SSL:
             smtp.starttls()
-        smtp.ehlo()
+        if cfg.SB_HELO_HOST:
+            smtp.ehlo(cfg.SB_HELO_HOST)
+        else:
+            smtp.ehlo()
         methods = smtp.esmtp_features.get("auth", "").split()
 
     results: dict[str, bool] = {}
@@ -460,6 +471,7 @@ def _smtp_authenticate(
                         pwd,
                         use_tls,
                         cfg.SB_TIMEOUT,
+                        cfg.SB_HELO_HOST or None,
                     )
                     if success:
                         logger.info("Auth %s success: %s:%s", mech, user, pwd)
@@ -498,7 +510,10 @@ def auth_test(cfg: Config) -> dict[str, bool]:
     with smtp_cls(host, port, timeout=cfg.SB_TIMEOUT) as smtp:
         if cfg.SB_STARTTLS and not cfg.SB_SSL:
             smtp.starttls()
-        smtp.ehlo()
+        if cfg.SB_HELO_HOST:
+            smtp.ehlo(cfg.SB_HELO_HOST)
+        else:
+            smtp.ehlo()
         methods = smtp.esmtp_features.get("auth", "").split()
 
     results: dict[str, bool] = {}
@@ -514,6 +529,7 @@ def auth_test(cfg: Config) -> dict[str, bool]:
                 cfg.SB_PASSWORD,
                 use_tls,
                 cfg.SB_TIMEOUT,
+                cfg.SB_HELO_HOST or None,
             )
             logging.getLogger(__name__).info(
                 "Authentication %s %s",
