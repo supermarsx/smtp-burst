@@ -140,6 +140,43 @@ def test_sendmail_ehlo(monkeypatch, helo_host):
     assert called["ehlo"] == expected
 
 
+def test_sendmail_starttls_ehlo(monkeypatch):
+    calls = []
+
+    class DummySMTP:
+        def __init__(self, host, port, timeout=None):
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+        def starttls(self):
+            calls.append("starttls")
+
+        def ehlo(self, host=None):
+            calls.append(("ehlo", host))
+
+        def sendmail(self, sender, receivers, msg):
+            pass
+
+    monkeypatch.setattr(send.smtplib, "SMTP", DummySMTP)
+
+    cfg = Config()
+    cfg.SB_HELO_HOST = "helo.example"
+    counter = type("C", (), {"value": 0})()
+
+    send.sendmail(1, 1, counter, b"msg", cfg, use_ssl=False, start_tls=True)
+
+    assert calls == [
+        ("ehlo", "helo.example"),
+        "starttls",
+        ("ehlo", "helo.example"),
+    ]
+
+
 def test_sendmail_proxy_auth(monkeypatch):
     calls = {}
 
