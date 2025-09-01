@@ -9,6 +9,7 @@ import socket
 import pytest
 
 from smtpburst import proxy
+from smtpburst.discovery import nettests
 
 
 def test_load_proxies_orders(tmp_path):
@@ -150,10 +151,15 @@ def test_check_proxy_failure(monkeypatch, caplog):
         assert not proxy.check_proxy("bad:1")
         assert "Ping" in caplog.text
 
-
-@pytest.mark.parametrize("msg", ["ping command not found", "ping command timed out"])
-def test_check_proxy_ping_errors(monkeypatch, caplog, msg):
-    monkeypatch.setattr(proxy, "ping", lambda h: msg)
+@pytest.mark.parametrize("case", ["missing", "timeout"])
+def test_check_proxy_ping_errors(monkeypatch, caplog, case):
+    if case == "missing":
+        def fake_ping(host):
+            raise nettests.CommandNotFoundError("ping")
+    else:
+        def fake_ping(host):
+            return "ping command timed out"
+    monkeypatch.setattr(proxy, "ping", fake_ping)
     with caplog.at_level(logging.WARNING):
         assert not proxy.check_proxy("bad:1")
         assert "Ping" in caplog.text

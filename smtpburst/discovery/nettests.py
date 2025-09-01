@@ -12,11 +12,19 @@ from typing import Callable, Dict, List
 
 
 class CommandNotFoundError(Exception):
-    """Raised when required network command is unavailable."""
+    """Raised when a required network command is unavailable."""
+
+    def __init__(self, cmd: str):
+        super().__init__(f"{cmd} command not found")
+        self.cmd = cmd
 
 
 def ping(host: str, count: int = 1, timeout: int = 1) -> str:
-    """Return output of ``ping`` command for ``host``."""
+    """Return output of ``ping`` command for ``host``.
+
+    Raises:
+        CommandNotFoundError: If the ``ping`` command is unavailable.
+    """
     is_windows = platform.system().lower() == "windows"
     ipv6 = False
     try:
@@ -38,7 +46,7 @@ def ping(host: str, count: int = 1, timeout: int = 1) -> str:
         else:
             cmd = ["ping", "-c", str(count), "-W", str(timeout), host]
     if shutil.which(cmd[0]) is None:  # pragma: no cover - depends on environment
-        return f"{cmd[0]} command not found"
+        raise CommandNotFoundError(cmd[0])
     try:
         proc = subprocess.run(
             cmd,
@@ -57,7 +65,11 @@ def ping(host: str, count: int = 1, timeout: int = 1) -> str:
 
 
 def traceroute(host: str, count: int = 30, timeout: int = 5) -> str:
-    """Return output of ``traceroute`` command for ``host``."""
+    """Return output of ``traceroute`` command for ``host``.
+
+    Raises:
+        CommandNotFoundError: If the ``traceroute`` command is unavailable.
+    """
     cmd = ["traceroute", "-m", str(count), "-w", str(timeout), host]
     if platform.system().lower() == "windows":
         cmd = [
@@ -69,7 +81,7 @@ def traceroute(host: str, count: int = 30, timeout: int = 5) -> str:
             host,
         ]
     if shutil.which(cmd[0]) is None:  # pragma: no cover - depends on environment
-        return f"{cmd[0]} command not found"
+        raise CommandNotFoundError(cmd[0])
     try:
         proc = subprocess.run(
             cmd,

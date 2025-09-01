@@ -3,6 +3,8 @@ import os
 import sys
 from types import SimpleNamespace
 
+import pytest
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from smtpburst import discovery
@@ -82,7 +84,8 @@ def test_ping_missing_command(monkeypatch):
         called = True
 
     monkeypatch.setattr(nettests.subprocess, "run", fake_run)
-    assert nettests.ping("host") == "ping command not found"
+    with pytest.raises(nettests.CommandNotFoundError, match="ping"):
+        nettests.ping("host")
     assert not called
 
 
@@ -121,7 +124,8 @@ def test_traceroute_missing_command(monkeypatch):
         called = True
 
     monkeypatch.setattr(nettests.subprocess, "run", fake_run)
-    assert nettests.traceroute("host") == "traceroute command not found"
+    with pytest.raises(nettests.CommandNotFoundError, match="traceroute"):
+        nettests.traceroute("host")
     assert not called
 
 

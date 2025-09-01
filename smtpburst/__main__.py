@@ -181,11 +181,19 @@ def main(argv=None):
         host, port = send.parse_server(args.server)
         results["open_relay"] = nettests.open_relay_test(host, port)
     if args.ping_test:
-        results["ping"] = nettests.ping(args.ping_test, timeout=args.ping_timeout)
+        try:
+            results["ping"] = nettests.ping(
+                args.ping_test, timeout=args.ping_timeout
+            )
+        except nettests.CommandNotFoundError as exc:
+            results["ping"] = str(exc)
     if args.traceroute_test:
-        results["traceroute"] = nettests.traceroute(
-            args.traceroute_test, timeout=args.traceroute_timeout
-        )
+        try:
+            results["traceroute"] = nettests.traceroute(
+                args.traceroute_test, timeout=args.traceroute_timeout
+            )
+        except nettests.CommandNotFoundError as exc:
+            results["traceroute"] = str(exc)
     if args.perf_test:
         host, port = send.parse_server(args.perf_test)
         results["performance"] = attacks.performance_test(

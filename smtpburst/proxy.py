@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from typing import List, Optional
 from urllib.parse import urlsplit
 
-from .discovery.nettests import ping
+from .discovery.nettests import CommandNotFoundError, ping
 
 logger = logging.getLogger(__name__)
 
@@ -60,8 +60,12 @@ def check_proxy(
     but is preserved in the returned :class:`ProxyInfo` object.
     """
     info = parse_proxy(proxy)
-    result = ping(info.host)
-    if not result or "not found" in result.lower() or "timed out" in result.lower():
+    try:
+        result = ping(info.host)
+    except CommandNotFoundError:
+        logger.warning("Ping to proxy %s failed", proxy)
+        return None
+    if not result or "timed out" in result.lower():
         logger.warning("Ping to proxy %s failed", proxy)
         return None
 
