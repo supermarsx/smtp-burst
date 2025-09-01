@@ -226,12 +226,16 @@ def sendmail(
         throttle(cfg)
         try:
             with smtp_cls(host, port, timeout=cfg.SB_TIMEOUT) as smtpObj:
-                if start_tls and not use_ssl:
-                    smtpObj.starttls()
                 if cfg.SB_HELO_HOST:
                     smtpObj.ehlo(cfg.SB_HELO_HOST)
                 else:
                     smtpObj.ehlo()
+                if start_tls and not use_ssl:
+                    smtpObj.starttls()
+                    if cfg.SB_HELO_HOST:
+                        smtpObj.ehlo(cfg.SB_HELO_HOST)
+                    else:
+                        smtpObj.ehlo()
                 if users and passwords:
                     success = False
                     for user in users:
