@@ -151,6 +151,7 @@ def test_check_proxy_failure(monkeypatch, caplog):
         assert not proxy.check_proxy("bad:1")
         assert "Ping" in caplog.text
 
+
 @pytest.mark.parametrize("case", ["missing", "timeout"])
 def test_check_proxy_ping_errors(monkeypatch, caplog, case):
     if case == "missing":
@@ -204,6 +205,43 @@ def test_load_proxies_timeout(monkeypatch, tmp_path):
     monkeypatch.setattr(proxy, "check_proxy", fake_check)
     proxy.load_proxies(str(path), check=True, timeout=9)
     assert called["timeout"] == 9
+
+
+def test_load_proxies_malformed_proxy_ignored(monkeypatch, tmp_path):
+    path = tmp_path / "p.txt"
+    path.write_text("good:1\nbad:abc\n")
+
+    def fake_ping(host):
+        return "pong"
+
+    def fake_dns(host):
+        return "1.2.3.4"
+
+    class DummySock:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            pass
+
+        def settimeout(self, t):
+            pass
+
+        def sendall(self, data):
+            pass
+
+        def recv(self, n):
+            return b"HTTP/1.1 200 OK\r\n\r\n"
+
+    def fake_create(addr, timeout=5):
+        return DummySock()
+
+    monkeypatch.setattr(proxy, "ping", fake_ping)
+    monkeypatch.setattr(proxy.socket, "gethostbyname", fake_dns)
+    monkeypatch.setattr(proxy.socket, "create_connection", fake_create)
+
+    proxies = proxy.load_proxies(str(path), check=True)
+    assert proxies == ["good:1"]
 
 
 def test_check_proxy_timeout(monkeypatch, caplog):
