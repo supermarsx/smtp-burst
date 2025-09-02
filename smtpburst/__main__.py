@@ -127,7 +127,7 @@ def main(argv=None):
             send.bombing_mode(cfg, attachments=args.attach)
     except ValueError as exc:
         logger.error(exc)
-        return
+        raise SystemExit(1) from exc
 
     results = {}
     if args.check_dmarc:

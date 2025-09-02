@@ -4,6 +4,7 @@ from smtpburst import __main__ as main_mod
 from smtpburst import send
 from smtpburst import pipeline
 import logging
+import pytest
 
 
 def test_main_open_sockets(monkeypatch):
@@ -275,3 +276,15 @@ def test_report_file(monkeypatch, tmp_path):
 
     expected = main_mod.ascii_report({"ping": "pong"})
     assert out_file.read_text() == expected
+
+
+def test_main_exits_on_error(monkeypatch):
+    def bad_bomb(cfg, attachments=None):
+        raise ValueError("bad mode")
+
+    monkeypatch.setattr(send, "bombing_mode", bad_bomb)
+
+    with pytest.raises(SystemExit) as excinfo:
+        main_mod.main([])
+
+    assert excinfo.value.code == 1
