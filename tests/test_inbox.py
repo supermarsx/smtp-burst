@@ -37,6 +37,8 @@ def test_imap_search(monkeypatch):
 
 
 def test_pop3_search(monkeypatch):
+    called = {"stat": False}
+
     class DummyPOP:
         def __init__(self, host, port):
             assert host == "host"
@@ -49,8 +51,9 @@ def test_pop3_search(monkeypatch):
         def pass_(self, p):
             assert p == "p"
 
-        def list(self):
-            return (b"+OK", [b"1 0", b"2 0"])
+        def stat(self):
+            called["stat"] = True
+            return (2, 0)
 
         def retr(self, i):
             return (b"+OK", [self.msgs[i]], len(self.msgs[i]))
@@ -61,6 +64,7 @@ def test_pop3_search(monkeypatch):
     monkeypatch.setattr(inbox.poplib, "POP3_SSL", DummyPOP)
     ids = inbox.pop3_search("host", "u", "p", pattern=b"abc")
     assert ids == [1, 2]
+    assert called["stat"]
 
 
 def test_imap_search_error(monkeypatch):
