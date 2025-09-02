@@ -59,7 +59,11 @@ def check_proxy(
     Authentication information in ``proxy`` is ignored during the validation
     but is preserved in the returned :class:`ProxyInfo` object.
     """
-    info = parse_proxy(proxy)
+    try:
+        info = parse_proxy(proxy)
+    except ValueError as exc:
+        logger.warning("Invalid proxy %s: %s", proxy, exc)
+        return None
     try:
         result = ping(info.host)
     except CommandNotFoundError:
