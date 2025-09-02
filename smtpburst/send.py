@@ -60,7 +60,7 @@ def append_message(cfg: Config, attachments: Optional[List[str]] = None) -> byte
 
     rand = datagen.generate(
         cfg.SB_SIZE,
-        mode=datagen.DataMode(cfg.SB_DATA_MODE),
+        mode=cfg.SB_DATA_MODE,
         secure=cfg.SB_SECURE_RANDOM,
         words=cfg.SB_DICT_WORDS,
         repeat=cfg.SB_REPEAT_STRING,

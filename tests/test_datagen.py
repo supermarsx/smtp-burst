@@ -22,6 +22,11 @@ def test_generate_negative_size():
         datagen.generate(-1)
 
 
+def test_generate_invalid_mode():
+    with pytest.raises(ValueError, match="invalid data mode"):
+        datagen.generate(10, mode="bogus")
+
+
 def test_gen_binary_stream_partial(monkeypatch):
     class PartialStream:
         def __init__(self, chunks):
