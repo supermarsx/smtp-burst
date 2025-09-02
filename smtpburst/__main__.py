@@ -120,10 +120,14 @@ def main(argv=None):
         return
 
     logger.info("Starting smtp-burst")
-    if args.async_mode:
-        asyncio.run(send.async_bombing_mode(cfg, attachments=args.attach))
-    else:
-        send.bombing_mode(cfg, attachments=args.attach)
+    try:
+        if args.async_mode:
+            asyncio.run(send.async_bombing_mode(cfg, attachments=args.attach))
+        else:
+            send.bombing_mode(cfg, attachments=args.attach)
+    except ValueError as exc:
+        logger.error(exc)
+        return
 
     results = {}
     if args.check_dmarc:

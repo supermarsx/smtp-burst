@@ -113,8 +113,8 @@ def generate(
     if isinstance(mode, str):
         try:
             mode = DataMode(mode.lower())
-        except ValueError:
-            mode = DataMode.ASCII
+        except ValueError as exc:
+            raise ValueError(f"invalid data mode: {mode}") from exc
 
     if mode is DataMode.BINARY:
         return gen_binary(size, secure=secure, stream=stream)
