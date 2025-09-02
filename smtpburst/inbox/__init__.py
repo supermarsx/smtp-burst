@@ -46,7 +46,7 @@ def pop3_search(
         pop.user(user)
         pop.pass_(password)
         ids: List[int] = []
-        count = len(pop.list()[1])
+        count, _ = pop.stat()
         for i in range(1, count + 1):
             resp, lines, _ = pop.retr(i)
             msg = b"\n".join(lines)
