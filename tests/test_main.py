@@ -88,36 +88,38 @@ def test_main_spawns_processes(monkeypatch):
         def Value(self, typecode, value):
             return DummyValue(typecode, value)
 
-    def manager_factory():
-        return DummyManager()
+    monkeypatch.setattr("multiprocessing.Manager", lambda: DummyManager())
 
-    monkeypatch.setattr("multiprocessing.Manager", manager_factory)
+    submitted = []
 
-    started = []
-    joined = []
+    class DummyPool:
+        def __init__(self, max_workers=None):
+            self.max_workers = max_workers
 
-    class DummyProcess:
-        def __init__(self, target=None, args=(), kwargs=None):
-            self.target = target
-            self.args = args
-            self.kwargs = kwargs or {}
+        def submit(self, fn, *args, **kwargs):
+            submitted.append(args)
 
-        def start(self):
-            started.append(self.args)
+            class DummyFuture:
+                def result(self_inner):
+                    return None
 
-        def join(self):
-            joined.append(self.args)
+            return DummyFuture()
 
-    monkeypatch.setattr("multiprocessing.Process", DummyProcess)
+        def __enter__(self):
+            return self
 
-    monkeypatch.setattr(send, "time", type("T", (), {"sleep": lambda *a, **k: None}))
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+    monkeypatch.setattr(send, "ProcessPoolExecutor", DummyPool)
     monkeypatch.setattr(send, "append_message", lambda cfg, attachments=None: b"msg")
     monkeypatch.setattr(send, "sizeof_fmt", lambda n: str(n))
+    monkeypatch.setattr(send, "sendmail", lambda *a, **k: None)
+    monkeypatch.setattr(send, "throttle", lambda cfg, delay=0.0: None)
 
     main_mod.main(["--emails-per-burst", "2", "--bursts", "3"])
 
-    assert len(started) == 6
-    assert len(joined) == 6
+    assert len(submitted) == 6
 
 
 def test_logging_modes(monkeypatch, caplog):
@@ -164,6 +166,7 @@ def test_main_tls_discovery(monkeypatch):
     monkeypatch.setattr(main_mod.send, "parse_server", lambda s: ("h", 443))
     monkeypatch.setattr("smtpburst.tlstest.test_versions", fake_test)
     monkeypatch.setattr(main_mod, "ascii_report", fake_report)
+    monkeypatch.setattr(main_mod.send, "bombing_mode", lambda cfg, attachments=None: None)
 
     main_mod.main(["--tls-discovery", "h"])
 
@@ -184,6 +187,7 @@ def test_main_banner_check(monkeypatch):
 
     monkeypatch.setattr(main_mod.discovery, "banner_check", fake_banner_check)
     monkeypatch.setattr(main_mod, "ascii_report", fake_report)
+    monkeypatch.setattr(main_mod.send, "bombing_mode", lambda cfg, attachments=None: None)
 
     main_mod.main(["--banner-check", "--server", "srv"])
 
@@ -204,6 +208,7 @@ def test_main_rdns_test(monkeypatch):
 
     monkeypatch.setattr(main_mod.discovery.rdns, "verify", fake_verify)
     monkeypatch.setattr(main_mod, "ascii_report", fake_report)
+    monkeypatch.setattr(main_mod.send, "bombing_mode", lambda cfg, attachments=None: None)
 
     main_mod.main(["--rdns-test", "--server", "host"])
 

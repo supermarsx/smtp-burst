@@ -6,6 +6,7 @@ import time
 import sys
 import logging
 import asyncio
+from concurrent.futures import ProcessPoolExecutor
 from smtplib import (
     SMTPException,
     SMTPSenderRefused,
@@ -572,7 +573,7 @@ def send_test_email(cfg: Config) -> None:
 
 def bombing_mode(cfg: Config, attachments: Optional[List[str]] = None) -> None:
     """Run burst sending autonomously using provided configuration."""
-    from multiprocessing import Manager, Process
+    from multiprocessing import Manager
 
     logger.info("Generating %s of data to append to message", sizeof_fmt(cfg.SB_SIZE))
     manager = Manager()
@@ -580,44 +581,43 @@ def bombing_mode(cfg: Config, attachments: Optional[List[str]] = None) -> None:
     message = append_message(cfg, attachments)
     logger.info("Message using %s of random data", sizeof_fmt(sys.getsizeof(message)))
 
-    for b in range(cfg.SB_BURSTS):
-        if cfg.SB_PER_BURST_DATA:
-            message = append_message(cfg, attachments)
-        numbers = range(1, cfg.SB_SGEMAILS + 1)
-        procs = []
-        if fail_count.value >= cfg.SB_STOPFQNT and cfg.SB_STOPFAIL:
-            break
-        for number in numbers:
+    with ProcessPoolExecutor(max_workers=cfg.SB_SGEMAILS) as pool:
+        for b in range(cfg.SB_BURSTS):
+            if cfg.SB_PER_BURST_DATA:
+                message = append_message(cfg, attachments)
+            numbers = range(1, cfg.SB_SGEMAILS + 1)
+            futures = []
             if fail_count.value >= cfg.SB_STOPFQNT and cfg.SB_STOPFAIL:
                 break
-            throttle(cfg, cfg.SB_SGEMAILSPSEC)
-            proxy = None
-            if cfg.SB_PROXIES:
-                from . import proxy as proxy_util
+            for number in numbers:
+                if fail_count.value >= cfg.SB_STOPFQNT and cfg.SB_STOPFAIL:
+                    break
+                throttle(cfg, cfg.SB_SGEMAILSPSEC)
+                proxy = None
+                if cfg.SB_PROXIES:
+                    from . import proxy as proxy_util
 
-                idx = number + (b * cfg.SB_SGEMAILS) - 1
-                proxy = proxy_util.select_proxy(cfg.SB_PROXIES, cfg.SB_PROXY_ORDER, idx)
-            proc = Process(
-                target=sendmail,
-                args=(
-                    number + (b * cfg.SB_SGEMAILS),
-                    b + 1,
-                    fail_count,
-                    message,
-                    cfg,
-                ),
-                kwargs={
-                    "server": cfg.SB_SERVER,
-                    "proxy": proxy,
-                    "users": cfg.SB_USERLIST,
-                    "passwords": cfg.SB_PASSLIST,
-                },
-            )
-            procs.append(proc)
-            proc.start()
-        for proc in procs:
-            proc.join()
-        throttle(cfg, cfg.SB_BURSTSPSEC)
+                    idx = number + (b * cfg.SB_SGEMAILS) - 1
+                    proxy = proxy_util.select_proxy(
+                        cfg.SB_PROXIES, cfg.SB_PROXY_ORDER, idx
+                    )
+                futures.append(
+                    pool.submit(
+                        sendmail,
+                        number + (b * cfg.SB_SGEMAILS),
+                        b + 1,
+                        fail_count,
+                        message,
+                        cfg,
+                        server=cfg.SB_SERVER,
+                        proxy=proxy,
+                        users=cfg.SB_USERLIST,
+                        passwords=cfg.SB_PASSLIST,
+                    )
+                )
+            for fut in futures:
+                fut.result()
+            throttle(cfg, cfg.SB_BURSTSPSEC)
 
     if cfg.SB_RAND_STREAM:
         try:

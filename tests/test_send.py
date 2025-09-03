@@ -237,6 +237,64 @@ def test_sendmail_proxy_auth(monkeypatch):
     assert calls["args"] == ("socks5", "h", 1, "user", "pass")
 
 
+def test_bombing_mode_uses_pool(monkeypatch):
+    """bombing_mode should use a persistent worker pool."""
+
+    sent = []
+
+    def fake_sendmail(number, burst, counter, msg, cfg, **kwargs):
+        sent.append((number, burst, msg))
+
+    monkeypatch.setattr(send, "sendmail", fake_sendmail)
+    monkeypatch.setattr(send, "append_message", lambda cfg, attachments=None: b"msg")
+    monkeypatch.setattr(send, "sizeof_fmt", lambda n: str(n))
+
+    created = []
+
+    class DummyPool:
+        def __init__(self, max_workers=None):
+            self.submitted = []
+            created.append(self)
+
+        def submit(self, fn, *args, **kwargs):
+            self.submitted.append((fn, args, kwargs))
+
+            class DummyFuture:
+                def result(self_inner):
+                    return fn(*args, **kwargs)
+
+            return DummyFuture()
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+    monkeypatch.setattr(send, "ProcessPoolExecutor", DummyPool)
+
+    import multiprocessing
+
+    def boom(*a, **k):  # pragma: no cover - should not be called
+        raise AssertionError("Process should not be spawned")
+
+    monkeypatch.setattr(multiprocessing, "Process", boom)
+
+    cfg = Config()
+    cfg.SB_SGEMAILS = 1
+    cfg.SB_BURSTS = 2
+    cfg.SB_SGEMAILSPSEC = 0
+    cfg.SB_BURSTSPSEC = 0
+
+    send.bombing_mode(cfg)
+
+    assert len(created) == 1
+    pool = created[0]
+    assert len(pool.submitted) == 2
+    assert len(sent) == 2
+    assert {n for n, b, m in sent} == {1, 2}
+
+
 @pytest.mark.asyncio
 async def test_async_bombing_mode(monkeypatch):
     """Async mode should send expected emails without spawning processes."""
