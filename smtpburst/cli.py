@@ -34,7 +34,10 @@ CLI_OPTIONS: Iterable[CLIOption] = [
         ("--server",),
         {"default_attr": "SB_SERVER", "help": "SMTP server to connect to"},
     ),
-    (("--helo-host",), {"default_attr": "SB_HELO_HOST", "help": "Host to use in EHLO/HELO"}),
+    (
+        ("--helo-host",),
+        {"default_attr": "SB_HELO_HOST", "help": "Host to use in EHLO/HELO"},
+    ),
     (("--sender",), {"default_attr": "SB_SENDER", "help": "Envelope sender address"}),
     (
         ("--receivers",),

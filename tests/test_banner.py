@@ -73,7 +73,9 @@ def test_main_banner_check_report(monkeypatch):
 
     monkeypatch.setattr(main_mod.discovery, "banner_check", fake_banner_check)
     monkeypatch.setattr(main_mod, "ascii_report", fake_report)
-    monkeypatch.setattr(main_mod.send, "bombing_mode", lambda cfg, attachments=None: None)
+    monkeypatch.setattr(
+        main_mod.send, "bombing_mode", lambda cfg, attachments=None: None
+    )
 
     main_mod.main(["--banner-check", "--server", "srv"])
 

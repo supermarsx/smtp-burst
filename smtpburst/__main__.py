@@ -186,9 +186,7 @@ def main(argv=None):
         results["open_relay"] = nettests.open_relay_test(host, port)
     if args.ping_test:
         try:
-            results["ping"] = nettests.ping(
-                args.ping_test, timeout=args.ping_timeout
-            )
+            results["ping"] = nettests.ping(args.ping_test, timeout=args.ping_timeout)
         except nettests.CommandNotFoundError as exc:
             results["ping"] = str(exc)
     if args.traceroute_test:

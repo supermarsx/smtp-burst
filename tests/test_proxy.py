@@ -155,11 +155,15 @@ def test_check_proxy_failure(monkeypatch, caplog):
 @pytest.mark.parametrize("case", ["missing", "timeout"])
 def test_check_proxy_ping_errors(monkeypatch, caplog, case):
     if case == "missing":
+
         def fake_ping(host):
             raise nettests.CommandNotFoundError("ping")
+
     else:
+
         def fake_ping(host):
             return "ping command timed out"
+
     monkeypatch.setattr(proxy, "ping", fake_ping)
     with caplog.at_level(logging.WARNING):
         assert not proxy.check_proxy("bad:1")
