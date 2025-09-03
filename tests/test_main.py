@@ -166,7 +166,9 @@ def test_main_tls_discovery(monkeypatch):
     monkeypatch.setattr(main_mod.send, "parse_server", lambda s: ("h", 443))
     monkeypatch.setattr("smtpburst.tlstest.test_versions", fake_test)
     monkeypatch.setattr(main_mod, "ascii_report", fake_report)
-    monkeypatch.setattr(main_mod.send, "bombing_mode", lambda cfg, attachments=None: None)
+    monkeypatch.setattr(
+        main_mod.send, "bombing_mode", lambda cfg, attachments=None: None
+    )
 
     main_mod.main(["--tls-discovery", "h"])
 
@@ -187,7 +189,9 @@ def test_main_banner_check(monkeypatch):
 
     monkeypatch.setattr(main_mod.discovery, "banner_check", fake_banner_check)
     monkeypatch.setattr(main_mod, "ascii_report", fake_report)
-    monkeypatch.setattr(main_mod.send, "bombing_mode", lambda cfg, attachments=None: None)
+    monkeypatch.setattr(
+        main_mod.send, "bombing_mode", lambda cfg, attachments=None: None
+    )
 
     main_mod.main(["--banner-check", "--server", "srv"])
 
@@ -208,7 +212,9 @@ def test_main_rdns_test(monkeypatch):
 
     monkeypatch.setattr(main_mod.discovery.rdns, "verify", fake_verify)
     monkeypatch.setattr(main_mod, "ascii_report", fake_report)
-    monkeypatch.setattr(main_mod.send, "bombing_mode", lambda cfg, attachments=None: None)
+    monkeypatch.setattr(
+        main_mod.send, "bombing_mode", lambda cfg, attachments=None: None
+    )
 
     main_mod.main(["--rdns-test", "--server", "host"])
 
