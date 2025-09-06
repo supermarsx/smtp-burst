@@ -19,7 +19,7 @@ class CommandNotFoundError(Exception):
         self.cmd = cmd
 
 
-def ping(host: str, count: int = 1, timeout: int = 1) -> str:
+def ping(host: str, count: int = 1, timeout: int = 1) -> str | Dict[str, str]:
     """Return output of ``ping`` command for ``host``.
 
     Raises:
@@ -59,12 +59,12 @@ def ping(host: str, count: int = 1, timeout: int = 1) -> str:
             return proc.stdout.strip()
         return ""
     except subprocess.TimeoutExpired:  # pragma: no cover - depends on runtime
-        return f"{cmd[0]} command timed out"
+        return {"error": "timeout", "cmd": cmd[0]}
     except Exception as exc:  # pragma: no cover - other errors
-        return str(exc)
+        return {"error": str(exc), "cmd": cmd[0]}
 
 
-def traceroute(host: str, count: int = 30, timeout: int = 5) -> str:
+def traceroute(host: str, count: int = 30, timeout: int = 5) -> str | Dict[str, str]:
     """Return output of ``traceroute`` command for ``host``.
 
     Raises:
@@ -92,9 +92,9 @@ def traceroute(host: str, count: int = 30, timeout: int = 5) -> str:
         )
         return proc.stdout.strip()
     except subprocess.TimeoutExpired:  # pragma: no cover - depends on runtime
-        return f"{cmd[0]} command timed out"
+        return {"error": "timeout", "cmd": cmd[0]}
     except Exception as exc:  # pragma: no cover - other errors
-        return str(exc)
+        return {"error": str(exc), "cmd": cmd[0]}
 
 
 def open_relay_test(host: str, port: int = 25) -> bool:

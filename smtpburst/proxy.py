@@ -69,7 +69,10 @@ def check_proxy(
     except CommandNotFoundError:
         logger.warning("Ping to proxy %s failed", proxy)
         return None
-    if not result or "timed out" in result.lower():
+    if isinstance(result, dict):
+        logger.warning("Ping to proxy %s failed: %s", proxy, result.get("error"))
+        return None
+    if not result:
         logger.warning("Ping to proxy %s failed", proxy)
         return None
 

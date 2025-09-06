@@ -162,7 +162,7 @@ def test_check_proxy_ping_errors(monkeypatch, caplog, case):
     else:
 
         def fake_ping(host):
-            return "ping command timed out"
+            return {"error": "timeout", "cmd": "ping"}
 
     monkeypatch.setattr(proxy, "ping", fake_ping)
     with caplog.at_level(logging.WARNING):

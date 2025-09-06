@@ -11,7 +11,10 @@ def test_ping_timeout(monkeypatch):
         raise subprocess.TimeoutExpired(cmd, timeout)
 
     monkeypatch.setattr(nettests.subprocess, "run", fake_run)
-    assert nettests.ping("host", timeout=2) == "ping command timed out"
+    assert nettests.ping("host", timeout=2) == {
+        "error": "timeout",
+        "cmd": "ping",
+    }
 
 
 def test_traceroute_timeout(monkeypatch):
@@ -22,7 +25,10 @@ def test_traceroute_timeout(monkeypatch):
         raise subprocess.TimeoutExpired(cmd, timeout)
 
     monkeypatch.setattr(nettests.subprocess, "run", fake_run)
-    assert nettests.traceroute("host", timeout=2) == "traceroute command timed out"
+    assert nettests.traceroute("host", timeout=2) == {
+        "error": "timeout",
+        "cmd": "traceroute",
+    }
 
 
 def test_ping_ipv6_prefers_ping6(monkeypatch):
