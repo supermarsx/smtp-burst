@@ -46,6 +46,8 @@ def pop3_search(
         pop.user(user)
         pop.pass_(password)
         ids: List[int] = []
+        # ``stat`` provides the message count without fetching all IDs as
+        # ``list`` would, making large mailboxes more efficient to scan.
         count, _ = pop.stat()
         for i in range(1, count + 1):
             resp, lines, _ = pop.retr(i)
