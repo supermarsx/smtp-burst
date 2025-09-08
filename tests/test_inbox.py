@@ -37,7 +37,8 @@ def test_imap_search(monkeypatch):
 
 
 def test_pop3_search(monkeypatch):
-    called = {"stat": False}
+    called = {"stat": False, "retr": 0}
+    msg_count = 1000
 
     class DummyPOP:
         def __init__(self, host, port):
@@ -53,10 +54,12 @@ def test_pop3_search(monkeypatch):
 
         def stat(self):
             called["stat"] = True
-            return (2, 0)
+            return (msg_count, 0)
 
         def retr(self, i):
-            return (b"+OK", [self.msgs[i]], len(self.msgs[i]))
+            called["retr"] += 1
+            msg = self.msgs.get(i, b"ghi")
+            return (b"+OK", [msg], len(msg))
 
         def quit(self):
             pass
@@ -65,6 +68,7 @@ def test_pop3_search(monkeypatch):
     ids = inbox.pop3_search("host", "u", "p", pattern=b"abc")
     assert ids == [1, 2]
     assert called["stat"]
+    assert called["retr"] == msg_count
 
 
 def test_imap_search_error(monkeypatch):
@@ -108,7 +112,7 @@ def test_pop3_search_error(monkeypatch):
         def pass_(self, p):
             raise AssertionError("should not be called")
 
-        def list(self):
+        def stat(self):
             raise AssertionError("should not be called")
 
         def retr(self, i):
