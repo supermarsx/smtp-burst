@@ -47,7 +47,14 @@ jobs:
           pip install -r requirements-dev.txt
           pip install -e .
       - name: Run tests
-        run: pytest
+        run: |
+          pytest --cov=smtpburst --cov-report=xml
+          coverage-badge -o coverage.svg
+      - name: Upload coverage badge
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-badge
+          path: coverage.svg
 
   build:
     runs-on: ubuntu-latest

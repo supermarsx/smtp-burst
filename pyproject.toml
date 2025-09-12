@@ -7,7 +7,7 @@ name = "smtpburst"
 version = "0.1.0"
 description = "Send bursts of SMTP emails for testing"
 authors = [{name="supermarsx"}]
-readme = "README.md"
+readme = "readme.md"
 requires-python = ">=3.11"
 dependencies = [
     "PyYAML",

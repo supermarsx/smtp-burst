@@ -1,4 +1,16 @@
 # smtp-burst
+
+[![CI](https://github.com/supermarsx/smtp-burst/actions/workflows/ci.yml/badge.svg)](https://github.com/supermarsx/smtp-burst/actions/workflows/ci.yml)
+![Coverage](https://raw.githubusercontent.com/supermarsx/smtp-burst/main/coverage.svg)
+![Downloads](https://img.shields.io/github/downloads/supermarsx/smtp-burst/total)
+![Stars](https://img.shields.io/github/stars/supermarsx/smtp-burst)
+![Forks](https://img.shields.io/github/forks/supermarsx/smtp-burst)
+![Watchers](https://img.shields.io/github/watchers/supermarsx/smtp-burst)
+![Commit activity](https://img.shields.io/github/commit-activity/m/supermarsx/smtp-burst)
+![Commits](https://img.shields.io/badge/commits-343-blue)
+![Made with Python](https://img.shields.io/badge/Made%20with-Python-blue?logo=python)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](license.md)
+
 Simple python script that sends smtp email in bursts using independent processes for each mail sent out. Used to test smtp capacity, handling and possible attack scenarios. Depends on `smtplib` and `multiprocessing`.
 
 ## Features
