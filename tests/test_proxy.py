@@ -35,6 +35,22 @@ def test_parse_proxy_auth():
     assert info.username == "user" and info.password == "pass"
 
 
+def test_parse_proxy_ipv6():
+    info = proxy.parse_proxy("[2001:db8::1]:8080")
+    assert info.host == "2001:db8::1" and info.port == 8080
+    info = proxy.parse_proxy("[2001:db8::1]")
+    assert info.host == "2001:db8::1" and info.port == 1080
+
+
+def test_parse_proxy_ipv6_unbracketed():
+    info = proxy.parse_proxy("2001:db8::1:8080")
+    assert info.host == "2001:db8::1" and info.port == 8080
+    info = proxy.parse_proxy("2001:db8::1")
+    assert info.host == "2001:db8::1" and info.port == 1080
+    with pytest.raises(ValueError):
+        proxy.parse_proxy("2001:db8::1:70000")
+
+
 def test_invalid_order(tmp_path):
     path = tmp_path / "p.txt"
     path.write_text("a\nb\n")

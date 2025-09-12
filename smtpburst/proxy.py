@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ipaddress
 import logging
 import random
 import socket
@@ -35,15 +36,46 @@ def parse_proxy(proxy: str) -> ProxyInfo:
         raise ValueError(f"Invalid proxy '{proxy}': {exc}") from None
 
     host = parts.hostname
-    if host is None:
-        raise ValueError(f"Invalid proxy '{proxy}'")
+    username = parts.username
+    password = parts.password
 
     try:
         port = parts.port if parts.port is not None else 1080
-    except ValueError as exc:
-        raise ValueError(f"Invalid port in proxy '{proxy}': {exc}") from None
+    except ValueError:
+        # Likely an IPv6 literal without brackets. Re-parse manually.
+        netloc = parts.netloc
+        if "@" in netloc:
+            netloc = netloc.rsplit("@", 1)[1]
+        host_part, sep, port_part = netloc.rpartition(":")
+        if sep:
+            if port_part.isdigit():
+                port_int = int(port_part)
+                if not (0 <= port_int <= 65535):
+                    raise ValueError(f"Invalid port in proxy '{proxy}'")
+                try:
+                    host_ip = ipaddress.IPv6Address(host_part)
+                except ipaddress.AddressValueError:
+                    pass
+                else:
+                    host = str(host_ip)
+                    return ProxyInfo(host, port_int, username, password)
+            else:
+                raise ValueError(f"Invalid port in proxy '{proxy}'")
+        host_ip = ipaddress.IPv6Address(netloc)
+        host = str(host_ip)
+        port = 1080
+        return ProxyInfo(host, port, username, password)
 
-    return ProxyInfo(host, port, parts.username, parts.password)
+    if host is None:
+        raise ValueError(f"Invalid proxy '{proxy}'")
+
+    # Normalize IPv6 hosts
+    try:
+        host = str(ipaddress.ip_address(host))
+    except ValueError:
+        pass
+
+    return ProxyInfo(host, port, username, password)
 
 
 def check_proxy(
