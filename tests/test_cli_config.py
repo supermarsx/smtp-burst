@@ -60,6 +60,44 @@ def test_socket_iterations_option():
     assert args.socket_iterations == 3
 
 
+@pytest.mark.parametrize(
+    "flag",
+    [
+        "--emails-per-burst",
+        "--bursts",
+        "--open-sockets",
+        "--socket-iterations",
+        "--port",
+        "--size",
+        "--stop-fail-count",
+        "--retry-count",
+        "--ping-timeout",
+        "--traceroute-timeout",
+    ],
+)
+def test_negative_int_options(flag):
+    with pytest.raises(SystemExit):
+        burst_cli.parse_args([flag, "-1"], Config())
+
+
+@pytest.mark.parametrize(
+    "flag",
+    [
+        "--email-delay",
+        "--burst-delay",
+        "--global-delay",
+        "--socket-delay",
+        "--tarpit-threshold",
+        "--timeout",
+        "--socket-duration",
+        "--proxy-timeout",
+    ],
+)
+def test_negative_float_options(flag):
+    with pytest.raises(SystemExit):
+        burst_cli.parse_args([flag, "-0.1"], Config())
+
+
 def test_proxy_file_option(tmp_path):
     proxy_file = tmp_path / "proxies.txt"
     proxy_file.write_text("127.0.0.1:1080\n")

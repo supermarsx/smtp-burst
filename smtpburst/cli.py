@@ -13,6 +13,23 @@ try:
 except ImportError:  # pragma: no cover - library may not be installed
     yaml = None
 
+
+def positive_int(value: str) -> int:
+    """Return int from *value* ensuring it is positive."""
+    ivalue = int(value)
+    if ivalue <= 0:
+        raise argparse.ArgumentTypeError("value must be > 0")
+    return ivalue
+
+
+def positive_float(value: str) -> float:
+    """Return float from *value* ensuring it is positive."""
+    fvalue = float(value)
+    if fvalue <= 0:
+        raise argparse.ArgumentTypeError("value must be > 0")
+    return fvalue
+
+
 CLIOption = Tuple[Tuple[str, ...], Dict[str, Any]]
 
 # Each tuple contains positional flags and argument keyword options.  Any entry
@@ -61,7 +78,7 @@ CLI_OPTIONS: Iterable[CLIOption] = [
     (
         ("--emails-per-burst",),
         {
-            "type": int,
+            "type": positive_int,
             "default_attr": "SB_SGEMAILS",
             "help": "Number of emails per burst",
         },
@@ -69,7 +86,7 @@ CLI_OPTIONS: Iterable[CLIOption] = [
     (
         ("--bursts",),
         {
-            "type": int,
+            "type": positive_int,
             "default_attr": "SB_BURSTS",
             "help": "Number of bursts to send",
         },
@@ -77,7 +94,7 @@ CLI_OPTIONS: Iterable[CLIOption] = [
     (
         ("--email-delay",),
         {
-            "type": float,
+            "type": positive_float,
             "default_attr": "SB_SGEMAILSPSEC",
             "help": "Delay in seconds between individual emails",
         },
@@ -85,7 +102,7 @@ CLI_OPTIONS: Iterable[CLIOption] = [
     (
         ("--burst-delay",),
         {
-            "type": float,
+            "type": positive_float,
             "default_attr": "SB_BURSTSPSEC",
             "help": "Delay in seconds between bursts",
         },
@@ -93,7 +110,7 @@ CLI_OPTIONS: Iterable[CLIOption] = [
     (
         ("--global-delay",),
         {
-            "type": float,
+            "type": positive_float,
             "default_attr": "SB_GLOBAL_DELAY",
             "help": "Delay applied before any network action",
         },
@@ -101,7 +118,7 @@ CLI_OPTIONS: Iterable[CLIOption] = [
     (
         ("--socket-delay",),
         {
-            "type": float,
+            "type": positive_float,
             "default_attr": "SB_OPEN_SOCKETS_DELAY",
             "help": "Delay between open socket checks",
         },
@@ -109,7 +126,7 @@ CLI_OPTIONS: Iterable[CLIOption] = [
     (
         ("--tarpit-threshold",),
         {
-            "type": float,
+            "type": positive_float,
             "default_attr": "SB_TARPIT_THRESHOLD",
             "help": "Latency in seconds considered a tarpit",
         },
@@ -117,7 +134,7 @@ CLI_OPTIONS: Iterable[CLIOption] = [
     (
         ("--timeout",),
         {
-            "type": float,
+            "type": positive_float,
             "default_attr": "SB_TIMEOUT",
             "help": "Timeout in seconds for network operations",
         },
@@ -125,7 +142,7 @@ CLI_OPTIONS: Iterable[CLIOption] = [
     (
         ("--open-sockets",),
         {
-            "type": int,
+            "type": positive_int,
             "default": 0,
             "help": "Open N TCP sockets and hold them open instead of sending email",
         },
@@ -133,21 +150,21 @@ CLI_OPTIONS: Iterable[CLIOption] = [
     (
         ("--socket-duration",),
         {
-            "type": float,
+            "type": positive_float,
             "help": "Close open sockets after SECONDS",
         },
     ),
     (
         ("--socket-iterations",),
         {
-            "type": int,
+            "type": positive_int,
             "help": "Run the socket loop this many times before closing",
         },
     ),
     (
         ("--port",),
         {
-            "type": int,
+            "type": positive_int,
             "default": 25,
             "help": "TCP port to use for socket mode",
         },
@@ -155,7 +172,7 @@ CLI_OPTIONS: Iterable[CLIOption] = [
     (
         ("--size",),
         {
-            "type": int,
+            "type": positive_int,
             "default_attr": "SB_SIZE",
             "help": "Random data size in bytes appended to each message",
         },
@@ -241,7 +258,7 @@ CLI_OPTIONS: Iterable[CLIOption] = [
     (
         ("--stop-fail-count",),
         {
-            "type": int,
+            "type": positive_int,
             "default_attr": "SB_STOPFQNT",
             "help": "Number of failed emails that triggers stopping",
         },
@@ -249,7 +266,7 @@ CLI_OPTIONS: Iterable[CLIOption] = [
     (
         ("--retry-count",),
         {
-            "type": int,
+            "type": positive_int,
             "default_attr": "SB_RETRY_COUNT",
             "help": "Number of times to retry sending after failure",
         },
@@ -274,7 +291,7 @@ CLI_OPTIONS: Iterable[CLIOption] = [
     (
         ("--proxy-timeout",),
         {
-            "type": float,
+            "type": positive_float,
             "default_attr": "SB_PROXY_TIMEOUT",
             "help": "Timeout in seconds when validating proxies",
         },
@@ -390,7 +407,7 @@ CLI_OPTIONS: Iterable[CLIOption] = [
     ),
     (
         ("--ping-timeout",),
-        {"type": int, "default": 1, "help": "Ping timeout in seconds"},
+        {"type": positive_int, "default": 1, "help": "Ping timeout in seconds"},
     ),
     (
         ("--traceroute-test",),
@@ -399,7 +416,7 @@ CLI_OPTIONS: Iterable[CLIOption] = [
     (
         ("--traceroute-timeout",),
         {
-            "type": int,
+            "type": positive_int,
             "default": 5,
             "help": "Traceroute timeout in seconds",
         },
