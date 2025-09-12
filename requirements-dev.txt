@@ -2,6 +2,7 @@ dnspython
 PyYAML
 pytest
 pytest-cov
+coverage-badge
 pytest-asyncio
 flake8
 black

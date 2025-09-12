@@ -1,4 +1,4 @@
-# AGENTS
+# agents
 
 This repository uses a consistent workflow:
 

@@ -1,4 +1,4 @@
-# Project Specification
+# project specification
 
 `smtp-burst` sends bursts of SMTP emails for testing.  Development targets
 Python 3.11.
