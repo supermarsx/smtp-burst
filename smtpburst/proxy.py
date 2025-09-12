@@ -49,14 +49,16 @@ def parse_proxy(proxy: str) -> ProxyInfo:
         host_part, sep, port_part = netloc.rpartition(":")
         if sep:
             if port_part.isdigit():
+                port_int = int(port_part)
+                if not (0 <= port_int <= 65535):
+                    raise ValueError(f"Invalid port in proxy '{proxy}'")
                 try:
                     host_ip = ipaddress.IPv6Address(host_part)
                 except ipaddress.AddressValueError:
                     pass
                 else:
                     host = str(host_ip)
-                    port = int(port_part)
-                    return ProxyInfo(host, port, username, password)
+                    return ProxyInfo(host, port_int, username, password)
             else:
                 raise ValueError(f"Invalid port in proxy '{proxy}'")
         host_ip = ipaddress.IPv6Address(netloc)
