@@ -1,7 +1,7 @@
 # smtp-burst
 
 [![CI](https://github.com/supermarsx/smtp-burst/actions/workflows/ci.yml/badge.svg)](https://github.com/supermarsx/smtp-burst/actions/workflows/ci.yml)
-![Coverage](https://raw.githubusercontent.com/supermarsx/smtp-burst/main/coverage.svg)
+![Coverage](coverage.svg)
 ![Downloads](https://img.shields.io/github/downloads/supermarsx/smtp-burst/total)
 ![Stars](https://img.shields.io/github/stars/supermarsx/smtp-burst)
 ![Forks](https://img.shields.io/github/forks/supermarsx/smtp-burst)
