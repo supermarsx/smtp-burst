@@ -5,3 +5,4 @@ build/
 *.spec
 *.egg-info/
 .coverage
+.DS_Store
