@@ -349,6 +349,36 @@ CLI_OPTIONS: Iterable[CLIOption] = [
             "help": "Use asyncio-based sending",
         },
     ),
+    (
+        ("--async-native",),
+        {
+            "action": "store_true",
+            "help": "Use native asyncio (aiosmtplib) sender",
+        },
+    ),
+    (
+        ("--async-max-concurrency",),
+        {
+            "type": positive_int,
+            "metavar": "N",
+            "help": "Max concurrent async sends (native mode)",
+        },
+    ),
+    (
+        ("--async-no-reuse",),
+        {
+            "action": "store_true",
+            "help": "Disable connection reuse in native async mode",
+        },
+    ),
+    (
+        ("--async-pool-size",),
+        {
+            "type": positive_int,
+            "metavar": "N",
+            "help": "Connection pool size for native async mode",
+        },
+    ),
     (("--check-dmarc",), {"help": "Domain to query DMARC record for"}),
     (("--check-spf",), {"help": "Domain to query SPF record for"}),
     (("--check-dkim",), {"help": "Domain to query DKIM record for"}),
@@ -374,6 +404,12 @@ CLI_OPTIONS: Iterable[CLIOption] = [
         ("--ssl-discovery",),
         {"help": "Host to discover supported legacy SSL versions"},
     ),
+    (("--starttls-discovery",), {"help": "Host to probe STARTTLS versions on SMTP"}),
+    (
+        ("--starttls-details",),
+        {"help": "Host to collect STARTTLS version details on SMTP"},
+    ),
+    (("--esmtp-check",), {"help": "Host to check ESMTP features and simple tests"}),
     (
         ("--blacklist-check",),
         {"nargs": "+", "help": "IP followed by one or more DNSBL zones to query"},
@@ -463,7 +499,7 @@ CLI_OPTIONS: Iterable[CLIOption] = [
     (
         ("--report-format",),
         {
-            "choices": ["ascii", "json", "yaml"],
+            "choices": ["ascii", "json", "yaml", "junit", "html"],
             "default": "ascii",
             "help": "Output report format",
         },
@@ -573,3 +609,13 @@ def apply_args_to_config(cfg: Config, args: argparse.Namespace) -> None:
         value = getattr(args, arg_name, None)
         if value is not None:
             setattr(cfg, cfg_attr, value)
+
+    # Native async options
+    if getattr(args, "async_native", None):
+        cfg.SB_ASYNC_NATIVE = True
+    if getattr(args, "async_max_concurrency", None) is not None:
+        cfg.SB_ASYNC_CONCURRENCY = int(args.async_max_concurrency)
+    if getattr(args, "async_no_reuse", None):
+        cfg.SB_ASYNC_REUSE = False
+    if getattr(args, "async_pool_size", None) is not None:
+        cfg.SB_ASYNC_POOL_SIZE = int(args.async_pool_size)

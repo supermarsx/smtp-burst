@@ -263,6 +263,30 @@ def test_ssl_discovery_option():
     assert args.ssl_discovery == "host"
 
 
+def test_starttls_discovery_option():
+    args = burst_cli.parse_args(["--starttls-discovery", "host"], Config())
+    assert args.starttls_discovery == "host"
+
+
+def test_async_native_cli_flags():
+    args = burst_cli.parse_args(
+        [
+            "--async",
+            "--async-native",
+            "--async-max-concurrency",
+            "5",
+            "--async-no-reuse",
+        ],
+        Config(),
+    )
+    assert (
+        args.async_mode
+        and args.async_native
+        and args.async_max_concurrency == 5
+        and args.async_no_reuse
+    )
+
+
 def test_inbox_cli_options():
     args = burst_cli.parse_args(
         ["--imap-check", "h", "u", "p", "ALL", "--pop3-check", "p", "u2", "p2", "txt"],

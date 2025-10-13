@@ -67,6 +67,12 @@ class Config:
     SB_TEST_TUNNEL: bool = False
     SB_TEST_CONTROL: bool = False
 
+    # Async sending options
+    SB_ASYNC_NATIVE: bool = False
+    SB_ASYNC_CONCURRENCY: int = 100
+    SB_ASYNC_REUSE: bool = True
+    SB_ASYNC_POOL_SIZE: int = 10
+
     @property
     def SB_TOTAL(self) -> int:
         """Total number of emails to send."""

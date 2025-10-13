@@ -23,6 +23,7 @@ class ProxyInfo:
     port: int
     username: Optional[str] = None
     password: Optional[str] = None
+    scheme: Optional[str] = None  # e.g., 'http', 'https', 'socks5'
 
 
 def parse_proxy(proxy: str) -> ProxyInfo:
@@ -31,7 +32,9 @@ def parse_proxy(proxy: str) -> ProxyInfo:
     if not proxy:
         raise ValueError("Proxy must not be empty")
     try:
-        parts = urlsplit(f"//{proxy}", allow_fragments=False)
+        parts = urlsplit(
+            proxy if "://" in proxy else f"//{proxy}", allow_fragments=False
+        )
     except ValueError as exc:
         raise ValueError(f"Invalid proxy '{proxy}': {exc}") from None
 
@@ -64,7 +67,7 @@ def parse_proxy(proxy: str) -> ProxyInfo:
         host_ip = ipaddress.IPv6Address(netloc)
         host = str(host_ip)
         port = 1080
-        return ProxyInfo(host, port, username, password)
+        return ProxyInfo(host, port, username, password, parts.scheme or None)
 
     if host is None:
         raise ValueError(f"Invalid proxy '{proxy}'")
@@ -75,7 +78,7 @@ def parse_proxy(proxy: str) -> ProxyInfo:
     except ValueError:
         pass
 
-    return ProxyInfo(host, port, username, password)
+    return ProxyInfo(host, port, username, password, parts.scheme or None)
 
 
 def check_proxy(
@@ -117,22 +120,54 @@ def check_proxy(
     try:
         with socket.create_connection((info.host, info.port), timeout=timeout) as sock:
             sock.settimeout(timeout)
-            request = f"CONNECT {host}:{port} HTTP/1.1\r\n\r\n".encode()
-            try:
-                sock.sendall(request)
-                reply = sock.recv(1024)
-                if not (
-                    reply.startswith(b"HTTP/1.1 200")
-                    or reply.startswith(b"HTTP/1.0 200")
-                ):
-                    logger.warning("Proxy %s returned unexpected status", proxy)
+            scheme = (info.scheme or "").lower()
+            if scheme.startswith("socks"):
+                # Minimal SOCKS5 handshake; fall back to reachability
+                try:
+                    if info.username or info.password:
+                        sock.sendall(
+                            b"\x05\x01\x02"
+                        )  # version 5, 1 method, username/password
+                        rep = sock.recv(2)
+                        if rep != b"\x05\x02":
+                            logger.warning(
+                                "Proxy %s does not accept username/password auth", proxy
+                            )
+                            return None
+                    else:
+                        sock.sendall(b"\x05\x01\x00")  # version 5, 1 method, no auth
+                        rep = sock.recv(2)
+                        if rep != b"\x05\x00":
+                            logger.warning(
+                                "Proxy %s did not accept no-auth method", proxy
+                            )
+                            return None
+                except socket.timeout:
+                    logger.warning("Proxy %s timed out during SOCKS handshake", proxy)
                     return None
-            except socket.timeout:
-                logger.warning("Proxy %s timed out during CONNECT", proxy)
-                return None
-            except Exception as exc:
-                logger.warning("Proxy %s failed during CONNECT: %s", proxy, exc)
-                return None
+                except Exception as exc:  # pragma: no cover - handshake details vary
+                    logger.warning(
+                        "Proxy %s failed during SOCKS handshake: %s", proxy, exc
+                    )
+                    return None
+            else:
+                # Legacy behavior: validate HTTP proxy with CONNECT
+                request = f"CONNECT {host}:{port} HTTP/1.1\r\n\r\n".encode()
+                try:
+                    sock.sendall(request)
+                    reply = sock.recv(1024)
+                    if not (
+                        reply.startswith(b"HTTP/1.1 200")
+                        or reply.startswith(b"HTTP/1.0 200")
+                    ):
+                        logger.warning("Proxy %s returned unexpected status", proxy)
+                        return None
+                except socket.timeout:
+                    logger.warning("Proxy %s timed out during CONNECT", proxy)
+                    return None
+                except Exception as exc:
+                    logger.warning("Proxy %s failed during CONNECT: %s", proxy, exc)
+                    return None
     except socket.timeout:
         logger.warning("Connection to proxy %s timed out", proxy)
         return None

@@ -7,7 +7,7 @@ from smtpburst import send
 from smtpburst import cli
 from smtpburst import discovery
 from smtpburst.discovery import nettests
-from smtpburst.reporting import ascii_report, json_report, yaml_report
+from smtpburst.reporting import ascii_report, json_report, yaml_report, junit_report
 from smtpburst import inbox
 from smtpburst import attacks
 from smtpburst.datagen import load_wordlist
@@ -23,6 +23,7 @@ def main(argv=None):
         "ascii": ascii_report,
         "json": json_report,
         "yaml": yaml_report,
+        "junit": junit_report,
     }
     report = reporters.get(args.report_format, ascii_report)
 
@@ -167,6 +168,16 @@ def main(argv=None):
         from smtpburst.discovery import ssl_probe
 
         results["ssl"] = ssl_probe.discover(host, port)
+    if args.starttls_discovery:
+        host, port = send.parse_server(args.starttls_discovery)
+        from smtpburst.discovery import starttls_probe
+
+        results["starttls"] = starttls_probe.discover(host, port)
+    if getattr(args, "starttls_details", None):
+        host, port = send.parse_server(args.starttls_details)
+        from smtpburst.discovery import starttls_probe as _st
+
+        results["starttls_details"] = _st.details(host, port)
     if args.imap_check:
         host, user, pwd, crit = args.imap_check
         host, port = send.parse_server(host)
@@ -220,6 +231,11 @@ def main(argv=None):
         banner, ok = discovery.banner_check(args.server)
         results["banner"] = banner
         results["reverse_dns"] = "PASS" if ok else "FAIL"
+    if args.esmtp_check:
+        host, port = send.parse_server(args.esmtp_check)
+        from smtpburst.discovery import esmtp
+
+        results["esmtp"] = esmtp.check(host, port)
     if results:
         formatted = report(results)
         logger.info(formatted)

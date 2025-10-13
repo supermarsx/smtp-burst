@@ -11,7 +11,7 @@ except ImportError:  # pragma: no cover - optional dependency
     yaml = None
 
 from . import send, attacks, discovery
-from .discovery import nettests, tls_probe, ssl_probe
+from .discovery import nettests, tls_probe, ssl_probe, starttls_probe, esmtp
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +42,10 @@ register_action("banner_check", discovery.banner_check)
 register_action("rdns_verify", discovery.rdns.verify)
 register_action("tls_discovery", tls_probe.discover)
 register_action("ssl_discovery", ssl_probe.discover)
+register_action("starttls_discovery", starttls_probe.discover)
+register_action("starttls_details", starttls_probe.details)
+register_action("starttls_cipher_matrix", starttls_probe.cipher_matrix)
+register_action("esmtp_check", esmtp.check)
 register_action("open_relay_test", nettests.open_relay_test)
 register_action("blacklist_check", nettests.blacklist_check)
 register_action("ping", nettests.ping)
@@ -58,8 +62,99 @@ register_action("smurf_test", attacks.smurf_test)
 register_action("performance_test", attacks.performance_test)
 
 
+def _assert_action(**kwargs) -> bool:
+    """Simple assertion action for pipelines.
+
+    Supported keys (one per step):
+    - equals: [left, right]
+    - truthy: value
+    - lt/le/gt/ge: [left, right]
+    - ne: [left, right]
+    Returns True on pass, False on failure.
+    """
+
+    def _get_pair(key: str):
+        vals = kwargs.get(key)
+        if not isinstance(vals, (list, tuple)) or len(vals) != 2:
+            raise PipelineError(f"assert {key} requires a two-item list")
+        return vals[0], vals[1]
+
+    if "equals" in kwargs:
+        a, b = _get_pair("equals")
+        return a == b
+    if "ne" in kwargs:
+        a, b = _get_pair("ne")
+        return a != b
+    if "truthy" in kwargs:
+        return bool(kwargs.get("truthy"))
+    if "lt" in kwargs:
+        a, b = _get_pair("lt")
+        return a < b
+    if "le" in kwargs:
+        a, b = _get_pair("le")
+        return a <= b
+    if "gt" in kwargs:
+        a, b = _get_pair("gt")
+        return a > b
+    if "ge" in kwargs:
+        a, b = _get_pair("ge")
+        return a >= b
+    raise PipelineError(
+        "assert step requires one of equals, ne, truthy, lt, le, gt, ge"
+    )
+
+
+register_action("assert", _assert_action)
+
+
+def _parallel_action(steps: List[Dict[str, Any]]) -> List[Any]:
+    """Run a list of pipeline steps in parallel using threads."""
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
+    results: List[Any] = []
+
+    def run_step(step: Dict[str, Any]):
+        if not isinstance(step, dict):
+            raise PipelineError("parallel sub-step must be a mapping")
+        action = step.get("action")
+        if not action:
+            raise PipelineError("parallel sub-step missing action")
+        func = ACTION_MAP.get(action)
+        if func is None:
+            raise PipelineError(f"Unknown action: {action}")
+        kwargs = {k: v for k, v in step.items() if k != "action"}
+        return func(**kwargs)
+
+    with ThreadPoolExecutor() as ex:
+        futs = [ex.submit(run_step, s) for s in steps]
+        for fut in as_completed(futs):
+            try:
+                results.append(fut.result())
+            except Exception as exc:  # pragma: no cover - runtime errors
+                results.append(exc)
+    return results
+
+
+register_action("parallel", _parallel_action)
+
+
 class PipelineError(Exception):
     """Raised when pipeline loading fails."""
+
+
+def _substitute(value, vars: dict):
+    from string import Template
+
+    if isinstance(value, str):
+        try:
+            return Template(value).safe_substitute(vars)
+        except Exception:
+            return value
+    if isinstance(value, list):
+        return [_substitute(v, vars) for v in value]
+    if isinstance(value, dict):
+        return {k: _substitute(v, vars) for k, v in value.items()}
+    return value
 
 
 class PipelineRunner:
@@ -76,6 +171,7 @@ class PipelineRunner:
         self.fail_threshold = fail_threshold
         self.failures = 0
         self.results: List[Any] = []
+        self.vars: Dict[str, Any] = {}
 
     def run(self) -> List[Any]:
         for step in self.steps:
@@ -88,6 +184,9 @@ class PipelineRunner:
             if func is None:
                 raise PipelineError(f"Unknown action: {action}")
             kwargs = {k: v for k, v in step.items() if k != "action"}
+            # Template substitution
+            if self.vars:
+                kwargs = _substitute(kwargs, self.vars)
             try:
                 res = func(**kwargs)
                 self.results.append(res)
@@ -116,8 +215,12 @@ def load_pipeline(path: str) -> PipelineRunner:
         raise PipelineError("'steps' must be a list")
     stop_on_fail = bool(data.get("stop_on_fail", False))
     fail_threshold = int(data.get("fail_threshold", 1))
-    return PipelineRunner(
+    runner = PipelineRunner(
         steps,
         stop_on_fail=stop_on_fail,
         fail_threshold=fail_threshold,
     )
+    # Load vars if provided
+    if isinstance(data.get("vars"), dict):
+        runner.vars = data.get("vars")
+    return runner

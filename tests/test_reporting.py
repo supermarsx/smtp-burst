@@ -37,3 +37,16 @@ def test_yaml_report_valid():
     results = {"short": 1, "long": {"nested": 2}}
     output = reporting.yaml_report(results)
     assert yaml.safe_load(output) == results
+
+
+def test_junit_counts_and_cases():
+    results = {"ok": True, "bad": False, "obj": {"x": True, "y": False}}
+    xml = reporting.junit_report(results)
+    assert "<testsuite" in xml and 'tests="3"' in xml and 'failures="2"' in xml
+    assert '<testcase name="ok"' in xml
+
+
+def test_html_report_contains_rows():
+    results = {"thing": {"a": 1}, "flag": False}
+    html = reporting.html_report(results)
+    assert "<table" in html and "thing" in html and "flag" in html
