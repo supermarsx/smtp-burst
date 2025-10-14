@@ -1,0 +1,14 @@
+vars:
+  target: smtp.example.com:25
+steps:
+  - action: parallel
+    steps:
+      - action: starttls_details
+        host: ${target}
+      - action: esmtp_check
+        host: ${target}
+      - action: mta_sts_policy
+        domain: example.com
+  - action: assert
+    equals: ["ok", "ok"]
+

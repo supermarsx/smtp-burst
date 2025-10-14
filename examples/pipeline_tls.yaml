@@ -1,0 +1,10 @@
+steps:
+  - action: tls_discovery
+    host: smtp.example.com:465
+  - action: starttls_discovery
+    host: smtp.example.com:25
+  - action: starttls_details
+    host: smtp.example.com:25
+  - action: assert
+    equals: [1, 1]
+

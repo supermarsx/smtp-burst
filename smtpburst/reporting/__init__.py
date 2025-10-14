@@ -103,8 +103,66 @@ def html_report(results: Dict[str, Any]) -> str:
         + table
         + "</tbody></table>"
     )
+
+    # Optional specialized sections
+    def _section(title: str, inner: str) -> str:
+        return f"<h2>{title}</h2>" + inner
+
+    extra: list[str] = []
+    perf = results.get("performance")
+    if isinstance(perf, dict) and isinstance(perf.get("target"), dict):
+        t = perf["target"]
+        rows = "".join(f"<tr><td>{k}</td><td>{v}</td></tr>" for k, v in t.items())
+        extra.append(
+            _section(
+                "Performance (target)",
+                "<table><tbody>" + rows + "</tbody></table>",
+            )
+        )
+    tls = results.get("tls")
+    if isinstance(tls, dict):
+        rows = "".join(
+            f"<tr><td>{ver}</td><td>{val}</td></tr>" for ver, val in tls.items()
+        )
+        extra.append(
+            _section("TLS Versions", "<table><tbody>" + rows + "</tbody></table>")
+        )
+    st = results.get("starttls")
+    if isinstance(st, dict):
+        rows = "".join(
+            f"<tr><td>{ver}</td><td>{val}</td></tr>" for ver, val in st.items()
+        )
+        extra.append(
+            _section("STARTTLS Versions", "<table><tbody>" + rows + "</tbody></table>")
+        )
+    std = results.get("starttls_details")
+    if isinstance(std, dict):
+        rows = []
+        for ver, info in std.items():
+            if isinstance(info, dict):
+                rows.append(
+                    "<tr>"
+                    f"<td>{ver}</td>"
+                    f"<td>{info.get('supported')}</td>"
+                    f"<td>{info.get('valid')}</td>"
+                    f"<td>{info.get('protocol')}</td>"
+                    f"<td>{info.get('cipher')}</td>"
+                    "</tr>"
+                )
+        if rows:
+            header = (
+                "<thead><tr><th>Version</th><th>Supported</th><th>Valid</th>"
+                "<th>Protocol</th><th>Cipher</th></tr></thead>"
+            )
+            extra.append(
+                _section(
+                    "STARTTLS Details",
+                    "<table>" + header + "<tbody>" + "".join(rows) + "</tbody></table>",
+                )
+            )
+    extra_html = "".join(extra)
     tail = "</body></html>"
-    return head + body + tail
+    return head + body + extra_html + tail
 
 
 REPORT_FORMATS: Dict[str, Callable[[Dict[str, Any]], str]] = {

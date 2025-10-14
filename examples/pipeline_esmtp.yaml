@@ -1,0 +1,6 @@
+steps:
+  - action: esmtp_check
+    host: smtp.example.com:25
+  - action: assert
+    truthy: true
+
