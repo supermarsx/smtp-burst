@@ -49,6 +49,16 @@ def test_jsonl_report_flattens():
     assert any(line.startswith("b.d.e\t") for line in lines)
 
 
+def test_prometheus_report_numeric_leaves():
+    results = {"a": 1, "b": {"c": 2.5, "d": {"e": "x"}}}
+    out = reporting.prometheus_report(results)
+    lines = out.splitlines()
+    assert "smtpburst_a 1.0" in lines
+    assert "smtpburst_b_c 2.5" in lines
+    # non-numeric leaf skipped
+    assert not any(line.startswith("smtpburst_b_d_e ") for line in lines)
+
+
 def test_junit_counts_and_cases():
     results = {"ok": True, "bad": False, "obj": {"x": True, "y": False}}
     xml = reporting.junit_report(results)

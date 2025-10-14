@@ -534,7 +534,7 @@ CLI_OPTIONS: Iterable[CLIOption] = [
     (
         ("--report-format",),
         {
-            "choices": ["ascii", "json", "yaml", "junit", "html", "jsonl"],
+            "choices": ["ascii", "json", "yaml", "junit", "html", "jsonl", "prom"],
             "default": "ascii",
             "help": "Output report format",
         },

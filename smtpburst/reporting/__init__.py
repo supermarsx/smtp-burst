@@ -67,6 +67,36 @@ def jsonl_report(results: Dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+def _sanitize_metric_name(name: str) -> str:
+    import re
+
+    # Convert to lower, replace invalid chars with '_'
+    s = name.lower()
+    s = re.sub(r"[^a-z0-9_:]", "_", s)
+    # Ensure does not start with digit
+    if s and s[0].isdigit():
+        s = "_" + s
+    return s
+
+
+def prometheus_report(results: Dict[str, Any]) -> str:
+    """Return a Prometheus-compatible metrics exposition of numeric leaves.
+
+    Flattens numeric values and emits lines like:
+      smtpburst_<key_path> <value>
+    Non-numeric values are skipped.
+    """
+    lines: list[str] = []
+    for keys, val in _flatten(tuple(), results):
+        try:
+            num = float(val)
+        except (TypeError, ValueError):
+            continue
+        metric = _sanitize_metric_name("smtpburst_" + "_".join(keys))
+        lines.append(f"{metric} {num}")
+    return "\n".join(lines)
+
+
 def junit_report(results: Dict[str, Any]) -> str:
     """Return results encoded as JUnit XML.
 
@@ -264,6 +294,7 @@ REPORT_FORMATS: Dict[str, Callable[[Dict[str, Any]], str]] = {
     "junit": junit_report,
     "html": html_report,
     "jsonl": jsonl_report,
+    "prom": prometheus_report,
 }
 
 __all__ = [
@@ -273,5 +304,6 @@ __all__ = [
     "junit_report",
     "html_report",
     "jsonl_report",
+    "prometheus_report",
     "REPORT_FORMATS",
 ]
