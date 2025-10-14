@@ -11,6 +11,7 @@ except ImportError:  # pragma: no cover - optional dependency
     yaml = None
 
 from . import send, attacks, discovery
+from .config import Config
 from .discovery import nettests, tls_probe, ssl_probe, starttls_probe, esmtp
 
 logger = logging.getLogger(__name__)
@@ -46,6 +47,32 @@ register_action("starttls_discovery", starttls_probe.discover)
 register_action("starttls_details", starttls_probe.details)
 register_action("starttls_cipher_matrix", starttls_probe.cipher_matrix)
 register_action("esmtp_check", esmtp.check)
+
+
+def _auth_matrix_action(
+    server: str,
+    *,
+    username: str,
+    password: str,
+    ssl: bool = False,
+    starttls: bool = False,
+    helo_host: str | None = None,
+    timeout: float = 10.0,
+) -> dict[str, bool]:
+    """Return mapping of AUTH mechanism to success for provided credentials."""
+    cfg = Config()
+    cfg.SB_SERVER = server
+    cfg.SB_USERNAME = username
+    cfg.SB_PASSWORD = password
+    cfg.SB_SSL = bool(ssl)
+    cfg.SB_STARTTLS = bool(starttls)
+    cfg.SB_TIMEOUT = float(timeout)
+    if helo_host:
+        cfg.SB_HELO_HOST = helo_host
+    return send.auth_test(cfg)
+
+
+register_action("auth_matrix", _auth_matrix_action)
 register_action("open_relay_test", nettests.open_relay_test)
 register_action("blacklist_check", nettests.blacklist_check)
 register_action("ping", nettests.ping)

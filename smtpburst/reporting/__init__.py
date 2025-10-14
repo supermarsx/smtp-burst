@@ -83,9 +83,7 @@ def html_report(results: Dict[str, Any]) -> str:
     rows: list[str] = []
     for name, data in results.items():
         pretty = (
-            json.dumps(data, indent=2)
-            if isinstance(data, (dict, list))
-            else str(data)
+            json.dumps(data, indent=2) if isinstance(data, (dict, list)) else str(data)
         )
         rows.append(
             "<tr><td>" + str(name) + "</td><td><pre>" + pretty + "</pre></td></tr>"
