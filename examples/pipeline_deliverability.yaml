@@ -3,30 +3,22 @@ vars:
   imap: imap.example.com
   user: user@example.com
   pass: secret
+  trace: ${user}-$(date)
 steps:
-  - action: send
-    cfg:
-      SB_SERVER: ${smtp}
-      SB_SENDER: user@example.com
-      SB_RECEIVERS: [user@example.com]
-      SB_SUBJECT: smtp-burst deliverability test
-      SB_BODY: hello ${user}
-      SB_SGEMAILS: 1
-      SB_BURSTS: 1
-      SB_SGEMAILSPSEC: 0
-      SB_BURSTSPSEC: 0
-  - action: parallel
-    steps:
-      - action: imap_search
-        host: ${imap}
-        user: ${user}
-        password: ${pass}
-        criteria: ALL
-      - action: pop3_search
-        host: pop.example.com
-        user: ${user}
-        password: ${pass}
-        pattern: burst
+  - action: send_email
+    server: ${smtp}
+    sender: ${user}
+    receivers: ${user}
+    subject: smtp-burst deliverability test
+    body: hello ${user}
+    starttls: true
+    trace_id: ${trace}
+    trace_header: X-Burst-ID
+  - action: imap_header_search
+    host: ${imap}
+    user: ${user}
+    password: ${pass}
+    header: X-Burst-ID
+    value: ${trace}
   - action: assert
     truthy: true
-

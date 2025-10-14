@@ -265,6 +265,14 @@ Example pipelines are available under `examples/`:
   - `assert` supports `equals`, `ne`, `truthy`, `lt`, `le`, `gt`, `ge`.
   - `assert_metrics` validates numeric fields: `checks: { latency: { lt: 0.5 } }`.
 - Concurrency: run steps in parallel with the `parallel` action and a `steps:` list.
+
+### Deliverability Tracing
+
+- Add a stable trace header with `--trace-id VALUE` (default header `X-Burst-ID`,
+  change with `--trace-header NAME`). Pipelines can use `send_email` with
+  `trace_id`/`trace_header`.
+- Search for the sent message via IMAP with the `imap_header_search` action,
+  e.g., by the trace header. See `examples/pipeline_deliverability.yaml`.
 ```
 
 ## Development

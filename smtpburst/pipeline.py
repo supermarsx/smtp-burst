@@ -87,6 +87,45 @@ register_action("expn_enum", nettests.expn_enum)
 register_action("rcpt_enum", nettests.rcpt_enum)
 register_action("open_sockets", send.open_sockets)
 register_action("send", send.bombing_mode)
+
+
+def _send_email_action(
+    server: str,
+    sender: str,
+    receivers: list[str] | str,
+    *,
+    subject: str = "smtp-burst test",
+    body: str = "smtp-burst message body",
+    html_body: str | None = None,
+    ssl: bool = False,
+    starttls: bool = False,
+    trace_id: str | None = None,
+    trace_header: str = "X-Burst-ID",
+) -> bool:
+    cfg = Config()
+    cfg.SB_SERVER = server
+    cfg.SB_SENDER = sender
+    cfg.SB_RECEIVERS = receivers if isinstance(receivers, list) else [receivers]
+    cfg.SB_SUBJECT = subject
+    cfg.SB_BODY = body
+    if html_body:
+        cfg.SB_HTML_BODY = html_body
+    cfg.SB_SSL = bool(ssl)
+    cfg.SB_STARTTLS = bool(starttls)
+    if trace_id:
+        cfg.SB_TRACE_ID = trace_id
+        cfg.SB_TRACE_HEADER = trace_header or cfg.SB_TRACE_HEADER
+    # ensure single message, no delays, no random payload
+    cfg.SB_SGEMAILS = 1
+    cfg.SB_BURSTS = 1
+    cfg.SB_SGEMAILSPSEC = 0
+    cfg.SB_BURSTSPSEC = 0
+    cfg.SB_SIZE = 0
+    send.bombing_mode(cfg)
+    return True
+
+
+register_action("send_email", _send_email_action)
 register_action("tcp_syn_flood", attacks.tcp_syn_flood)
 register_action("tcp_reset_attack", attacks.tcp_reset_attack)
 register_action("tcp_reset_flood", attacks.tcp_reset_flood)
