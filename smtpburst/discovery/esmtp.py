@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 import smtplib
 
 
@@ -37,7 +37,11 @@ def check(
         with smtplib.SMTP(host, port, timeout=timeout) as smtp:
             smtp.ehlo()
             feats = smtp.esmtp_features or {}
-            fkeys = [k.lower() for k in feats.keys()]
+            feats_l = {
+                str(k).lower(): (str(v) if v is not None else "")
+                for k, v in feats.items()
+            }
+            fkeys = list(feats_l.keys())
             results["features"] = fkeys
             supports = {k: (k in fkeys) for k in FEATURE_KEYS}
             results["supports"] = supports
@@ -50,6 +54,32 @@ def check(
                     results["tests"]["eight_bit_send"] = False
                 except Exception:
                     results["tests"]["eight_bit_send"] = False
+            if supports.get("smtputf8", False):
+                try:
+                    # Request SMTPUTF8 in MAIL FROM with a tiny UTF-8 body
+                    utf8_body = "ü".encode("utf-8")
+                    smtp.sendmail("a@b", ["c@d"], utf8_body, mail_options=["SMTPUTF8"])
+                    results["tests"]["smtp_utf8_send"] = True
+                except smtplib.SMTPDataError:
+                    results["tests"]["smtp_utf8_send"] = False
+                except Exception:
+                    results["tests"]["smtp_utf8_send"] = False
+            size_limit: Optional[int] = None
+            if supports.get("size", False):
+                val = feats_l.get("size") or ""
+                try:
+                    size_limit = int(val)
+                except ValueError:
+                    size_limit = None
+            if size_limit is not None and size_limit >= 0:
+                try:
+                    too_big = b"X" * (size_limit + 10)
+                    smtp.sendmail("a@b", ["c@d"], too_big)
+                    results["tests"]["size_enforced"] = False
+                except smtplib.SMTPDataError:
+                    results["tests"]["size_enforced"] = True
+                except Exception:
+                    results["tests"]["size_enforced"] = False
             if test_chunking and supports.get("chunking", False):
                 # smtplib lacks BDAT API; report support based on feature flag
                 results["tests"]["chunking_declared"] = True
