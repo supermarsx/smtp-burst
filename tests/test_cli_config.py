@@ -452,3 +452,9 @@ def test_version_option(capsys):
         burst_cli.parse_args(["--version"], Config())
     out = capsys.readouterr().out
     assert out.strip() == __version__
+
+
+def test_subcommand_shim_send():
+    args = burst_cli.parse_args(["send", "--ssl"], Config())
+    assert getattr(args, "cmd", None) == "send"
+    assert args.ssl

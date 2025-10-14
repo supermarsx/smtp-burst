@@ -31,6 +31,7 @@ def positive_float(value: str) -> float:
 
 
 CLIOption = Tuple[Tuple[str, ...], Dict[str, Any]]
+SUBCOMMANDS = {"send", "discovery", "auth", "suite", "inbox", "attack"}
 
 # Each tuple contains positional flags and argument keyword options.  Any entry
 # may include a ``default_attr`` key which maps to a ``Config`` attribute used
@@ -548,9 +549,16 @@ def parse_args(args=None, cfg: Config | None = None) -> argparse.Namespace:
     if cfg is None:
         cfg = Config()
 
+    # Lightweight subcommand shim: if the first token is a known subcommand,
+    # remove it from the argument list but record it on the returned Namespace
+    raw_args = list(args) if args is not None else None
+    subcmd = None
+    if raw_args and raw_args[0] in SUBCOMMANDS:
+        subcmd = raw_args.pop(0)
+
     config_parser = argparse.ArgumentParser(add_help=False)
     config_parser.add_argument("--config")
-    config_args, _ = config_parser.parse_known_args(args)
+    config_args, _ = config_parser.parse_known_args(raw_args)
 
     parser = build_parser(cfg)
     if config_args.config:
@@ -567,7 +575,10 @@ def parse_args(args=None, cfg: Config | None = None) -> argparse.Namespace:
                 RuntimeWarning,
             )
         parser.set_defaults(**config_data)
-    return parser.parse_args(args)
+    ns = parser.parse_args(raw_args)
+    if subcmd:
+        setattr(ns, "cmd", subcmd)
+    return ns
 
 
 def apply_args_to_config(cfg: Config, args: argparse.Namespace) -> None:
