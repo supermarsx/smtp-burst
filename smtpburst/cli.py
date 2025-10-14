@@ -187,6 +187,13 @@ CLI_OPTIONS: Iterable[CLIOption] = [
         },
     ),
     (
+        ("--profile",),
+        {
+            "choices": ["throughput", "latency", "mixed"],
+            "help": "Apply a sending profile preset",
+        },
+    ),
+    (
         ("--dict-file",),
         {"help": ("Word list for dictionary mode " "(required with --data-mode dict)")},
     ),
@@ -679,3 +686,28 @@ def apply_args_to_config(cfg: Config, args: argparse.Namespace) -> None:
         cfg.SB_ASYNC_POOL_SIZE = int(args.async_pool_size)
     if getattr(args, "trace_id", None):
         cfg.SB_TRACE_ID = args.trace_id
+
+    # Sending profiles (presets)
+    prof = getattr(args, "profile", None)
+    if prof == "throughput":
+        cfg.SB_SGEMAILS = 10
+        cfg.SB_BURSTS = 1
+        cfg.SB_SGEMAILSPSEC = 0
+        cfg.SB_BURSTSPSEC = 0
+        cfg.SB_SIZE = 0
+        cfg.SB_STOPFAIL = False
+        cfg.SB_RETRY_COUNT = 0
+    elif prof == "latency":
+        cfg.SB_SGEMAILS = 1
+        cfg.SB_BURSTS = 5
+        cfg.SB_SGEMAILSPSEC = 0.1
+        cfg.SB_BURSTSPSEC = 0.5
+        cfg.SB_SIZE = 0
+        cfg.SB_PER_BURST_DATA = False
+    elif prof == "mixed":
+        cfg.SB_SGEMAILS = 3
+        cfg.SB_BURSTS = 3
+        cfg.SB_SGEMAILSPSEC = 0.05
+        cfg.SB_BURSTSPSEC = 0.5
+        cfg.SB_SIZE = 1024
+        cfg.SB_PER_BURST_DATA = True
