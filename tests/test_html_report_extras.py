@@ -33,3 +33,13 @@ def test_html_esmtp_and_mta_dane_sections():
         and "MTA-STS" in html
         and "DANE/TLSA" in html
     )
+
+
+def test_html_blacklist_and_auth_sections():
+    results = {
+        "blacklist": {"zen.spamhaus.org": "not listed", "bl.example": "listed"},
+        "auth_matrix": {"PLAIN": True, "LOGIN": False},
+    }
+    html = html_report(results)
+    assert "Blacklist Check" in html and "zen.spamhaus.org" in html
+    assert "Auth Matrix" in html and "LOGIN" in html

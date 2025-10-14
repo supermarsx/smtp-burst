@@ -237,6 +237,22 @@ def html_report(results: Dict[str, Any]) -> str:
     if isinstance(dane, list) and dane:
         items = "".join(f"<li>{str(x)}</li>" for x in dane)
         extra_html += _section("DANE/TLSA", "<ul>" + items + "</ul>")
+    bl = results.get("blacklist")
+    if isinstance(bl, dict) and bl:
+        rows = "".join(
+            f"<tr><td>{zone}</td><td>{status}</td></tr>" for zone, status in bl.items()
+        )
+        extra_html += _section(
+            "Blacklist Check", "<table><tbody>" + rows + "</tbody></table>"
+        )
+    am = results.get("auth_matrix") or results.get("auth")
+    if isinstance(am, dict) and am:
+        rows = "".join(
+            f"<tr><td>{mech}</td><td>{ok}</td></tr>" for mech, ok in am.items()
+        )
+        extra_html += _section(
+            "Auth Matrix", "<table><tbody>" + rows + "</tbody></table>"
+        )
     tail = "</body></html>"
     return head + body + extra_html + tail
 
