@@ -59,6 +59,28 @@ This will install the `smtp-burst` console entry point.
 An optional `--config` flag can load settings from a JSON or YAML file.
 See `examples/config.yaml` for a reference.
 
+### Subcommands (optional shim)
+
+You can prefix commands with a subcommand to clarify intent. This is backward
+compatible and purely advisory:
+
+- `send` for sending/bursting email
+- `discovery` for DNS/network checks (e.g., `discovery --lookup-mx example.com`)
+- `auth` for `--login-test`/`--auth-test`
+- `inbox` for `--imap-check`/`--pop3-check`
+- `suite` for pipeline execution (requires `--pipeline-file`)
+- `attack` for socket/latency tests
+
+Examples:
+
+```bash
+$ smtp-burst send --server smtp.example.com --sender a@b --receivers c@d
+$ smtp-burst discovery --lookup-mx example.com --tls-discovery smtp.example.com:465
+$ smtp-burst auth --auth-test --username u --password p --server smtp.example.com
+$ smtp-burst inbox --imap-check imap.example.com user pass ALL
+$ smtp-burst suite --pipeline-file examples/pipeline_suite.yaml --report-format html
+```
+
 ## Command Line Options
 
 Additional CLI flags provide extended functionality:
@@ -93,6 +115,7 @@ Additional CLI flags provide extended functionality:
 - `--probe-honeypot HOST` probe HOST for SMTP honeypot
 - `--tls-discovery HOST` probe TLS versions and validate certificates on HOST
 - `--ssl-discovery HOST` discover supported legacy SSL versions on HOST
+- `--starttls-discovery HOST` probe STARTTLS versions on SMTP ports
 - `--blacklist-check IP ZONE [ZONE ...]` check IP against DNSBL zones
 - `--open-relay-test` test if the target SMTP server is an open relay
 - `--ping-test HOST` run ping for HOST
@@ -101,6 +124,9 @@ Additional CLI flags provide extended functionality:
 - `--baseline-host HOST` compare `--perf-test` results with HOST
 - `--banner-check` read the SMTP banner and verify reverse DNS
 - `--rdns-test` verify reverse DNS for the configured server
+- `--esmtp-check HOST` check ESMTP features and simple compliance on HOST
+- `--mta-sts DOMAIN` show MTA-STS policy TXT for DOMAIN
+- `--dane-tlsa HOST` show DANE/TLSA records for HOST
 - `--outbound-test` send one test email and exit
 - `--silent` suppress all output
 - `--errors-only` show only error messages
@@ -221,6 +247,13 @@ def greet(name: str) -> str:
 pipeline.register_action("greet", greet)
 runner = pipeline.PipelineRunner([{"action": "greet", "name": "alice"}])
 print(runner.run())  # ['hello alice']
+
+Example pipelines are available under `examples/`:
+
+- `examples/pipeline_tls.yaml` TLS and STARTTLS scans
+- `examples/pipeline_esmtp.yaml` ESMTP check
+- `examples/pipeline_suite.yaml` mixed discovery in parallel
+- `examples/pipeline_deliverability.yaml` deliverability skeleton
 ```
 
 ## Development
@@ -273,4 +306,3 @@ The resulting binaries will be placed in `dist/linux`, `dist/macos` or
 ## License
 
 Distributed under MIT License. See `license.md` for more information.
-

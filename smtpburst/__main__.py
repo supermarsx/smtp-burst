@@ -38,6 +38,43 @@ def main(argv=None):
     logging.basicConfig(level=level, format="%(levelname)s:%(message)s")
     logging.getLogger().setLevel(level)
 
+    # Optional subcommand guidance (non-breaking)
+    cmd = getattr(args, "cmd", None)
+    if cmd == "suite" and not args.pipeline_file:
+        print("suite subcommand requires --pipeline-file")
+        return
+    if cmd == "inbox" and not (args.imap_check or args.pop3_check):
+        print("inbox subcommand expects --imap-check or --pop3-check")
+        return
+    if cmd == "auth" and not (args.login_test or args.auth_test):
+        print("auth subcommand expects --login-test or --auth-test")
+        return
+    if cmd == "discovery":
+        discovery_flags = (
+            args.check_dmarc
+            or args.check_spf
+            or args.check_dkim
+            or args.check_srv
+            or args.check_soa
+            or args.check_txt
+            or args.lookup_mx
+            or args.smtp_extensions
+            or args.cert_check
+            or args.port_scan
+            or args.probe_honeypot
+            or args.tls_discovery
+            or args.ssl_discovery
+            or args.starttls_discovery
+            or args.esmtp_check
+            or args.banner_check
+            or args.rdns_test
+        )
+        if not discovery_flags:
+            print(
+                "discovery subcommand expects one or more discovery flags (see --help)"
+            )
+            return
+
     if args.pipeline_file:
         from . import pipeline
 
