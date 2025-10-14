@@ -236,6 +236,15 @@ def main(argv=None):
         from smtpburst.discovery import esmtp
 
         results["esmtp"] = esmtp.check(host, port)
+    if args.mta_sts:
+        from smtpburst.discovery import mta
+
+        results["mta_sts"] = mta.mta_sts_policy(args.mta_sts)
+    if args.dane_tlsa:
+        host, _ = send.parse_server(args.dane_tlsa)
+        from smtpburst.discovery import mta as _m
+
+        results["dane_tlsa"] = _m.dane_tlsa(host)
     if results:
         formatted = report(results)
         logger.info(formatted)

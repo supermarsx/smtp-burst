@@ -12,7 +12,7 @@ except ImportError:  # pragma: no cover - optional dependency
 
 from . import send, attacks, discovery
 from .config import Config
-from .discovery import nettests, tls_probe, ssl_probe, starttls_probe, esmtp
+from .discovery import nettests, tls_probe, ssl_probe, starttls_probe, esmtp, mta
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +47,8 @@ register_action("starttls_discovery", starttls_probe.discover)
 register_action("starttls_details", starttls_probe.details)
 register_action("starttls_cipher_matrix", starttls_probe.cipher_matrix)
 register_action("esmtp_check", esmtp.check)
+register_action("mta_sts_policy", mta.mta_sts_policy)
+register_action("dane_tlsa", mta.dane_tlsa)
 
 
 def _auth_matrix_action(

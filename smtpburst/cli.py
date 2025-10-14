@@ -410,6 +410,8 @@ CLI_OPTIONS: Iterable[CLIOption] = [
         {"help": "Host to collect STARTTLS version details on SMTP"},
     ),
     (("--esmtp-check",), {"help": "Host to check ESMTP features and simple tests"}),
+    (("--mta-sts",), {"help": "Domain to check MTA-STS TXT policy for"}),
+    (("--dane-tlsa",), {"help": "Host to query DANE/TLSA records for (SMTP)"}),
     (
         ("--blacklist-check",),
         {"nargs": "+", "help": "IP followed by one or more DNSBL zones to query"},
