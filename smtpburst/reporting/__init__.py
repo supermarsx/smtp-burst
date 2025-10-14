@@ -161,6 +161,36 @@ def html_report(results: Dict[str, Any]) -> str:
                 )
             )
     extra_html = "".join(extra)
+    # ESMTP summary
+    es = results.get("esmtp")
+    if isinstance(es, dict):
+        feats = es.get("features")
+        supports = es.get("supports") or {}
+        tests = es.get("tests") or {}
+        parts: list[str] = []
+        if isinstance(feats, list):
+            parts.append("<p>Features: " + ", ".join(map(str, feats)) + "</p>")
+        if isinstance(supports, dict):
+            rows = "".join(
+                f"<tr><td>{k}</td><td>{v}</td></tr>" for k, v in supports.items()
+            )
+            parts.append("<h3>Supports</h3><table><tbody>" + rows + "</tbody></table>")
+        if isinstance(tests, dict):
+            rows = "".join(
+                f"<tr><td>{k}</td><td>{v}</td></tr>" for k, v in tests.items()
+            )
+            parts.append("<h3>Tests</h3><table><tbody>" + rows + "</tbody></table>")
+        if parts:
+            extra_html += _section("ESMTP", "".join(parts))
+    # MTA-STS and DANE
+    mts = results.get("mta_sts")
+    if isinstance(mts, list) and mts:
+        items = "".join(f"<li>{str(x)}</li>" for x in mts)
+        extra_html += _section("MTA-STS", "<ul>" + items + "</ul>")
+    dane = results.get("dane_tlsa")
+    if isinstance(dane, list) and dane:
+        items = "".join(f"<li>{str(x)}</li>" for x in dane)
+        extra_html += _section("DANE/TLSA", "<ul>" + items + "</ul>")
     tail = "</body></html>"
     return head + body + extra_html + tail
 

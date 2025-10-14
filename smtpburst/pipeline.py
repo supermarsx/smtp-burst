@@ -10,7 +10,7 @@ try:
 except ImportError:  # pragma: no cover - optional dependency
     yaml = None
 
-from . import send, attacks, discovery
+from . import send, attacks, discovery, inbox
 from .config import Config
 from .discovery import nettests, tls_probe, ssl_probe, starttls_probe, esmtp, mta
 
@@ -49,6 +49,8 @@ register_action("starttls_cipher_matrix", starttls_probe.cipher_matrix)
 register_action("esmtp_check", esmtp.check)
 register_action("mta_sts_policy", mta.mta_sts_policy)
 register_action("dane_tlsa", mta.dane_tlsa)
+register_action("imap_search", inbox.imap_search)
+register_action("pop3_search", inbox.pop3_search)
 
 
 def _auth_matrix_action(

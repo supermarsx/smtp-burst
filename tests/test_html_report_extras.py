@@ -14,3 +14,22 @@ def test_html_starttls_details_section():
     }
     html = html_report(results)
     assert "STARTTLS Details" in html and "ECDHE-RSA-AES128-GCM-SHA256" in html
+
+
+def test_html_esmtp_and_mta_dane_sections():
+    results = {
+        "esmtp": {
+            "features": ["size", "8bitmime"],
+            "supports": {"size": True, "8bitmime": True},
+            "tests": {"eight_bit_send": True, "size_enforced": True},
+        },
+        "mta_sts": ["v=STSv1; id=1"],
+        "dane_tlsa": ["3 1 1 deadbeef"],
+    }
+    html = html_report(results)
+    assert (
+        "ESMTP" in html
+        and "eight_bit_send" in html
+        and "MTA-STS" in html
+        and "DANE/TLSA" in html
+    )
