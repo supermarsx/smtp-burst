@@ -112,13 +112,33 @@ def html_report(results: Dict[str, Any]) -> str:
     perf = results.get("performance")
     if isinstance(perf, dict) and isinstance(perf.get("target"), dict):
         t = perf["target"]
-        rows = "".join(f"<tr><td>{k}</td><td>{v}</td></tr>" for k, v in t.items())
+        rows_t = "".join(f"<tr><td>{k}</td><td>{v}</td></tr>" for k, v in t.items())
         extra.append(
             _section(
                 "Performance (target)",
-                "<table><tbody>" + rows + "</tbody></table>",
+                "<table><tbody>" + rows_t + "</tbody></table>",
             )
         )
+        b = perf.get("baseline")
+        if isinstance(b, dict):
+            rows_b = "".join(f"<tr><td>{k}</td><td>{v}</td></tr>" for k, v in b.items())
+            extra.append(
+                _section(
+                    "Performance (baseline)",
+                    "<table><tbody>" + rows_b + "</tbody></table>",
+                )
+            )
+            keys = set(t.keys()) & set(b.keys())
+            rows_d = "".join(
+                f"<tr><td>{k}</td><td>{t[k] - b[k]:+0.6f}</td></tr>"
+                for k in sorted(keys)
+            )
+            extra.append(
+                _section(
+                    "Performance (Δ target-baseline)",
+                    "<table><tbody>" + rows_d + "</tbody></table>",
+                )
+            )
     tls = results.get("tls")
     if isinstance(tls, dict):
         rows = "".join(

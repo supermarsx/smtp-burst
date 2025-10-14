@@ -175,8 +175,18 @@ class PipelineError(Exception):
 
 def _substitute(value, vars: dict):
     from string import Template
+    import re
 
     if isinstance(value, str):
+        # Support simple ${var[key]} lookup for dicts
+        m = re.fullmatch(r"\$\{([A-Za-z_][A-Za-z0-9_]*)\[([^\]]+)\]\}", value)
+        if m:
+            var, key = m.group(1), m.group(2)
+            base = vars.get(var)
+            try:
+                return base[key] if isinstance(base, dict) else value
+            except Exception:
+                return value
         try:
             return Template(value).safe_substitute(vars)
         except Exception:
@@ -214,13 +224,17 @@ class PipelineRunner:
             func = ACTION_MAP.get(action)
             if func is None:
                 raise PipelineError(f"Unknown action: {action}")
-            kwargs = {k: v for k, v in step.items() if k != "action"}
+            kwargs = {k: v for k, v in step.items() if k not in {"action", "as"}}
             # Template substitution
             if self.vars:
                 kwargs = _substitute(kwargs, self.vars)
             try:
                 res = func(**kwargs)
                 self.results.append(res)
+                # Optional capture: if step specifies 'as', store the result in vars
+                alias = step.get("as")
+                if isinstance(alias, str) and alias:
+                    self.vars[alias] = res
                 success = not (isinstance(res, bool) and res is False)
             except Exception as exc:  # pragma: no cover - runtime errors
                 logger.error("Action %s failed: %s", action, exc)
@@ -255,3 +269,38 @@ def load_pipeline(path: str) -> PipelineRunner:
     if isinstance(data.get("vars"), dict):
         runner.vars = data.get("vars")
     return runner
+
+
+def _assert_metrics_action(data: dict, checks: dict) -> bool:
+    """Assert numeric metrics in ``data`` against ``checks``.
+
+    ``checks`` format: { metric_name: { op: value } }, where op in
+    {lt, le, gt, ge, eq, ne}. Returns True if all checks pass.
+    """
+    OPS = {
+        "lt": lambda a, b: a < b,
+        "le": lambda a, b: a <= b,
+        "gt": lambda a, b: a > b,
+        "ge": lambda a, b: a >= b,
+        "eq": lambda a, b: a == b,
+        "ne": lambda a, b: a != b,
+    }
+    ok = True
+    for name, spec in (checks or {}).items():
+        if name not in data:
+            ok = False
+            continue
+        for op, val in spec.items():
+            func = OPS.get(op)
+            if func is None:
+                ok = False
+                continue
+            try:
+                if not func(float(data[name]), float(val)):
+                    ok = False
+            except Exception:
+                ok = False
+    return ok
+
+
+register_action("assert_metrics", _assert_metrics_action)
