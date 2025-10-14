@@ -163,6 +163,52 @@ def test_auth_test_fail(monkeypatch, caplog):
     assert any("Authentication LOGIN failed" in r.getMessage() for r in caplog.records)
 
 
+def test_cram_md5_login_and_auth(monkeypatch):
+    class DummySMTP:
+        def __init__(self, host, port, timeout=None):
+            self.esmtp_features = {"auth": "CRAM-MD5"}
+            self.user = None
+            self.password = None
+
+        def starttls(self):
+            pass
+
+        def ehlo(self, host=None):
+            pass
+
+        # Called by _attempt_auth via getattr(sm, 'auth_cram_md5')
+        def auth_cram_md5(self, challenge=None):  # pragma: no cover - shape only
+            return b"response"
+
+        def auth(self, mech, authobj, initial_response_ok=True):
+            # Simulate success if correct creds were set on the SMTP object
+            if mech == "CRAM-MD5" and self.user == "u" and self.password == "p":
+                return (235, b"ok")
+            raise send.smtplib.SMTPAuthenticationError(535, b"bad")
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            pass
+
+    monkeypatch.setattr(send.smtplib, "SMTP", DummySMTP)
+
+    # login_test with lists
+    cfg = Config()
+    cfg.SB_USERLIST = ["u"]
+    cfg.SB_PASSLIST = ["p"]
+    res = send.login_test(cfg)
+    assert res == {"CRAM-MD5": True}
+
+    # auth_test with single creds
+    cfg = Config()
+    cfg.SB_USERNAME = "u"
+    cfg.SB_PASSWORD = "p"
+    res = send.auth_test(cfg)
+    assert res == {"CRAM-MD5": True}
+
+
 def test_attempt_auth_passes_timeout(monkeypatch):
     timeouts = []
 
