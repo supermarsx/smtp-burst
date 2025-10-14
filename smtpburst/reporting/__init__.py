@@ -175,6 +175,41 @@ def html_report(results: Dict[str, Any]) -> str:
                 "<table><tbody>" + rows_t + "</tbody></table>",
             )
         )
+        # Simple bar visualization
+        try:
+            vals = [float(v) for v in t.values()]
+            mx = max(vals) if vals else 0.0
+        except Exception:
+            mx = 0.0
+        if mx > 0:
+            bar_rows: list[str] = []
+            for k, v in t.items():
+                try:
+                    val = float(v)
+                    width = int((val / mx) * 100)
+                except Exception:
+                    val, width = 0.0, 0
+                outer = '<td><div style="background:#e8e8ff;width:100%;">'
+                inner = (
+                    f'<div style="background:#4f6bed;height:10px;width:{width}%"></div>'
+                )
+                label = f"<div><small>{val:.6f}</small></div>"
+                row = (
+                    "<tr><td>"
+                    + str(k)
+                    + "</td>"
+                    + outer
+                    + inner
+                    + label
+                    + "</div></td></tr>"
+                )
+                bar_rows.append(row)
+            bars = (
+                "<table><thead><tr><th>Metric</th><th>Value</th></tr></thead><tbody>"
+                + "".join(bar_rows)
+                + "</tbody></table>"
+            )
+            extra.append(_section("Performance Bars", bars))
         b = perf.get("baseline")
         if isinstance(b, dict):
             rows_b = "".join(f"<tr><td>{k}</td><td>{v}</td></tr>" for k, v in b.items())
@@ -267,6 +302,48 @@ def html_report(results: Dict[str, Any]) -> str:
     if isinstance(dane, list) and dane:
         items = "".join(f"<li>{str(x)}</li>" for x in dane)
         extra_html += _section("DANE/TLSA", "<ul>" + items + "</ul>")
+
+    # Percentiles for numeric lists in results
+    def _is_numeric_list(val: Any) -> bool:
+        try:
+            return isinstance(val, list) and all(
+                isinstance(x, (int, float)) for x in val
+            )
+        except Exception:
+            return False
+
+    def _percentiles(vals: list[float]) -> Dict[str, float]:
+        if not vals:
+            return {"p50": 0.0, "p90": 0.0, "p99": 0.0}
+        s = sorted(float(v) for v in vals)
+        import math
+
+        def q(p):
+            idx = max(0, min(len(s) - 1, math.ceil(p * len(s)) - 1))
+            return s[idx]
+
+        return {"p50": q(0.5), "p90": q(0.9), "p99": q(0.99)}
+
+    pct_rows: list[str] = []
+    for keys, val in _flatten(tuple(), results):
+        if _is_numeric_list(val):
+            pct = _percentiles(val)
+            pct_rows.append(
+                "<tr><td>"
+                + ".".join(keys)
+                + "</td>"
+                + "".join(f"<td>{pct[k]:.6f}</td>" for k in ["p50", "p90", "p99"])
+                + "</tr>"
+            )
+    if pct_rows:
+        header = (
+            "<thead><tr><th>Series</th><th>p50</th><th>p90</th><th>p99</th>"
+            "</tr></thead>"
+        )
+        table_html = (
+            "<table>" + header + "<tbody>" + "".join(pct_rows) + "</tbody></table>"
+        )
+        extra_html += _section("Percentiles", table_html)
     bl = results.get("blacklist")
     if isinstance(bl, dict) and bl:
         rows = "".join(

@@ -43,3 +43,17 @@ def test_html_blacklist_and_auth_sections():
     html = html_report(results)
     assert "Blacklist Check" in html and "zen.spamhaus.org" in html
     assert "Auth Matrix" in html and "LOGIN" in html
+
+
+def test_html_performance_bars():
+    results = {
+        "performance": {
+            "target": {
+                "connection_setup": 0.1,
+                "smtp_handshake": 0.2,
+                "message_send": 0.3,
+            }
+        }
+    }
+    html = html_report(results)
+    assert "Performance Bars" in html and "width:" in html

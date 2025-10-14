@@ -156,6 +156,30 @@ def main(argv=None):
         if res:
             logger.info(report(res))
         return
+    if getattr(args, "auth_matrix", None):
+        logger.info("Building AUTH matrix")
+        host, port = send.parse_server(args.auth_matrix)
+        if not args.username or not args.password:
+            logger.error("--auth-matrix requires --username and --password")
+            return
+        # Build config and run auth_test against advertised mechs
+        mcfg = Config()
+        mcfg.SB_SERVER = f"{host}:{port}"
+        mcfg.SB_USERNAME = args.username
+        mcfg.SB_PASSWORD = args.password
+        base = send.auth_test(mcfg)
+        # Fill missing mechanisms as False if --auth-mechs provided
+        mechs = getattr(args, "auth_mechs", None)
+        if mechs:
+            matrix = {m: bool(base.get(m)) for m in mechs}
+        else:
+            matrix = base
+        results = {"auth_matrix": matrix}
+        formatted = report(results)
+        logger.info(formatted)
+        if args.report_file:
+            Path(args.report_file).write_text(formatted, encoding="utf-8")
+        return
 
     logger.info("Starting smtp-burst")
     try:

@@ -356,6 +356,18 @@ CLI_OPTIONS: Iterable[CLIOption] = [
             "help": "Test advertised AUTH methods using --username/--password",
         },
     ),
+    (
+        ("--auth-matrix",),
+        {"help": "Host to produce AUTH matrix for (requires --username/--password)"},
+    ),
+    (
+        ("--auth-mechs",),
+        {
+            "nargs": "+",
+            "metavar": "MECH",
+            "help": "Mechanism list to include in matrix",
+        },
+    ),
     (("--username",), {"help": "Username for --auth-test"}),
     (("--password",), {"help": "Password for --auth-test"}),
     (

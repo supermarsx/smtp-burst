@@ -342,6 +342,25 @@ def test_auth_test_flag():
     assert args.auth_test and args.username == "u" and args.password == "p"
 
 
+def test_auth_matrix_cli_flags():
+    args = burst_cli.parse_args(
+        [
+            "--auth-matrix",
+            "smtp.example.com:25",
+            "--username",
+            "u",
+            "--password",
+            "p",
+            "--auth-mechs",
+            "PLAIN",
+            "LOGIN",
+        ],
+        Config(),
+    )
+    assert args.auth_matrix == "smtp.example.com:25"
+    assert args.auth_mechs == ["PLAIN", "LOGIN"]
+
+
 def test_template_and_enum_options(tmp_path):
     tpl = tmp_path / "tpl.txt"
     tpl.write_text("body")

@@ -78,10 +78,35 @@ def _auth_matrix_action(
 
 
 register_action("auth_matrix", _auth_matrix_action)
+
+
+def _auth_matrix_full_action(
+    server: str,
+    *,
+    username: str,
+    password: str,
+    mechanisms: list[str] | None = None,
+    **kwargs,
+) -> dict[str, bool]:
+    """Return auth matrix for provided mechanisms, marking missing as False.
+
+    Uses the existing auth_matrix to attempt advertised mechanisms, then fills
+    in any requested `mechanisms` not present with False.
+    """
+    base = _auth_matrix_action(server, username=username, password=password, **kwargs)
+    if mechanisms:
+        out = {m: bool(base.get(m)) for m in mechanisms}
+        return out
+    return base
+
+
+register_action("auth_matrix_full", _auth_matrix_full_action)
 register_action("open_relay_test", nettests.open_relay_test)
 register_action("blacklist_check", nettests.blacklist_check)
 register_action("blacklist_check_parallel", nettests.blacklist_check_parallel)
 register_action("dnsbl_default_zones", nettests.default_dnsbl_zones)
+register_action("pipelining_probe", nettests.pipelining_probe)
+register_action("chunking_probe", nettests.chunking_probe)
 register_action("ping", nettests.ping)
 register_action("traceroute", nettests.traceroute)
 register_action("vrfy_enum", nettests.vrfy_enum)
@@ -133,6 +158,56 @@ register_action("tcp_reset_attack", attacks.tcp_reset_attack)
 register_action("tcp_reset_flood", attacks.tcp_reset_flood)
 register_action("smurf_test", attacks.smurf_test)
 register_action("performance_test", attacks.performance_test)
+
+
+def _performance_benchmark_action(
+    host: str,
+    iterations: int = 5,
+    baseline: str | None = None,
+    port: int | None = None,
+) -> Dict[str, Dict[str, list[float]]]:
+    """Run `performance_test` multiple times and return metric series.
+
+    Returns a mapping with `series` → metric name → list of floats. If
+    `baseline` is provided, a `baseline_series` key is also included.
+    """
+    h, p = send.parse_server(host)
+    if port is not None:
+        p = int(port)
+    series: Dict[str, list[float]] = {
+        "connection_setup": [],
+        "smtp_handshake": [],
+        "message_send": [],
+        "ping": [],
+    }
+    baseline_series: Dict[str, list[float]] | None = None
+    if baseline:
+        baseline_series = {
+            "connection_setup": [],
+            "smtp_handshake": [],
+            "message_send": [],
+            "ping": [],
+        }
+    for _ in range(int(iterations)):
+        res = attacks.performance_test(h, port=p, baseline=baseline)
+        t = res.get("target", {})
+        for k in series.keys():
+            v = t.get(k)
+            if isinstance(v, (int, float)):
+                series[k].append(float(v))
+        if baseline and baseline_series is not None:
+            b = res.get("baseline", {})
+            for k in baseline_series.keys():
+                v = b.get(k)
+                if isinstance(v, (int, float)):
+                    baseline_series[k].append(float(v))
+    out: Dict[str, Dict[str, list[float]]] = {"series": series}
+    if baseline and baseline_series is not None:
+        out["baseline_series"] = baseline_series
+    return out
+
+
+register_action("performance_benchmark", _performance_benchmark_action)
 
 
 def _assert_action(**kwargs) -> bool:

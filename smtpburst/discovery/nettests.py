@@ -9,6 +9,7 @@ import subprocess
 import platform
 import shutil
 from typing import Callable, Dict, List
+import socket
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
@@ -181,6 +182,94 @@ def blacklist_check_parallel(
         for _ in as_completed(futs):
             pass
     return results
+
+
+def pipelining_probe(
+    host: str, port: int = 25, timeout: float = 5.0
+) -> Dict[str, bool]:
+    """Return whether PIPELINING is advertised and appears accepted.
+
+    "advertised" is determined via ESMTP EHLO using smtplib. "accepted" attempts
+    a raw SMTP command pipeline (MAIL, RCPT, DATA) and checks responses order.
+    This is a best-effort heuristic and may not work against all servers.
+    """
+    advertised = False
+    try:
+        with smtplib.SMTP(host, port, timeout=timeout) as smtp:
+            smtp.ehlo()
+            advertised = "pipelining" in (smtp.esmtp_features or {})
+    except Exception:  # pragma: no cover - network error
+        advertised = False
+
+    accepted = False
+    try:
+        with socket.create_connection((host, port), timeout=timeout) as s:
+            s.settimeout(timeout)
+            try:
+                _ = s.recv(1024)  # banner
+            except Exception:
+                pass
+            s.sendall(b"EHLO pipelining.test\r\n")
+            try:
+                _ = s.recv(1024)
+            except Exception:
+                pass
+            s.sendall(b"MAIL FROM:<a@b>\r\nRCPT TO:<c@d>\r\nDATA\r\n")
+            data = b""
+            try:
+                for _ in range(3):
+                    chunk = s.recv(1024)
+                    if not chunk:
+                        break
+                    data += chunk
+            except Exception:
+                pass
+            text = data.decode(errors="ignore")
+            accepted = ("250" in text) and ("354" in text)
+    except Exception:  # pragma: no cover - network error
+        accepted = False
+    return {"advertised": advertised, "accepted": accepted}
+
+
+def chunking_probe(host: str, port: int = 25, timeout: float = 5.0) -> Dict[str, bool]:
+    """Return whether CHUNKING is advertised and BDAT appears accepted.
+
+    "advertised" is determined via EHLO. "accepted" attempts a minimal BDAT
+    transaction with a small chunk using a raw socket.
+    """
+    advertised = False
+    try:
+        with smtplib.SMTP(host, port, timeout=timeout) as smtp:
+            smtp.ehlo()
+            advertised = "chunking" in (smtp.esmtp_features or {})
+    except Exception:  # pragma: no cover - network error
+        advertised = False
+
+    accepted = False
+    try:
+        with socket.create_connection((host, port), timeout=timeout) as s:
+            s.settimeout(timeout)
+            try:
+                _ = s.recv(1024)
+            except Exception:
+                pass
+            s.sendall(b"EHLO chunking.test\r\n")
+            try:
+                _ = s.recv(1024)
+            except Exception:
+                pass
+            # Send a small BDAT chunk with LAST and 4 bytes of data
+            s.sendall(b"BDAT 4 LAST\r\nTEST")
+            data = b""
+            try:
+                data = s.recv(1024)
+            except Exception:
+                pass
+            text = data.decode(errors="ignore")
+            accepted = "250" in text
+    except Exception:  # pragma: no cover - network error
+        accepted = False
+    return {"advertised": advertised, "accepted": accepted}
 
 
 def _enum(
