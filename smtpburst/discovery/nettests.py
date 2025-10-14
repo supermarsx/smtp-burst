@@ -9,6 +9,7 @@ import subprocess
 import platform
 import shutil
 from typing import Callable, Dict, List
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
 class CommandNotFoundError(Exception):
@@ -17,6 +18,19 @@ class CommandNotFoundError(Exception):
     def __init__(self, cmd: str):
         super().__init__(f"{cmd} command not found")
         self.cmd = cmd
+
+
+# A small set of commonly-used DNSBL zones (informational, may change)
+COMMON_DNSBL: List[str] = [
+    "zen.spamhaus.org",
+    "bl.spamcop.net",
+    "dnsbl.sorbs.net",
+]
+
+
+def default_dnsbl_zones() -> List[str]:
+    """Return a default list of common DNSBL zones."""
+    return list(COMMON_DNSBL)
 
 
 def ping(host: str, count: int = 1, timeout: int = 1) -> str | Dict[str, str]:
@@ -133,6 +147,39 @@ def blacklist_check(ip: str, zones: List[str]) -> Dict[str, str]:
             results[zone] = "not listed"
         except Exception as exc:  # pragma: no cover - resolver errors
             results[zone] = f"error: {exc}"
+    return results
+
+
+def blacklist_check_parallel(
+    ip: str, zones: List[str], max_workers: int = 8
+) -> Dict[str, str]:
+    """Like :func:`blacklist_check` but queries zones in parallel."""
+    results: Dict[str, str] = {}
+
+    def _one(zone: str) -> None:
+        qname = f"{reversed_ip}.{zone}"
+        try:
+            resolver.resolve(qname, "A")
+            results[zone] = "listed"
+        except resolver.NXDOMAIN:
+            results[zone] = "not listed"
+        except Exception as exc:  # pragma: no cover - resolver errors
+            results[zone] = f"error: {exc}"
+
+    try:
+        ip_obj = ipaddress.ip_address(ip)
+    except ValueError as exc:  # pragma: no cover - input validation
+        return {zone: f"error: {exc}" for zone in zones}
+
+    if ip_obj.version == 4:
+        reversed_ip = ".".join(reversed(ip.split(".")))
+    else:  # pragma: no cover - IPv6 rarely used in tests
+        reversed_ip = ".".join(reversed(ip_obj.exploded.replace(":", "")))
+
+    with ThreadPoolExecutor(max_workers=max_workers) as ex:
+        futs = [ex.submit(_one, z) for z in zones]
+        for _ in as_completed(futs):
+            pass
     return results
 
 

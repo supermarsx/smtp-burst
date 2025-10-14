@@ -80,6 +80,8 @@ def _auth_matrix_action(
 register_action("auth_matrix", _auth_matrix_action)
 register_action("open_relay_test", nettests.open_relay_test)
 register_action("blacklist_check", nettests.blacklist_check)
+register_action("blacklist_check_parallel", nettests.blacklist_check_parallel)
+register_action("dnsbl_default_zones", nettests.default_dnsbl_zones)
 register_action("ping", nettests.ping)
 register_action("traceroute", nettests.traceroute)
 register_action("vrfy_enum", nettests.vrfy_enum)
