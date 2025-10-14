@@ -257,6 +257,30 @@ CLI_OPTIONS: Iterable[CLIOption] = [
         },
     ),
     (
+        ("--long-headers-test",),
+        {
+            "action": "store_true",
+            "default_attr": "SB_TEST_LONG_HEADERS",
+            "help": "Craft very long headers to test folding",
+        },
+    ),
+    (
+        ("--nested-multipart-test",),
+        {
+            "action": "store_true",
+            "default_attr": "SB_TEST_NESTED_MULTIPART",
+            "help": "Generate nested multipart structure",
+        },
+    ),
+    (
+        ("--filename-trick-test",),
+        {
+            "action": "store_true",
+            "default_attr": "SB_TEST_FILENAME_TRICK",
+            "help": "Attach file with tricky filename (RLO)",
+        },
+    ),
+    (
         ("--stop-on-fail",),
         {
             "action": "store_true",

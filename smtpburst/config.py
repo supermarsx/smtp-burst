@@ -66,6 +66,9 @@ class Config:
     SB_TEST_UTF7: bool = False
     SB_TEST_TUNNEL: bool = False
     SB_TEST_CONTROL: bool = False
+    SB_TEST_LONG_HEADERS: bool = False
+    SB_TEST_NESTED_MULTIPART: bool = False
+    SB_TEST_FILENAME_TRICK: bool = False
 
     # Async sending options
     SB_ASYNC_NATIVE: bool = False

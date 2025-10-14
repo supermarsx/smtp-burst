@@ -93,6 +93,27 @@ def append_message(cfg: Config, attachments: Optional[List[str]] = None) -> byte
             header_name = "X-Burst-ID"
         msg[header_name] = cfg.SB_TRACE_ID
 
+    # Content evasion features
+    if cfg.SB_TEST_LONG_HEADERS:
+        # Create a very long header value to trigger folding
+        msg["X-Long-Header"] = "A" * 1000
+    if cfg.SB_TEST_NESTED_MULTIPART:
+        # Ensure mixed with nested alternative part
+        try:
+            msg.make_mixed()
+        except Exception:
+            pass
+        sub = EmailMessage()
+        sub.set_content("nested text", subtype="plain")
+        sub.add_alternative("<p>nested html</p>", subtype="html")
+        msg.attach(sub)
+    if cfg.SB_TEST_FILENAME_TRICK:
+        # Add small attachment with RLO in filename
+        tricky = "report\u202etxt.exe"
+        msg.add_attachment(
+            b"x", maintype="application", subtype="octet-stream", filename=tricky
+        )
+
     if attachments:
         for path in attachments:
             try:
