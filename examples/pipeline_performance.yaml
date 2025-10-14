@@ -1,0 +1,12 @@
+steps:
+  - action: performance_test
+    host: smtp.example.com:25
+    as: perf
+  - action: assert_metrics
+    data: ${perf[target]}
+    checks:
+      connection_setup: { lt: 0.5 }
+      smtp_handshake: { lt: 0.7 }
+      message_send: { lt: 1.0 }
+      ping: { le: 1.0 }
+

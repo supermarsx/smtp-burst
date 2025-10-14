@@ -254,6 +254,17 @@ Example pipelines are available under `examples/`:
 - `examples/pipeline_esmtp.yaml` ESMTP check
 - `examples/pipeline_suite.yaml` mixed discovery in parallel
 - `examples/pipeline_deliverability.yaml` deliverability skeleton
+- `examples/pipeline_performance.yaml` performance test with metric thresholds
+
+### Pipeline Tips
+
+- Use `vars:` to define variables at the top of the YAML and reference them with
+  `${var}`. Simple dict lookups like `${perf[target]}` are also supported.
+- Capture a step’s result with `as: name`, then reuse via `${name}` later.
+- Assertions:
+  - `assert` supports `equals`, `ne`, `truthy`, `lt`, `le`, `gt`, `ge`.
+  - `assert_metrics` validates numeric fields: `checks: { latency: { lt: 0.5 } }`.
+- Concurrency: run steps in parallel with the `parallel` action and a `steps:` list.
 ```
 
 ## Development
