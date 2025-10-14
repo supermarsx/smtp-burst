@@ -39,6 +39,16 @@ def test_yaml_report_valid():
     assert yaml.safe_load(output) == results
 
 
+def test_jsonl_report_flattens():
+    results = {"a": 1, "b": {"c": 2, "d": {"e": 3}}}
+    out = reporting.jsonl_report(results)
+    lines = out.splitlines()
+    # Expect flattened keys
+    assert "a\t1" in lines
+    assert any(line.startswith("b.c\t") for line in lines)
+    assert any(line.startswith("b.d.e\t") for line in lines)
+
+
 def test_junit_counts_and_cases():
     results = {"ok": True, "bad": False, "obj": {"x": True, "y": False}}
     xml = reporting.junit_report(results)
