@@ -73,6 +73,10 @@ class Config:
     SB_ASYNC_REUSE: bool = True
     SB_ASYNC_POOL_SIZE: int = 10
 
+    # Trace header for deliverability workflows
+    SB_TRACE_ID: str = ""
+    SB_TRACE_HEADER: str = "X-Burst-ID"
+
     @property
     def SB_TOTAL(self) -> int:
         """Total number of emails to send."""

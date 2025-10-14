@@ -29,6 +29,31 @@ def imap_search(
         return []
 
 
+def imap_header_search(
+    host: str,
+    user: str,
+    password: str,
+    header: str,
+    value: str,
+    *,
+    port: int = 993,
+    ssl: bool = True,
+    mailbox: str = "INBOX",
+) -> List[bytes]:
+    """Return message IDs matching a header/value pair via IMAP."""
+    cls = imaplib.IMAP4_SSL if ssl else imaplib.IMAP4
+    try:
+        with cls(host, port) as imap:
+            imap.login(user, password)
+            imap.select(mailbox)
+            typ, data = imap.search(None, "HEADER", header, value)
+            if typ != "OK" or not data:
+                return []
+            return data[0].split()
+    except (imaplib.IMAP4.error, OSError):
+        return []
+
+
 def pop3_search(
     host: str,
     user: str,

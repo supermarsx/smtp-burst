@@ -51,6 +51,7 @@ register_action("mta_sts_policy", mta.mta_sts_policy)
 register_action("dane_tlsa", mta.dane_tlsa)
 register_action("imap_search", inbox.imap_search)
 register_action("pop3_search", inbox.pop3_search)
+register_action("imap_header_search", inbox.imap_header_search)
 
 
 def _auth_matrix_action(

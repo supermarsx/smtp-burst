@@ -177,6 +177,16 @@ def test_sendmail_starttls_ehlo(monkeypatch):
     ]
 
 
+def test_append_message_trace_header():
+    cfg = Config()
+    cfg.SB_SIZE = 0
+    cfg.SB_TRACE_ID = "trace-123"
+    cfg.SB_TRACE_HEADER = "X-Trace"
+    msg = send.append_message(cfg)
+    text = msg.decode("utf-8", errors="ignore")
+    assert "X-Trace: trace-123" in text
+
+
 def test_sendmail_proxy_auth(monkeypatch):
     calls = {}
 

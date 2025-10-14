@@ -199,6 +199,14 @@ CLI_OPTIONS: Iterable[CLIOption] = [
             ),
         },
     ),
+    (("--trace-id",), {"help": "Set a trace ID header value on messages"}),
+    (
+        ("--trace-header",),
+        {
+            "default_attr": "SB_TRACE_HEADER",
+            "help": "Header name to carry trace ID (default X-Burst-ID)",
+        },
+    ),
     (
         ("--per-burst-data",),
         {
@@ -616,6 +624,7 @@ def apply_args_to_config(cfg: Config, args: argparse.Namespace) -> None:
         "check_proxies": "SB_CHECK_PROXIES",
         "proxy_timeout": "SB_PROXY_TIMEOUT",
         "html_body_file": "SB_HTML_BODY",
+        "trace_header": "SB_TRACE_HEADER",
     }
 
     for arg_name, cfg_attr in MAP.items():
@@ -632,3 +641,5 @@ def apply_args_to_config(cfg: Config, args: argparse.Namespace) -> None:
         cfg.SB_ASYNC_REUSE = False
     if getattr(args, "async_pool_size", None) is not None:
         cfg.SB_ASYNC_POOL_SIZE = int(args.async_pool_size)
+    if getattr(args, "trace_id", None):
+        cfg.SB_TRACE_ID = args.trace_id

@@ -85,6 +85,14 @@ def append_message(cfg: Config, attachments: Optional[List[str]] = None) -> byte
     if cfg.SB_HTML_BODY:
         msg.add_alternative(cfg.SB_HTML_BODY, subtype="html")
 
+    # Optional trace header for deliverability workflows
+    if cfg.SB_TRACE_ID:
+        try:
+            header_name = cfg.SB_TRACE_HEADER or "X-Burst-ID"
+        except Exception:
+            header_name = "X-Burst-ID"
+        msg[header_name] = cfg.SB_TRACE_ID
+
     if attachments:
         for path in attachments:
             try:

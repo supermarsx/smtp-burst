@@ -151,6 +151,14 @@ def test_attach_option(tmp_path):
     assert args.attach == [str(f1), str(f2)]
 
 
+def test_trace_header_options():
+    args = burst_cli.parse_args(
+        ["--trace-id", "abc", "--trace-header", "X-Trace"], Config()
+    )
+    assert args.trace_id == "abc"
+    assert args.trace_header == "X-Trace"
+
+
 def test_data_mode_option():
     args = burst_cli.parse_args(["--data-mode", "binary"], Config())
     assert args.data_mode == "binary"

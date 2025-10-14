@@ -125,3 +125,29 @@ def test_pop3_search_error(monkeypatch):
     ids = inbox.pop3_search("host", "u", "p", pattern=b"abc")
     assert ids == []
     assert closed["quit"]
+
+
+def test_imap_header_search(monkeypatch):
+    class DummyIMAP:
+        def __init__(self, host, port):
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            pass
+
+        def login(self, user, password):
+            pass
+
+        def select(self, mailbox):
+            pass
+
+        def search(self, charset, *criteria):
+            assert criteria == ("HEADER", "X-Trace", "trace-123")
+            return ("OK", [b"1 2"])
+
+    monkeypatch.setattr(inbox.imaplib, "IMAP4_SSL", DummyIMAP)
+    res = inbox.imap_header_search("h", "u", "p", "X-Trace", "trace-123")
+    assert res == [b"1", b"2"]
