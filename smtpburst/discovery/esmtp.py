@@ -80,6 +80,16 @@ def check(
                     results["tests"]["size_enforced"] = True
                 except Exception:
                     results["tests"]["size_enforced"] = False
+            if supports.get("dsn", False):
+                try:
+                    smtp.sendmail(
+                        "a@b", ["c@d"], b"d", rcpt_options=["NOTIFY=SUCCESS,FAILURE"]
+                    )
+                    results["tests"]["dsn_accept"] = True
+                except smtplib.SMTPDataError:
+                    results["tests"]["dsn_accept"] = False
+                except Exception:
+                    results["tests"]["dsn_accept"] = False
             if test_chunking and supports.get("chunking", False):
                 # smtplib lacks BDAT API; report support based on feature flag
                 results["tests"]["chunking_declared"] = True

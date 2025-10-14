@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, Callable
+from typing import Any, Dict, Callable, Iterable, Tuple
 import json
 import xml.etree.ElementTree as ET
 
@@ -39,6 +39,32 @@ def yaml_report(results: Dict[str, Any]) -> str:
         raise RuntimeError("PyYAML not installed")
     # safe_dump adds a trailing newline which is not needed for logs
     return yaml.safe_dump(results, sort_keys=False).strip()
+
+
+def _flatten(
+    prefix: Tuple[str, ...], value: Any
+) -> Iterable[Tuple[Tuple[str, ...], Any]]:
+    if isinstance(value, dict):
+        for k, v in value.items():
+            yield from _flatten(prefix + (str(k),), v)
+    else:
+        yield prefix, value
+
+
+def jsonl_report(results: Dict[str, Any]) -> str:
+    """Return results flattened as JSON Lines (one key=value per line).
+
+    Keys are joined by dots, e.g., performance.target.ping
+    """
+    lines: list[str] = []
+    for keys, val in _flatten(tuple(), results):
+        key = ".".join(keys)
+        try:
+            sval = json.dumps(val)
+        except Exception:
+            sval = json.dumps(str(val))
+        lines.append(f"{key}\t{sval}")
+    return "\n".join(lines)
 
 
 def junit_report(results: Dict[str, Any]) -> str:
@@ -221,6 +247,7 @@ REPORT_FORMATS: Dict[str, Callable[[Dict[str, Any]], str]] = {
     "yaml": yaml_report,
     "junit": junit_report,
     "html": html_report,
+    "jsonl": jsonl_report,
 }
 
 __all__ = [
@@ -229,5 +256,6 @@ __all__ = [
     "yaml_report",
     "junit_report",
     "html_report",
+    "jsonl_report",
     "REPORT_FORMATS",
 ]

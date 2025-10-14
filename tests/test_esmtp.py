@@ -86,3 +86,28 @@ def test_esmtp_smtputf8_and_size_enforced(monkeypatch):
     assert res["supports"]["smtputf8"] is True
     assert res["tests"]["smtp_utf8_send"] is True
     assert res["tests"]["size_enforced"] is True
+
+
+def test_esmtp_dsn_accept(monkeypatch):
+    class DummySMTP:
+        def __init__(self, host, port, timeout=None):
+            self.esmtp_features = {"DSN": ""}
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            pass
+
+        def ehlo(self):
+            pass
+
+        def sendmail(self, sender, rcpts, body, mail_options=(), rcpt_options=()):
+            # Accept when NOTIFY present
+            assert any(opt.startswith("NOTIFY=") for opt in rcpt_options)
+            return {}
+
+    monkeypatch.setattr(esmtp.smtplib, "SMTP", DummySMTP)
+    res = esmtp.check("h")
+    assert res["supports"]["dsn"] is True
+    assert res["tests"]["dsn_accept"] is True
