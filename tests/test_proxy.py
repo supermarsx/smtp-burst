@@ -293,4 +293,44 @@ def test_check_proxy_timeout(monkeypatch, caplog):
 
     with caplog.at_level(logging.WARNING):
         assert not proxy.check_proxy("h:1")
-        assert "timed out" in caplog.text
+    assert "timed out" in caplog.text
+
+
+def test_check_proxy_http_basic_auth(monkeypatch):
+    sent = {}
+
+    def fake_ping(host):
+        return "pong"
+
+    def fake_dns(host):
+        return "1.2.3.4"
+
+    class DummySock:
+        data = b""
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            pass
+
+        def settimeout(self, t):
+            pass
+
+        def sendall(self, data):
+            sent["data"] = data
+
+        def recv(self, n):
+            # Always accept
+            return b"HTTP/1.1 200 Connection established\r\n\r\n"
+
+    def fake_create(addr, timeout=5):
+        return DummySock()
+
+    monkeypatch.setattr(proxy, "ping", fake_ping)
+    monkeypatch.setattr(proxy.socket, "gethostbyname", fake_dns)
+    monkeypatch.setattr(proxy.socket, "create_connection", fake_create)
+
+    info = proxy.check_proxy("user:pass@h:8080")
+    assert info and sent["data"]
+    assert b"Proxy-Authorization: Basic dXNlcjpwYXNz" in sent["data"]

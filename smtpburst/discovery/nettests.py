@@ -184,124 +184,33 @@ def blacklist_check_parallel(
     return results
 
 
+from .nettests_impl import pipelining_probe_impl, chunking_probe_impl  # noqa: E402
+
+
 def pipelining_probe(
     host: str, port: int = 25, timeout: float = 5.0
 ) -> Dict[str, bool]:
-    """Return whether PIPELINING is advertised and appears accepted.
-
-    "advertised" is determined via ESMTP EHLO using smtplib. "accepted" attempts
-    a raw SMTP command pipeline (MAIL, RCPT, DATA) and checks responses order.
-    This is a best-effort heuristic and may not work against all servers.
-    """
-    advertised = False
-    try:
-        with smtplib.SMTP(host, port, timeout=timeout) as smtp:
-            smtp.ehlo()
-            advertised = "pipelining" in (smtp.esmtp_features or {})
-    except Exception:  # pragma: no cover - network error
-        advertised = False
-
-    accepted = False
-    try:
-        with socket.create_connection((host, port), timeout=timeout) as s:
-            s.settimeout(timeout)
-            try:
-                _ = s.recv(1024)  # banner
-            except Exception:
-                pass
-            s.sendall(b"EHLO pipelining.test\r\n")
-            try:
-                _ = s.recv(1024)
-            except Exception:
-                pass
-            s.sendall(b"MAIL FROM:<a@b>\r\nRCPT TO:<c@d>\r\nDATA\r\n")
-            data = b""
-            try:
-                for _ in range(3):
-                    chunk = s.recv(1024)
-                    if not chunk:
-                        break
-                    data += chunk
-            except Exception:
-                pass
-            text = data.decode(errors="ignore")
-            accepted = ("250" in text) and ("354" in text)
-    except Exception:  # pragma: no cover - network error
-        accepted = False
-    return {"advertised": advertised, "accepted": accepted}
+    """Wrapper for PIPELINING probe using nettests' smtplib/socket for tests."""
+    return pipelining_probe_impl(
+        host, port, timeout, smtplib_module=smtplib, socket_module=socket
+    )
 
 
 def chunking_probe(host: str, port: int = 25, timeout: float = 5.0) -> Dict[str, bool]:
-    """Return whether CHUNKING is advertised and BDAT appears accepted.
+    """Wrapper for CHUNKING probe using nettests' smtplib/socket for tests."""
+    return chunking_probe_impl(
+        host, port, timeout, smtplib_module=smtplib, socket_module=socket
+    )
 
-    "advertised" is determined via EHLO. "accepted" attempts a minimal BDAT
-    transaction with a small chunk using a raw socket.
-    """
-    advertised = False
-    try:
-        with smtplib.SMTP(host, port, timeout=timeout) as smtp:
-            smtp.ehlo()
-            advertised = "chunking" in (smtp.esmtp_features or {})
-    except Exception:  # pragma: no cover - network error
-        advertised = False
 
-    accepted = False
-    try:
-        with socket.create_connection((host, port), timeout=timeout) as s:
-            s.settimeout(timeout)
-            try:
-                _ = s.recv(1024)
-            except Exception:
-                pass
-            s.sendall(b"EHLO chunking.test\r\n")
-            try:
-                _ = s.recv(1024)
-            except Exception:
-                pass
-            # Send a small BDAT chunk with LAST and 4 bytes of data
-            s.sendall(b"BDAT 4 LAST\r\nTEST")
-            data = b""
-            try:
-                data = s.recv(1024)
-            except Exception:
-                pass
-            text = data.decode(errors="ignore")
-            accepted = "250" in text
-    except Exception:  # pragma: no cover - network error
-        accepted = False
-    return {"advertised": advertised, "accepted": accepted}
+from .nettests_impl import enum_impl  # noqa: E402
 
 
 def _enum(
-    host: str,
-    port: int,
-    items: List[str],
-    func: Callable[[smtplib.SMTP, str], tuple],
-    reset: bool = False,
+    host: str, port: int, items: List[str], func: Callable, reset: bool = False
 ) -> Dict[str, bool]:
-    """Return mapping of ``items`` to success status using ``func``.
-
-    If ``reset`` is ``True``, an SMTP ``RSET`` command is issued after each
-    item to reset the session state.
-    """
-    results: Dict[str, bool] = {}
-    try:
-        with smtplib.SMTP(host, port, timeout=10) as smtp:
-            smtp.helo("smtp-burst")
-            for item in items:
-                try:
-                    code, _ = func(smtp, item)
-                except smtplib.SMTPException:
-                    code = 500
-                results[item] = code < 400
-                if reset:
-                    try:
-                        smtp.rset()
-                    except smtplib.SMTPException:
-                        pass
-    except Exception:  # pragma: no cover - network failures
-        return {it: False for it in items}
-    return results
+    """Delegate to implementation while using this module's smtplib for tests."""
+    return enum_impl(host, port, items, func, reset, smtplib_module=smtplib)
 
 
 def vrfy_enum(host: str, items: List[str], port: int = 25) -> Dict[str, bool]:

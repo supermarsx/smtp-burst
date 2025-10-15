@@ -1,0 +1,47 @@
+from __future__ import annotations
+
+from typing import Dict
+
+# Map argparse destination names to Config attribute names
+MAP: Dict[str, str] = {
+    "server": "SB_SERVER",
+    "helo_host": "SB_HELO_HOST",
+    "sender": "SB_SENDER",
+    "receivers": "SB_RECEIVERS",
+    "subject": "SB_SUBJECT",
+    "emails_per_burst": "SB_SGEMAILS",
+    "bursts": "SB_BURSTS",
+    "email_delay": "SB_SGEMAILSPSEC",
+    "burst_delay": "SB_BURSTSPSEC",
+    "global_delay": "SB_GLOBAL_DELAY",
+    "socket_delay": "SB_OPEN_SOCKETS_DELAY",
+    "tarpit_threshold": "SB_TARPIT_THRESHOLD",
+    "timeout": "SB_TIMEOUT",
+    "size": "SB_SIZE",
+    "data_mode": "SB_DATA_MODE",
+    "repeat_string": "SB_REPEAT_STRING",
+    "per_burst_data": "SB_PER_BURST_DATA",
+    "secure_random": "SB_SECURE_RANDOM",
+    "unicode_case_test": "SB_TEST_UNICODE",
+    "utf7_test": "SB_TEST_UTF7",
+    "header_tunnel_test": "SB_TEST_TUNNEL",
+    "control_char_test": "SB_TEST_CONTROL",
+    "long_headers_test": "SB_TEST_LONG_HEADERS",
+    "nested_multipart_test": "SB_TEST_NESTED_MULTIPART",
+    "filename_trick_test": "SB_TEST_FILENAME_TRICK",
+    "eicar_test": "SB_EICAR_TEST",
+    "smime_sample_test": "SB_SMIME_SAMPLE",
+    "stop_on_fail": "SB_STOPFAIL",
+    "stop_fail_count": "SB_STOPFQNT",
+    "retry_count": "SB_RETRY_COUNT",
+    "ssl": "SB_SSL",
+    "starttls": "SB_STARTTLS",
+    "proxy_order": "SB_PROXY_ORDER",
+    "check_proxies": "SB_CHECK_PROXIES",
+    "proxy_timeout": "SB_PROXY_TIMEOUT",
+    "html_body_file": "SB_HTML_BODY",
+    "trace_header": "SB_TRACE_HEADER",
+    "budget_seconds": "SB_BUDGET_SECONDS",
+}
+
+__all__ = ["MAP"]

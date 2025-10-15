@@ -195,10 +195,19 @@ The following flags perform DNS and network checks using the utilities in
 - `--check-dmarc`, `--check-spf`, `--check-dkim`
 - `--check-srv`, `--check-soa`, `--check-txt`, `--lookup-mx`
 - `--smtp-extensions`, `--cert-check`, `--port-scan`, `--probe-honeypot`,
-  `--tls-discovery`, `--ssl-discovery`
+  `--tls-discovery`, `--ssl-discovery`, `--starttls-discovery`
 - `--blacklist-check`
 - `--open-relay-test`, `--ping-test`, `--traceroute-test`, `--perf-test`,
   `--baseline-host`, `--rdns-test`
+
+Additional CLI flags:
+
+- `--auth-matrix HOST` build an AUTH matrix for HOST (use with `--username/--password`)
+- `--auth-mechs MECH [MECH ...]` include these mechanisms in the matrix
+- `--profile {throughput,latency,mixed}` apply a sending preset
+- `--long-headers-test`, `--nested-multipart-test`, `--filename-trick-test` enable
+  content-evasion crafting in messages
+- Report formats now include JSONL and Prometheus text: `--report-format {ascii,json,yaml,jsonl,junit,html,prom}`
 
 When these options are used, the report shown above is generated.
 

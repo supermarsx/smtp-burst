@@ -69,6 +69,8 @@ class Config:
     SB_TEST_LONG_HEADERS: bool = False
     SB_TEST_NESTED_MULTIPART: bool = False
     SB_TEST_FILENAME_TRICK: bool = False
+    SB_EICAR_TEST: bool = False
+    SB_SMIME_SAMPLE: bool = False
 
     # Async sending options
     SB_ASYNC_NATIVE: bool = False
@@ -79,6 +81,9 @@ class Config:
     # Trace header for deliverability workflows
     SB_TRACE_ID: str = ""
     SB_TRACE_HEADER: str = "X-Burst-ID"
+
+    # Budget-based cancellation (seconds). 0 disables.
+    SB_BUDGET_SECONDS: float = 0.0
 
     @property
     def SB_TOTAL(self) -> int:

@@ -1,5 +1,3 @@
-"""Simple pipeline runner for smtp-burst discovery and attack actions."""
-
 from __future__ import annotations
 
 from typing import Any, Dict, List, Callable
@@ -11,8 +9,14 @@ except ImportError:  # pragma: no cover - optional dependency
     yaml = None
 
 from . import send, attacks, discovery, inbox
-from .config import Config
+from .config import Config  # noqa: F401
 from .discovery import nettests, tls_probe, ssl_probe, starttls_probe, esmtp, mta
+from .pipeline_actions import (
+    auth_matrix_action as _auth_matrix_action,
+    auth_matrix_full_action as _auth_matrix_full_action,
+    send_email_action as _send_email_action,
+    performance_benchmark_action as _performance_benchmark_action,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -54,52 +58,7 @@ register_action("pop3_search", inbox.pop3_search)
 register_action("imap_header_search", inbox.imap_header_search)
 
 
-def _auth_matrix_action(
-    server: str,
-    *,
-    username: str,
-    password: str,
-    ssl: bool = False,
-    starttls: bool = False,
-    helo_host: str | None = None,
-    timeout: float = 10.0,
-) -> dict[str, bool]:
-    """Return mapping of AUTH mechanism to success for provided credentials."""
-    cfg = Config()
-    cfg.SB_SERVER = server
-    cfg.SB_USERNAME = username
-    cfg.SB_PASSWORD = password
-    cfg.SB_SSL = bool(ssl)
-    cfg.SB_STARTTLS = bool(starttls)
-    cfg.SB_TIMEOUT = float(timeout)
-    if helo_host:
-        cfg.SB_HELO_HOST = helo_host
-    return send.auth_test(cfg)
-
-
 register_action("auth_matrix", _auth_matrix_action)
-
-
-def _auth_matrix_full_action(
-    server: str,
-    *,
-    username: str,
-    password: str,
-    mechanisms: list[str] | None = None,
-    **kwargs,
-) -> dict[str, bool]:
-    """Return auth matrix for provided mechanisms, marking missing as False.
-
-    Uses the existing auth_matrix to attempt advertised mechanisms, then fills
-    in any requested `mechanisms` not present with False.
-    """
-    base = _auth_matrix_action(server, username=username, password=password, **kwargs)
-    if mechanisms:
-        out = {m: bool(base.get(m)) for m in mechanisms}
-        return out
-    return base
-
-
 register_action("auth_matrix_full", _auth_matrix_full_action)
 register_action("open_relay_test", nettests.open_relay_test)
 register_action("blacklist_check", nettests.blacklist_check)
@@ -116,95 +75,12 @@ register_action("open_sockets", send.open_sockets)
 register_action("send", send.bombing_mode)
 
 
-def _send_email_action(
-    server: str,
-    sender: str,
-    receivers: list[str] | str,
-    *,
-    subject: str = "smtp-burst test",
-    body: str = "smtp-burst message body",
-    html_body: str | None = None,
-    ssl: bool = False,
-    starttls: bool = False,
-    trace_id: str | None = None,
-    trace_header: str = "X-Burst-ID",
-) -> bool:
-    cfg = Config()
-    cfg.SB_SERVER = server
-    cfg.SB_SENDER = sender
-    cfg.SB_RECEIVERS = receivers if isinstance(receivers, list) else [receivers]
-    cfg.SB_SUBJECT = subject
-    cfg.SB_BODY = body
-    if html_body:
-        cfg.SB_HTML_BODY = html_body
-    cfg.SB_SSL = bool(ssl)
-    cfg.SB_STARTTLS = bool(starttls)
-    if trace_id:
-        cfg.SB_TRACE_ID = trace_id
-        cfg.SB_TRACE_HEADER = trace_header or cfg.SB_TRACE_HEADER
-    # ensure single message, no delays, no random payload
-    cfg.SB_SGEMAILS = 1
-    cfg.SB_BURSTS = 1
-    cfg.SB_SGEMAILSPSEC = 0
-    cfg.SB_BURSTSPSEC = 0
-    cfg.SB_SIZE = 0
-    send.bombing_mode(cfg)
-    return True
-
-
 register_action("send_email", _send_email_action)
 register_action("tcp_syn_flood", attacks.tcp_syn_flood)
 register_action("tcp_reset_attack", attacks.tcp_reset_attack)
 register_action("tcp_reset_flood", attacks.tcp_reset_flood)
 register_action("smurf_test", attacks.smurf_test)
 register_action("performance_test", attacks.performance_test)
-
-
-def _performance_benchmark_action(
-    host: str,
-    iterations: int = 5,
-    baseline: str | None = None,
-    port: int | None = None,
-) -> Dict[str, Dict[str, list[float]]]:
-    """Run `performance_test` multiple times and return metric series.
-
-    Returns a mapping with `series` → metric name → list of floats. If
-    `baseline` is provided, a `baseline_series` key is also included.
-    """
-    h, p = send.parse_server(host)
-    if port is not None:
-        p = int(port)
-    series: Dict[str, list[float]] = {
-        "connection_setup": [],
-        "smtp_handshake": [],
-        "message_send": [],
-        "ping": [],
-    }
-    baseline_series: Dict[str, list[float]] | None = None
-    if baseline:
-        baseline_series = {
-            "connection_setup": [],
-            "smtp_handshake": [],
-            "message_send": [],
-            "ping": [],
-        }
-    for _ in range(int(iterations)):
-        res = attacks.performance_test(h, port=p, baseline=baseline)
-        t = res.get("target", {})
-        for k in series.keys():
-            v = t.get(k)
-            if isinstance(v, (int, float)):
-                series[k].append(float(v))
-        if baseline and baseline_series is not None:
-            b = res.get("baseline", {})
-            for k in baseline_series.keys():
-                v = b.get(k)
-                if isinstance(v, (int, float)):
-                    baseline_series[k].append(float(v))
-    out: Dict[str, Dict[str, list[float]]] = {"series": series}
-    if baseline and baseline_series is not None:
-        out["baseline_series"] = baseline_series
-    return out
 
 
 register_action("performance_benchmark", _performance_benchmark_action)

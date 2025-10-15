@@ -152,7 +152,20 @@ def check_proxy(
                     return None
             else:
                 # Legacy behavior: validate HTTP proxy with CONNECT
-                request = f"CONNECT {host}:{port} HTTP/1.1\r\n\r\n".encode()
+                headers = [f"CONNECT {host}:{port} HTTP/1.1"]
+                # Basic auth header if credentials provided
+                if info.username or info.password:
+                    try:
+                        import base64
+
+                        token = f"{info.username or ''}:{info.password or ''}".encode()
+                        b64 = base64.b64encode(token).decode()
+                        headers.append(f"Proxy-Authorization: Basic {b64}")
+                    except Exception:
+                        pass
+                headers.append("")
+                headers.append("")
+                request = ("\r\n".join(headers)).encode()
                 try:
                     sock.sendall(request)
                     reply = sock.recv(1024)
