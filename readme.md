@@ -1,4 +1,4 @@
-# smtp-burst
+![E0307C9D-2F7E-453C-8FAF-0039ED00C9DD_1_201_a](https://github.com/user-attachments/assets/ad949a80-af4f-4fe0-adbd-e27d414fec76)
 
 [![CI](https://github.com/supermarsx/smtp-burst/actions/workflows/ci.yml/badge.svg)](https://github.com/supermarsx/smtp-burst/actions/workflows/ci.yml)
 ![Coverage](coverage.svg)
