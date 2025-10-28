@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Dict
+from typing import Any
 
 from . import _flatten
 
 
-def html_report(results: Dict[str, Any]) -> str:
+def html_report(results: dict[str, Any]) -> str:
     rows: list[str] = []
     for name, data in results.items():
         pretty = (
@@ -78,9 +78,7 @@ def html_report(results: Dict[str, Any]) -> str:
             extra.append(_section("Performance Bars", bars))
         b = perf.get("baseline")
         if isinstance(b, dict):
-            rows_b = "".join(
-                f"<tr><td>{k}</td><td>{v}</td></tr>" for k, v in b.items()
-            )
+            rows_b = "".join(f"<tr><td>{k}</td><td>{v}</td></tr>" for k, v in b.items())
             extra.append(
                 _section(
                     "Performance (baseline)",
@@ -171,7 +169,7 @@ def html_report(results: Dict[str, Any]) -> str:
         except Exception:
             return False
 
-    def _percentiles(vals: list[float]) -> Dict[str, float]:
+    def _percentiles(vals: list[float]) -> dict[str, float]:
         if not vals:
             return {"p50": 0.0, "p90": 0.0, "p99": 0.0}
         s = sorted(float(v) for v in vals)

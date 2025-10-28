@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Dict, Any
+from typing import Any
 import socket
 import ssl
 
@@ -19,11 +19,11 @@ def test_versions(
     host: str,
     port: int = 443,
     timeout: float = 3.0,
-) -> Dict[str, Dict[str, Any]]:
+) -> dict[str, dict[str, Any]]:
     """Attempt TLS connections for each version and return details."""
-    results: Dict[str, Dict[str, Any]] = {}
+    results: dict[str, dict[str, Any]] = {}
     for name, ver in VERSIONS.items():
-        info: Dict[str, Any] = {
+        info: dict[str, Any] = {
             "supported": False,
             "valid": None,
             "protocol": None,

@@ -6,6 +6,7 @@ from smtpburst.config import Config
 from smtpburst import send
 from smtpburst import cli
 from smtpburst.reporting import ascii_report, json_report, yaml_report, junit_report
+
 # Imported for tests to monkeypatch on main module
 from smtpburst import discovery  # noqa: F401
 from smtpburst.discovery import nettests  # noqa: F401

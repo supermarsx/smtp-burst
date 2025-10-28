@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from typing import Callable, Dict, List
+from typing import Callable
 
 
 def pipelining_probe_impl(
     host: str, port: int, timeout: float, *, smtplib_module, socket_module
-) -> Dict[str, bool]:
+) -> dict[str, bool]:
     advertised = False
     try:
         with smtplib_module.SMTP(host, port, timeout=timeout) as smtp:
@@ -46,7 +46,7 @@ def pipelining_probe_impl(
 
 def chunking_probe_impl(
     host: str, port: int, timeout: float, *, smtplib_module, socket_module
-) -> Dict[str, bool]:
+) -> dict[str, bool]:
     advertised = False
     try:
         with smtplib_module.SMTP(host, port, timeout=timeout) as smtp:
@@ -84,13 +84,13 @@ def chunking_probe_impl(
 def enum_impl(
     host: str,
     port: int,
-    items: List[str],
+    items: list[str],
     func: Callable,
     reset: bool,
     *,
     smtplib_module,
-) -> Dict[str, bool]:
-    results: Dict[str, bool] = {}
+) -> dict[str, bool]:
+    results: dict[str, bool] = {}
     try:
         with smtplib_module.SMTP(host, port, timeout=10) as smtp:
             smtp.helo("smtp-burst")

@@ -10,7 +10,7 @@ import asyncio
 import smtplib
 import socket
 import ssl
-from typing import Any, Dict, List
+from typing import Any
 
 from dns import resolver
 
@@ -47,7 +47,7 @@ __all__ = [
 ]
 
 
-def _lookup(domain: str, record: str) -> List[str]:
+def _lookup(domain: str, record: str) -> list[str]:
     """Return record strings for ``domain`` and ``record`` type."""
     try:
         answers = resolver.resolve(domain, record)
@@ -56,38 +56,38 @@ def _lookup(domain: str, record: str) -> List[str]:
         return [f"error: {exc}"]
 
 
-def check_dmarc(domain: str) -> List[str]:
+def check_dmarc(domain: str) -> list[str]:
     """Return DMARC TXT records for ``domain``."""
     return _lookup(f"_dmarc.{domain}", "TXT")
 
 
-def check_spf(domain: str) -> List[str]:
+def check_spf(domain: str) -> list[str]:
     """Return SPF TXT records for ``domain``."""
     records = _lookup(domain, "TXT")
     return [r for r in records if r.lower().startswith("v=spf1")]
 
 
-def check_dkim(domain: str, selector: str = "default") -> List[str]:
+def check_dkim(domain: str, selector: str = "default") -> list[str]:
     """Return DKIM TXT records for ``domain`` using ``selector``."""
     return _lookup(f"{selector}._domainkey.{domain}", "TXT")
 
 
-def check_srv(name: str) -> List[str]:
+def check_srv(name: str) -> list[str]:
     """Return SRV records for ``name``."""
     return _lookup(name, "SRV")
 
 
-def check_soa(domain: str) -> List[str]:
+def check_soa(domain: str) -> list[str]:
     """Return SOA record for ``domain``."""
     return _lookup(domain, "SOA")
 
 
-def check_txt(domain: str) -> List[str]:
+def check_txt(domain: str) -> list[str]:
     """Return TXT records for ``domain``."""
     return _lookup(domain, "TXT")
 
 
-def lookup_mx(domain: str) -> List[str]:
+def lookup_mx(domain: str) -> list[str]:
     """Return MX records for ``domain``."""
     try:
         answers = resolver.resolve(domain, "MX")
@@ -96,7 +96,7 @@ def lookup_mx(domain: str) -> List[str]:
         return [f"error: {exc}"]
 
 
-def smtp_extensions(host: str, port: int = 25) -> List[str]:
+def smtp_extensions(host: str, port: int = 25) -> list[str]:
     """Return list of supported SMTP extensions for ``host``."""
     try:
         with smtplib.SMTP(host, port, timeout=10) as smtp:
@@ -106,7 +106,7 @@ def smtp_extensions(host: str, port: int = 25) -> List[str]:
         return [f"error: {exc}"]
 
 
-def check_certificate(host: str, port: int = 443) -> Dict[str, Any]:
+def check_certificate(host: str, port: int = 443) -> dict[str, Any]:
     """Return TLS certificate details for ``host``.
 
     A secure connection is established using :func:`ssl.create_default_context`
@@ -127,9 +127,9 @@ def check_certificate(host: str, port: int = 443) -> Dict[str, Any]:
         return {"error": str(exc)}
 
 
-def port_scan(host: str, ports: List[int], timeout: float = 1.0) -> Dict[int, bool]:
+def port_scan(host: str, ports: list[int], timeout: float = 1.0) -> dict[int, bool]:
     """Return mapping of ports to open status for ``host``."""
-    results: Dict[int, bool] = {}
+    results: dict[int, bool] = {}
     for p in ports:
         sock = socket.socket()
         sock.settimeout(timeout)

@@ -2,7 +2,7 @@ from __future__ import annotations
 import logging
 import sys
 import time
-from typing import List, Optional
+from typing import Optional
 from ..config import Config
 from .core import throttle
 
@@ -27,7 +27,7 @@ def send_test_email(cfg: Config) -> None:
     sendmail(1, 1, Counter(), msg, cfg)
 
 
-def bombing_mode(cfg: Config, attachments: Optional[List[str]] = None) -> None:
+def bombing_mode(cfg: Config, attachments: Optional[list[str]] = None) -> None:
     from multiprocessing import Manager
     from .core import sendmail  # noqa: F401
     from .. import proxy as proxy_util

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional
+from typing import Optional
 import smtplib
 import ssl
 
@@ -15,9 +15,9 @@ VERSIONS = {
 }
 
 
-def discover(host: str, port: int = 25, timeout: float = 5.0) -> Dict[str, bool]:
+def discover(host: str, port: int = 25, timeout: float = 5.0) -> dict[str, bool]:
     """Return mapping of TLS versions to success when using STARTTLS."""
-    results: Dict[str, bool] = {}
+    results: dict[str, bool] = {}
     for name, version in VERSIONS.items():
         ctx = ssl.create_default_context()
         ctx.minimum_version = version
@@ -35,15 +35,15 @@ def discover(host: str, port: int = 25, timeout: float = 5.0) -> Dict[str, bool]
 
 def details(
     host: str, port: int = 25, timeout: float = 5.0
-) -> Dict[str, Dict[str, object]]:
+) -> dict[str, dict[str, object]]:
     """Return per-version STARTTLS details similar to tlstest.
 
     Each entry contains: supported (bool), valid (bool|None), protocol
     (str|None), cipher (str|None) and a minimal certificate summary.
     """
-    out: Dict[str, Dict[str, object]] = {}
+    out: dict[str, dict[str, object]] = {}
     for name, version in VERSIONS.items():
-        info: Dict[str, object] = {
+        info: dict[str, object] = {
             "supported": False,
             "valid": None,
             "protocol": None,
@@ -114,9 +114,9 @@ def cipher_matrix(
     host: str,
     port: int = 25,
     *,
-    ciphers: Optional[List[str]] = None,
+    ciphers: Optional[list[str]] = None,
     timeout: float = 5.0,
-) -> Dict[str, Dict[str, bool]]:
+) -> dict[str, dict[str, bool]]:
     """Return mapping of TLS versions to cipher support under STARTTLS.
 
     If ``ciphers`` is None, a small default list is used.
@@ -128,9 +128,9 @@ def cipher_matrix(
         "ECDHE-RSA-AES128-GCM-SHA256",
     ]
     cipher_list = ciphers or default_ciphers
-    matrix: Dict[str, Dict[str, bool]] = {}
+    matrix: dict[str, dict[str, bool]] = {}
     for name, version in VERSIONS.items():
-        row: Dict[str, bool] = {}
+        row: dict[str, bool] = {}
         for cipher in cipher_list:
             ctx = ssl.create_default_context()
             ctx.minimum_version = version

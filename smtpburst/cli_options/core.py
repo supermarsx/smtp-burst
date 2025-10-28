@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Iterable, Tuple
+from typing import Any, Iterable
 
 from .. import __version__
 from ..cli_core import positive_int, positive_float
@@ -10,7 +10,7 @@ try:
 except ImportError:  # pragma: no cover - library may not be installed
     yaml = None  # type: ignore
 
-CLIOption = Tuple[Tuple[str, ...], Dict[str, Any]]
+CLIOption = tuple[tuple[str, ...], dict[str, Any]]
 
 # Core CLI options: config, sending, payload, async, logging, and reporting
 CLI_OPTIONS: Iterable[CLIOption] = [

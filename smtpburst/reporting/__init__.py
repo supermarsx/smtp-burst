@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, Callable, Iterable, Tuple
+from typing import Any, Callable, Iterable
 import json
 import xml.etree.ElementTree as ET
 
@@ -12,7 +12,7 @@ except Exception:  # pragma: no cover - optional dependency
     yaml = None
 
 
-def ascii_report(results: Dict[str, Any]) -> str:
+def ascii_report(results: dict[str, Any]) -> str:
     """Return simple ASCII formatted report from ``results``."""
 
     width = max([len(k) for k in results] + [len("Test Report")])
@@ -26,13 +26,13 @@ def ascii_report(results: Dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def json_report(results: Dict[str, Any]) -> str:
+def json_report(results: dict[str, Any]) -> str:
     """Return results encoded as formatted JSON."""
 
     return json.dumps(results, indent=2, sort_keys=True)
 
 
-def yaml_report(results: Dict[str, Any]) -> str:
+def yaml_report(results: dict[str, Any]) -> str:
     """Return results encoded as YAML."""
 
     if yaml is None:
@@ -42,8 +42,8 @@ def yaml_report(results: Dict[str, Any]) -> str:
 
 
 def _flatten(
-    prefix: Tuple[str, ...], value: Any
-) -> Iterable[Tuple[Tuple[str, ...], Any]]:
+    prefix: tuple[str, ...], value: Any
+) -> Iterable[tuple[tuple[str, ...], Any]]:
     if isinstance(value, dict):
         for k, v in value.items():
             yield from _flatten(prefix + (str(k),), v)
@@ -51,7 +51,7 @@ def _flatten(
         yield prefix, value
 
 
-def jsonl_report(results: Dict[str, Any]) -> str:
+def jsonl_report(results: dict[str, Any]) -> str:
     """Return results flattened as JSON Lines (one key=value per line).
 
     Keys are joined by dots, e.g., performance.target.ping
@@ -79,7 +79,7 @@ def _sanitize_metric_name(name: str) -> str:
     return s
 
 
-def prometheus_report(results: Dict[str, Any]) -> str:
+def prometheus_report(results: dict[str, Any]) -> str:
     """Return a Prometheus-compatible metrics exposition of numeric leaves.
 
     Flattens numeric values and emits lines like:
@@ -97,7 +97,7 @@ def prometheus_report(results: Dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def junit_report(results: Dict[str, Any]) -> str:
+def junit_report(results: dict[str, Any]) -> str:
     """Return results encoded as JUnit XML.
 
     A simple mapping is applied: each key in ``results`` becomes a testcase.
@@ -137,7 +137,7 @@ def junit_report(results: Dict[str, Any]) -> str:
 from .html import html_report  # noqa: E402
 
 
-REPORT_FORMATS: Dict[str, Callable[[Dict[str, Any]], str]] = {
+REPORT_FORMATS: dict[str, Callable[[dict[str, Any]], str]] = {
     "ascii": ascii_report,
     "json": json_report,
     "yaml": yaml_report,

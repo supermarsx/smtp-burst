@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List, Optional, TextIO
+from typing import Optional, TextIO
 
 # Size constants
 SZ_KILOBYTE = 1024
@@ -22,7 +22,7 @@ class Config:
     SB_RETRY_COUNT: int = 0
 
     SB_SENDER: str = "from@sender.com"
-    SB_RECEIVERS: List[str] = field(default_factory=lambda: ["to@receiver.com"])
+    SB_RECEIVERS: list[str] = field(default_factory=lambda: ["to@receiver.com"])
     SB_SERVER: str = "smtp.mail.com"
     SB_HELO_HOST: str = ""
     SB_SUBJECT: str = "smtp-burst test"
@@ -31,12 +31,12 @@ class Config:
     SB_TEMPLATE: str = ""
 
     # Proxy and authentication defaults
-    SB_PROXIES: List[str] = field(default_factory=list)
+    SB_PROXIES: list[str] = field(default_factory=list)
     SB_PROXY_ORDER: str = "asc"
     SB_CHECK_PROXIES: bool = False
     SB_PROXY_TIMEOUT: float = 5.0
-    SB_USERLIST: List[str] = field(default_factory=list)
-    SB_PASSLIST: List[str] = field(default_factory=list)
+    SB_USERLIST: list[str] = field(default_factory=list)
+    SB_PASSLIST: list[str] = field(default_factory=list)
     SB_USERNAME: str = ""
     SB_PASSWORD: str = ""
 
@@ -52,12 +52,12 @@ class Config:
 
     # Data generation options
     SB_DATA_MODE: str = "ascii"
-    SB_DICT_WORDS: List[str] = field(default_factory=list)
+    SB_DICT_WORDS: list[str] = field(default_factory=list)
     SB_REPEAT_STRING: str = ""
     SB_PER_BURST_DATA: bool = False
     SB_SECURE_RANDOM: bool = False
     SB_RAND_STREAM: Optional[TextIO] = None
-    SB_ENUM_LIST: List[str] = field(default_factory=list)
+    SB_ENUM_LIST: list[str] = field(default_factory=list)
 
     # Connection timeout
     SB_TIMEOUT: float = 10.0

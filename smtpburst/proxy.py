@@ -7,7 +7,7 @@ import logging
 import random
 import socket
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import Optional
 from urllib.parse import urlsplit
 
 from .discovery.nettests import CommandNotFoundError, ping
@@ -195,7 +195,7 @@ def load_proxies(
     order: str = "asc",
     check: bool = False,
     timeout: float = 5,
-) -> List[str]:
+) -> list[str]:
     """Return list of proxies from ``path`` respecting ``order``.
 
     ``order`` must be one of ``"asc"``, ``"desc"`` or ``"random"``. If
@@ -219,7 +219,7 @@ def load_proxies(
     return proxies
 
 
-def select_proxy(proxies: List[str], order: str, index: int) -> str | None:
+def select_proxy(proxies: list[str], order: str, index: int) -> str | None:
     """Return proxy for ``index`` using ``order`` strategy.
 
     ``order`` must be one of ``"asc"``, ``"desc"`` or ``"random"``.

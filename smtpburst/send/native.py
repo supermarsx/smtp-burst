@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import time
-from typing import List, Optional
+from typing import Optional
 
 from ..config import Config
 from .core import async_throttle, _increment
@@ -25,6 +25,7 @@ async def _async_sendmail_native(
         return
 
     from .core import parse_server
+
     host, port = parse_server(cfg.SB_SERVER)
     use_ssl = cfg.SB_SSL
     start_tls = cfg.SB_STARTTLS
@@ -77,7 +78,7 @@ async def _async_sendmail_native(
 
 
 async def _async_bombing_mode_native(
-    cfg: Config, attachments: Optional[List[str]] = None
+    cfg: Config, attachments: Optional[list[str]] = None
 ) -> None:
     import asyncio
 

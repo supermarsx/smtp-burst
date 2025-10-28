@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Dict
 import socket
 import ssl
 
@@ -15,9 +14,9 @@ VERSIONS = {
 }
 
 
-def discover(host: str, port: int = 443, timeout: float = 3.0) -> Dict[str, bool]:
+def discover(host: str, port: int = 443, timeout: float = 3.0) -> dict[str, bool]:
     """Return mapping of TLS version names to connection success."""
-    results: Dict[str, bool] = {}
+    results: dict[str, bool] = {}
     for name, version in VERSIONS.items():
         context = ssl.create_default_context()
         context.minimum_version = version

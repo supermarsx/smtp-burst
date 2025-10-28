@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Iterable, Tuple
+from typing import Any, Iterable
 
 from ..cli_core import positive_int
 
-CLIOption = Tuple[Tuple[str, ...], Dict[str, Any]]
+CLIOption = tuple[tuple[str, ...], dict[str, Any]]
 
 # Discovery, inbox, performance, and STARTTLS/TLS options
 CLI_OPTIONS: Iterable[CLIOption] = [

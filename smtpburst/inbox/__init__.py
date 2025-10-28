@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import imaplib
 import poplib
-from typing import List
 
 
 def imap_search(
@@ -14,7 +13,7 @@ def imap_search(
     port: int = 993,
     ssl: bool = True,
     mailbox: str = "INBOX",
-) -> List[bytes]:
+) -> list[bytes]:
     """Return message IDs matching ``criteria`` from IMAP server."""
     cls = imaplib.IMAP4_SSL if ssl else imaplib.IMAP4
     try:
@@ -39,7 +38,7 @@ def imap_header_search(
     port: int = 993,
     ssl: bool = True,
     mailbox: str = "INBOX",
-) -> List[bytes]:
+) -> list[bytes]:
     """Return message IDs matching a header/value pair via IMAP."""
     cls = imaplib.IMAP4_SSL if ssl else imaplib.IMAP4
     try:
@@ -62,7 +61,7 @@ def pop3_search(
     pattern: bytes | None = None,
     port: int = 995,
     ssl: bool = True,
-) -> List[int]:
+) -> list[int]:
     """Return message numbers containing ``pattern`` via POP3."""
     cls = poplib.POP3_SSL if ssl else poplib.POP3
     pop: poplib.POP3 | None = None
@@ -70,7 +69,7 @@ def pop3_search(
         pop = cls(host, port)
         pop.user(user)
         pop.pass_(password)
-        ids: List[int] = []
+        ids: list[int] = []
         # ``stat`` provides the message count without fetching all IDs as
         # ``list`` would, making large mailboxes more efficient to scan.
         count, _ = pop.stat()
