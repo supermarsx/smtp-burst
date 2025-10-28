@@ -24,11 +24,33 @@ def test_performance_test(monkeypatch):
     assert res == {"target": expected, "baseline": expected}
 
 
-def test_smurf_test_delay(monkeypatch):
-    calls = []
+def test_smurf_test_calls_ping(monkeypatch):
+    ping_calls = []
+    sleep_calls = []
 
-    monkeypatch.setattr(attacks.time, "sleep", lambda d: calls.append(d))
+    def fake_ping(host, count, timeout):
+        ping_calls.append((host, count, timeout))
+        return "ok"
 
-    attacks.smurf_test("t", 3, delay=0.05)
+    monkeypatch.setattr(attacks.nettests, "ping", fake_ping)
+    monkeypatch.setattr(attacks.time, "sleep", lambda d: sleep_calls.append(d))
 
-    assert calls == [0.05, 0.05, 0.05]
+    attacks.smurf_test("t", 3, delay=0.05, timeout=2.0)
+
+    assert ping_calls == [("t", 1, 2), ("t", 1, 2), ("t", 1, 2)]
+    assert sleep_calls == [0.05, 0.05, 0.05]
+
+
+def test_smurf_test_logs_failures(monkeypatch, caplog):
+    def fake_ping(host, count, timeout):
+        return {}
+
+    monkeypatch.setattr(attacks.nettests, "ping", fake_ping)
+    monkeypatch.setattr(attacks.time, "sleep", lambda _: None)
+
+    with caplog.at_level("WARNING"):
+        attacks.smurf_test("t", 2, delay=0, timeout=1)
+
+    warnings = [record for record in caplog.records if record.levelname == "WARNING"]
+    assert len(warnings) == 2
+    assert all("failed" in record.getMessage() for record in warnings)
