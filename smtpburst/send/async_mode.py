@@ -4,7 +4,7 @@ import asyncio
 import logging
 import sys
 import time
-from typing import List, Optional
+from typing import Optional
 
 from ..config import Config
 from .core import async_throttle
@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 async def async_bombing_mode(
-    cfg: Config, attachments: Optional[List[str]] = None
+    cfg: Config, attachments: Optional[list[str]] = None
 ) -> None:
     if getattr(cfg, "SB_ASYNC_NATIVE", False):
         from .native import _async_bombing_mode_native

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Dict, List
 
 from ..config import Config
 
@@ -49,7 +48,7 @@ def _attempt_auth(
         return False
 
 
-def _list_mechanisms(sm) -> List[str]:
+def _list_mechanisms(sm) -> list[str]:
     raw = (sm.esmtp_features or {}).get("auth", "")
     return [m.strip().upper() for m in raw.split() if m.strip()]
 
@@ -57,13 +56,13 @@ def _list_mechanisms(sm) -> List[str]:
 def _mech_results(
     host: str,
     port: int,
-    mechs: List[str],
-    creds: List[tuple[str, str]],
+    mechs: list[str],
+    creds: list[tuple[str, str]],
     timeout: float,
     start_tls: bool,
     helo_host: str | None,
-) -> Dict[str, bool]:
-    results: Dict[str, bool] = {}
+) -> dict[str, bool]:
+    results: dict[str, bool] = {}
     from . import smtplib as _smtplib
 
     for mech in mechs:
@@ -144,7 +143,7 @@ def _smtp_authenticate(
     username: str,
     password: str,
     helo_host: str | None = None,
-) -> Dict[str, bool]:
+) -> dict[str, bool]:
     cfg = Config()
     cfg.SB_SERVER = f"{host}:{int(port)}"
     cfg.SB_USERNAME = username

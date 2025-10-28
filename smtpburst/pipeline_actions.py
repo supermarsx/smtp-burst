@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Dict
-
 from .config import Config
 from . import send, attacks
 
@@ -82,17 +80,17 @@ def performance_benchmark_action(
     iterations: int = 5,
     baseline: str | None = None,
     port: int | None = None,
-) -> Dict[str, Dict[str, list[float]]]:
+) -> dict[str, dict[str, list[float]]]:
     h, p = send.parse_server(host)
     if port is not None:
         p = int(port)
-    series: Dict[str, list[float]] = {
+    series: dict[str, list[float]] = {
         "connection_setup": [],
         "smtp_handshake": [],
         "message_send": [],
         "ping": [],
     }
-    baseline_series: Dict[str, list[float]] | None = None
+    baseline_series: dict[str, list[float]] | None = None
     if baseline:
         baseline_series = {
             "connection_setup": [],
@@ -113,7 +111,7 @@ def performance_benchmark_action(
                 v = b.get(k)
                 if isinstance(v, (int, float)):
                     baseline_series[k].append(float(v))
-    out: Dict[str, Dict[str, list[float]]] = {"series": series}
+    out: dict[str, dict[str, list[float]]] = {"series": series}
     if baseline and baseline_series is not None:
         out["baseline_series"] = baseline_series
     return out

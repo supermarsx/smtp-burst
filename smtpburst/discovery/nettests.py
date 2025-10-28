@@ -8,7 +8,7 @@ from dns import resolver
 import subprocess
 import platform
 import shutil
-from typing import Callable, Dict, List
+from typing import Callable
 import socket
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -22,19 +22,19 @@ class CommandNotFoundError(Exception):
 
 
 # A small set of commonly-used DNSBL zones (informational, may change)
-COMMON_DNSBL: List[str] = [
+COMMON_DNSBL: list[str] = [
     "zen.spamhaus.org",
     "bl.spamcop.net",
     "dnsbl.sorbs.net",
 ]
 
 
-def default_dnsbl_zones() -> List[str]:
+def default_dnsbl_zones() -> list[str]:
     """Return a default list of common DNSBL zones."""
     return list(COMMON_DNSBL)
 
 
-def ping(host: str, count: int = 1, timeout: int = 1) -> str | Dict[str, str]:
+def ping(host: str, count: int = 1, timeout: int = 1) -> str | dict[str, str]:
     """Return output of ``ping`` command for ``host``.
 
     Raises:
@@ -79,7 +79,7 @@ def ping(host: str, count: int = 1, timeout: int = 1) -> str | Dict[str, str]:
         return {"error": str(exc), "cmd": cmd[0]}
 
 
-def traceroute(host: str, count: int = 30, timeout: int = 5) -> str | Dict[str, str]:
+def traceroute(host: str, count: int = 30, timeout: int = 5) -> str | dict[str, str]:
     """Return output of ``traceroute`` command for ``host``.
 
     Raises:
@@ -126,9 +126,9 @@ def open_relay_test(host: str, port: int = 25) -> bool:
         return False
 
 
-def blacklist_check(ip: str, zones: List[str]) -> Dict[str, str]:
+def blacklist_check(ip: str, zones: list[str]) -> dict[str, str]:
     """Return mapping of RBL zone to listing status for ``ip``."""
-    results: Dict[str, str] = {}
+    results: dict[str, str] = {}
     try:
         ip_obj = ipaddress.ip_address(ip)
     except ValueError as exc:  # pragma: no cover - input validation
@@ -152,10 +152,10 @@ def blacklist_check(ip: str, zones: List[str]) -> Dict[str, str]:
 
 
 def blacklist_check_parallel(
-    ip: str, zones: List[str], max_workers: int = 8
-) -> Dict[str, str]:
+    ip: str, zones: list[str], max_workers: int = 8
+) -> dict[str, str]:
     """Like :func:`blacklist_check` but queries zones in parallel."""
-    results: Dict[str, str] = {}
+    results: dict[str, str] = {}
 
     def _one(zone: str) -> None:
         qname = f"{reversed_ip}.{zone}"
@@ -189,14 +189,14 @@ from .nettests_impl import pipelining_probe_impl, chunking_probe_impl  # noqa: E
 
 def pipelining_probe(
     host: str, port: int = 25, timeout: float = 5.0
-) -> Dict[str, bool]:
+) -> dict[str, bool]:
     """Wrapper for PIPELINING probe using nettests' smtplib/socket for tests."""
     return pipelining_probe_impl(
         host, port, timeout, smtplib_module=smtplib, socket_module=socket
     )
 
 
-def chunking_probe(host: str, port: int = 25, timeout: float = 5.0) -> Dict[str, bool]:
+def chunking_probe(host: str, port: int = 25, timeout: float = 5.0) -> dict[str, bool]:
     """Wrapper for CHUNKING probe using nettests' smtplib/socket for tests."""
     return chunking_probe_impl(
         host, port, timeout, smtplib_module=smtplib, socket_module=socket
@@ -207,23 +207,23 @@ from .nettests_impl import enum_impl  # noqa: E402
 
 
 def _enum(
-    host: str, port: int, items: List[str], func: Callable, reset: bool = False
-) -> Dict[str, bool]:
+    host: str, port: int, items: list[str], func: Callable, reset: bool = False
+) -> dict[str, bool]:
     """Delegate to implementation while using this module's smtplib for tests."""
     return enum_impl(host, port, items, func, reset, smtplib_module=smtplib)
 
 
-def vrfy_enum(host: str, items: List[str], port: int = 25) -> Dict[str, bool]:
+def vrfy_enum(host: str, items: list[str], port: int = 25) -> dict[str, bool]:
     """Return result of VRFY enumeration for ``items``."""
     return _enum(host, port, items, lambda s, i: s.verify(i))
 
 
-def expn_enum(host: str, items: List[str], port: int = 25) -> Dict[str, bool]:
+def expn_enum(host: str, items: list[str], port: int = 25) -> dict[str, bool]:
     """Return result of EXPN enumeration for ``items``."""
     return _enum(host, port, items, lambda s, i: s.expn(i))
 
 
-def rcpt_enum(host: str, items: List[str], port: int = 25) -> Dict[str, bool]:
+def rcpt_enum(host: str, items: list[str], port: int = 25) -> dict[str, bool]:
     """Return result of RCPT TO enumeration for ``items``."""
 
     def _rcpt(smtp: smtplib.SMTP, rcpt: str):

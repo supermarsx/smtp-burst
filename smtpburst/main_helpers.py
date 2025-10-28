@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from typing import Dict, Any
+from typing import Any
 
 from . import discovery, attacks, inbox, send
 
 
-def collect_results(args, cfg) -> Dict[str, Any]:
-    results: Dict[str, Any] = {}
+def collect_results(args, cfg) -> dict[str, Any]:
+    results: dict[str, Any] = {}
     if args.check_dmarc:
         results["dmarc"] = discovery.check_dmarc(args.check_dmarc)
     if args.check_spf:

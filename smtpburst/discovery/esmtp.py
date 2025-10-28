@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Dict, Any, Optional
+from typing import Any, Optional
 import smtplib
 
 
@@ -23,7 +23,7 @@ def check(
     timeout: float = 5.0,
     test_8bit: bool = True,
     test_chunking: bool = False,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Return declared ESMTP features and simple compliance test results.
 
     When ``test_8bit`` is True, attempts to send a small message containing
@@ -32,7 +32,7 @@ def check(
     indicate support (full BDAT is not available in smtplib).
     """
 
-    results: Dict[str, Any] = {"features": [], "supports": {}, "tests": {}}
+    results: dict[str, Any] = {"features": [], "supports": {}, "tests": {}}
     try:
         with smtplib.SMTP(host, port, timeout=timeout) as smtp:
             smtp.ehlo()

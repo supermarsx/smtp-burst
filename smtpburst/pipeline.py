@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Callable
+from typing import Any, Callable
 import logging
 
 try:
@@ -21,7 +21,7 @@ from .pipeline_actions import (
 logger = logging.getLogger(__name__)
 
 
-ACTION_MAP: Dict[str, Callable[..., Any]] = {}
+ACTION_MAP: dict[str, Callable[..., Any]] = {}
 
 
 def register_action(name: str, func: Callable[..., Any]) -> None:
@@ -131,13 +131,13 @@ def _assert_action(**kwargs) -> bool:
 register_action("assert", _assert_action)
 
 
-def _parallel_action(steps: List[Dict[str, Any]]) -> List[Any]:
+def _parallel_action(steps: list[dict[str, Any]]) -> list[Any]:
     """Run a list of pipeline steps in parallel using threads."""
     from concurrent.futures import ThreadPoolExecutor, as_completed
 
-    results: List[Any] = []
+    results: list[Any] = []
 
-    def run_step(step: Dict[str, Any]):
+    def run_step(step: dict[str, Any]):
         if not isinstance(step, dict):
             raise PipelineError("parallel sub-step must be a mapping")
         action = step.get("action")
@@ -196,7 +196,7 @@ class PipelineRunner:
 
     def __init__(
         self,
-        steps: List[Dict[str, Any]],
+        steps: list[dict[str, Any]],
         stop_on_fail: bool = False,
         fail_threshold: int = 1,
     ):
@@ -204,10 +204,10 @@ class PipelineRunner:
         self.stop_on_fail = stop_on_fail
         self.fail_threshold = fail_threshold
         self.failures = 0
-        self.results: List[Any] = []
-        self.vars: Dict[str, Any] = {}
+        self.results: list[Any] = []
+        self.vars: dict[str, Any] = {}
 
-    def run(self) -> List[Any]:
+    def run(self) -> list[Any]:
         for step in self.steps:
             if not isinstance(step, dict):
                 raise PipelineError("Step must be a mapping")

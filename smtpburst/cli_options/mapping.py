@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-from typing import Dict
-
 # Map argparse destination names to Config attribute names
-MAP: Dict[str, str] = {
+MAP: dict[str, str] = {
     "server": "SB_SERVER",
     "helo_host": "SB_HELO_HOST",
     "sender": "SB_SENDER",

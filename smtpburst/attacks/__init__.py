@@ -6,7 +6,7 @@ import time
 import logging
 import smtplib
 import subprocess
-from typing import List, Dict, Any
+from typing import Any
 
 from ..config import Config
 
@@ -34,7 +34,7 @@ def open_sockets(
     ``timeout`` is passed to :func:`socket.create_connection`.
     ``KeyboardInterrupt`` still exits immediately.
     """
-    sockets: List[socket.socket] = []
+    sockets: list[socket.socket] = []
     for _ in range(count):
         try:
             s = socket.create_connection((host, port), timeout=timeout)
@@ -68,9 +68,9 @@ def open_sockets(
                 pass
 
 
-def socket_open_time(host: str, count: int, port: int = 25) -> List[float]:
+def socket_open_time(host: str, count: int, port: int = 25) -> list[float]:
     """Measure connection open times to ``host``."""
-    times: List[float] = []
+    times: list[float] = []
     for _ in range(count):
         start = time.monotonic()
         s = socket.create_connection((host, port))
@@ -185,7 +185,7 @@ def smtp_handshake_time(
 def message_send_time(
     host: str,
     sender: str,
-    recipients: List[str],
+    recipients: list[str],
     message: bytes,
     port: int = 25,
     use_ssl: bool = False,
@@ -217,10 +217,10 @@ def performance_test(
     host: str,
     port: int = 25,
     baseline: str | None = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Run latency tests against ``host`` and optionally ``baseline``."""
 
-    def _measure(target: str, p: int) -> Dict[str, float]:
+    def _measure(target: str, p: int) -> dict[str, float]:
         return {
             "connection_setup": connection_setup_time(target, p),
             "smtp_handshake": smtp_handshake_time(target, p),

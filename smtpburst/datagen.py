@@ -2,7 +2,7 @@ import random
 import secrets
 import string
 from enum import Enum
-from typing import List, Optional, TextIO, Union
+from typing import Optional, TextIO, Union
 
 
 class DataMode(Enum):
@@ -66,11 +66,11 @@ def gen_binary(
     return bytes(random.getrandbits(8) for _ in range(size))
 
 
-def gen_dictionary(size: int, words: List[str]) -> str:
+def gen_dictionary(size: int, words: list[str]) -> str:
     """Return text of approximately ``size`` bytes from ``words`` list."""
     if not words:
         return ""
-    result: List[str] = []
+    result: list[str] = []
     total = 0
     while total < size:
         word = random.choice(words)
@@ -87,13 +87,13 @@ def gen_repeat(text: str, size: int) -> str:
     return (text * reps)[:size]
 
 
-def load_wordlist(path: str) -> List[str]:
+def load_wordlist(path: str) -> list[str]:
     """Return non-empty, stripped lines from ``path``."""
     with open(path, "r", encoding="utf-8") as fh:
         return [line.strip() for line in fh if line.strip()]
 
 
-def compile_wordlist(path: str) -> List[str]:
+def compile_wordlist(path: str) -> list[str]:
     """Return list of words from ``path``."""
     return load_wordlist(path)
 
@@ -103,7 +103,7 @@ def generate(
     mode: Union[DataMode, str] = DataMode.ASCII,
     *,
     secure: bool = False,
-    words: Optional[List[str]] = None,
+    words: Optional[list[str]] = None,
     repeat: Optional[str] = None,
     stream: Optional[TextIO] = None,
 ) -> bytes:

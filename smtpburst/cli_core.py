@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import warnings
-from typing import Any, Dict, Tuple
+from typing import Any
 
 from .config import Config
 
@@ -29,7 +29,7 @@ def positive_float(value: str) -> float:
     return fvalue
 
 
-CLIOption = Tuple[Tuple[str, ...], Dict[str, Any]]
+CLIOption = tuple[tuple[str, ...], dict[str, Any]]
 SUBCOMMANDS = {"send", "discovery", "auth", "suite", "inbox", "attack"}
 
 from .cli_options import (  # type: ignore  # noqa: E402
@@ -38,7 +38,7 @@ from .cli_options import (  # type: ignore  # noqa: E402
 )
 
 
-def load_config(path: str) -> Dict[str, Any]:
+def load_config(path: str) -> dict[str, Any]:
     """Load configuration from JSON or YAML file."""
     with open(path, "r", encoding="utf-8") as fh:
         if path.endswith((".yaml", ".yml")):

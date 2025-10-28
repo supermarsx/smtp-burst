@@ -3,7 +3,6 @@ from __future__ import annotations
 import asyncio
 import ipaddress
 import logging
-from typing import Tuple
 from urllib.parse import urlsplit
 
 from ..config import Config
@@ -222,7 +221,7 @@ async def async_sendmail(*args, fail_lock: asyncio.Lock | None = None, **kwargs)
     await asyncio.to_thread(sendmail, *args, **kwargs, fail_lock=fail_lock, loop=loop)
 
 
-def parse_server(server: str) -> Tuple[str, int]:
+def parse_server(server: str) -> tuple[str, int]:
     default_port = 25
     if not server:
         raise ValueError("Server must not be empty")

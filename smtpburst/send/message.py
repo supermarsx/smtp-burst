@@ -3,7 +3,7 @@ from __future__ import annotations
 import mimetypes
 from email.message import EmailMessage
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 from ..config import Config
 from .. import datagen
@@ -12,7 +12,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def append_message(cfg: Config, attachments: Optional[List[str]] = None) -> bytes:
+def append_message(cfg: Config, attachments: Optional[list[str]] = None) -> bytes:
     receivers = ", ".join(cfg.SB_RECEIVERS)
     body = cfg.SB_BODY
     if cfg.SB_TEST_CONTROL:
