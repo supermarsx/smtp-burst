@@ -132,7 +132,20 @@ def smurf_test(
     failures = 0
     timeout_arg = max(int(timeout), 1)
     for attempt in range(1, count + 1):
-        result = nettests.ping(target, count=1, timeout=timeout_arg)
+        try:
+            result = nettests.ping(target, count=1, timeout=timeout_arg)
+        except nettests.CommandNotFoundError as exc:
+            failures += 1
+            logger.warning(
+                "Ping attempt %s/%s to %s failed: %s",
+                attempt,
+                count,
+                target,
+                exc,
+            )
+            if delay:
+                time.sleep(delay)
+            continue
         if isinstance(result, dict) or not result:
             failures += 1
             logger.warning(
