@@ -11,6 +11,7 @@ from typing import Any
 from ..config import Config
 
 from .. import send
+from ..discovery import nettests
 
 
 logger = logging.getLogger(__name__)
@@ -120,11 +121,44 @@ def tcp_reset_flood(host: str, port: int, count: int):
     logger.info("Performed %s TCP resets on %s:%s", count, host, port)
 
 
-def smurf_test(target: str, count: int, delay: float = Config.SB_SMURF_DELAY) -> None:
+def smurf_test(
+    target: str,
+    count: int,
+    delay: float = Config.SB_SMURF_DELAY,
+    *,
+    timeout: float = 1.0,
+) -> None:
     """Simulate a smurf attack by issuing ping requests."""
-    for _ in range(count):
-        time.sleep(delay)
-    logger.info("Simulated smurf attack against %s %s times", target, count)
+    failures = 0
+    timeout_arg = max(int(timeout), 1)
+    for attempt in range(1, count + 1):
+        try:
+            result = nettests.ping(target, count=1, timeout=timeout_arg)
+        except nettests.CommandNotFoundError as exc:
+            failures += 1
+            logger.warning(
+                "Ping attempt %s/%s to %s failed: %s",
+                attempt,
+                count,
+                target,
+                exc,
+            )
+            if delay:
+                time.sleep(delay)
+            continue
+        if isinstance(result, dict) or not result:
+            failures += 1
+            logger.warning(
+                "Ping attempt %s/%s to %s failed: %r", attempt, count, target, result
+            )
+        if delay:
+            time.sleep(delay)
+    logger.info(
+        "Simulated smurf attack against %s %s times (%s failures)",
+        target,
+        count,
+        failures,
+    )
 
 
 def auto_test(host: str, port: int):
