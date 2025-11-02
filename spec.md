@@ -25,6 +25,9 @@ that expand capability while keeping tests green and style checks passing.
   - Adopt true async sending via `aiosmtplib`, with connection reuse,
     pipelining tests, warm/cold start variants, retries with backoff/jitter,
     and concurrency caps per host.
+  - Surface configuration toggles (`SB_ASYNC_WARM_START`,
+    `SB_ASYNC_COLD_START`, `SB_ASYNC_THREAD_OFFLOAD`) so profiles can be
+    exercised independently in tests.
   - Provide ready-made profiles (throughput, latency-sweep, mixed payloads).
 
 - Protocol coverage

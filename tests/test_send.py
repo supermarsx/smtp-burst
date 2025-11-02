@@ -1,3 +1,6 @@
+import asyncio
+import types
+
 import pytest
 import smtpburst.send as send
 from smtpburst.config import Config
@@ -305,35 +308,185 @@ def test_bombing_mode_uses_pool(monkeypatch):
     assert {n for n, b, m in sent} == {1, 2}
 
 
-@pytest.mark.asyncio
-async def test_async_bombing_mode(monkeypatch):
-    """Async mode should send expected emails without spawning processes."""
+def test_async_bombing_mode_reuses_connections(monkeypatch):
+    import smtpburst.send.native as native
 
-    sent = []
+    asyncio.run(native.reset_async_pools())
 
-    def fake_sendmail(number, burst, counter, msg, cfg, **kwargs):
-        sent.append((number, burst, msg))
+    class FakeSMTP:
+        instances: list["FakeSMTP"] = []
+        connect_calls = 0
+        sendmail_calls = 0
+        max_inflight = 0
+        _inflight = 0
 
-    monkeypatch.setattr(send, "sendmail", fake_sendmail)
-    monkeypatch.setattr(send, "append_message", lambda cfg, attachments=None: b"msg")
-    monkeypatch.setattr(send, "sizeof_fmt", lambda n: str(n))
+        def __init__(self, hostname, port, timeout=None, use_tls=False):
+            self.hostname = hostname
+            self.port = port
+            self.timeout = timeout
+            self.use_tls = use_tls
+            self._connected = False
+            FakeSMTP.instances.append(self)
 
-    import multiprocessing
+        async def connect(self):
+            FakeSMTP.connect_calls += 1
+            self._connected = True
 
-    def boom(*args, **kwargs):  # pragma: no cover - should not be called
-        raise AssertionError("Process should not be spawned in async mode")
+        async def starttls(self):
+            return None
 
-    monkeypatch.setattr(multiprocessing, "Process", boom)
+        async def ehlo(self, host=None):
+            return None
+
+        async def sendmail(self, sender, receivers, message):
+            FakeSMTP._inflight += 1
+            FakeSMTP.max_inflight = max(FakeSMTP.max_inflight, FakeSMTP._inflight)
+            FakeSMTP.sendmail_calls += 1
+            await asyncio.sleep(0)
+            FakeSMTP._inflight -= 1
+
+        async def quit(self):
+            self._connected = False
+
+        @property
+        def is_connected(self):
+            return self._connected
+
+    async def immediate_throttle(*args, **kwargs):
+        return None
+
+    monkeypatch.setitem(sys.modules, "aiosmtplib", types.SimpleNamespace(SMTP=FakeSMTP))
+    monkeypatch.setattr(native, "async_throttle", immediate_throttle)
+    monkeypatch.setattr(native, "append_message", lambda cfg, attachments=None: b"msg")
 
     cfg = Config()
     cfg.SB_SGEMAILS = 2
     cfg.SB_BURSTS = 1
     cfg.SB_SGEMAILSPSEC = 0
     cfg.SB_BURSTSPSEC = 0
-    await send.async_bombing_mode(cfg)
+    cfg.SB_ASYNC_POOL_SIZE = 1
+    cfg.SB_ASYNC_CONCURRENCY = 4
 
-    assert len(sent) == 2
-    for number, burst, msg in sent:
-        assert number in {1, 2}
-        assert burst == 1
-        assert msg == b"msg"
+    asyncio.run(send.async_bombing_mode(cfg))
+
+    assert FakeSMTP.connect_calls == 1
+    assert FakeSMTP.sendmail_calls == 2
+    assert FakeSMTP.max_inflight == 1
+
+
+def test_async_bombing_mode_warm_start_prefills_pool(monkeypatch):
+    import smtpburst.send.native as native
+
+    asyncio.run(native.reset_async_pools())
+
+    class FakeSMTP:
+        connect_calls = 0
+        instances: list["FakeSMTP"] = []
+
+        def __init__(self, hostname, port, timeout=None, use_tls=False):
+            self._connected = False
+            FakeSMTP.instances.append(self)
+
+        async def connect(self):
+            FakeSMTP.connect_calls += 1
+            self._connected = True
+
+        async def starttls(self):
+            return None
+
+        async def ehlo(self, host=None):
+            return None
+
+        async def sendmail(self, sender, receivers, message):
+            return None
+
+        async def quit(self):
+            self._connected = False
+
+        @property
+        def is_connected(self):
+            return self._connected
+
+    async def immediate_throttle(*args, **kwargs):
+        return None
+
+    monkeypatch.setitem(sys.modules, "aiosmtplib", types.SimpleNamespace(SMTP=FakeSMTP))
+    monkeypatch.setattr(native, "async_throttle", immediate_throttle)
+    monkeypatch.setattr(native, "append_message", lambda cfg, attachments=None: b"msg")
+
+    cfg = Config()
+    cfg.SB_SGEMAILS = 1
+    cfg.SB_BURSTS = 1
+    cfg.SB_SGEMAILSPSEC = 0
+    cfg.SB_BURSTSPSEC = 0
+    cfg.SB_ASYNC_POOL_SIZE = 2
+    cfg.SB_ASYNC_WARM_START = True
+
+    asyncio.run(send.async_bombing_mode(cfg))
+
+    assert FakeSMTP.connect_calls == 2
+    assert len(FakeSMTP.instances) == 2
+
+
+def test_async_bombing_mode_cold_start_backoff(monkeypatch):
+    import smtpburst.send.native as native
+
+    asyncio.run(native.reset_async_pools())
+
+    class FakeSMTP:
+        connect_calls = 0
+        attempts = 0
+
+        def __init__(self, hostname, port, timeout=None, use_tls=False):
+            self._connected = False
+
+        async def connect(self):
+            FakeSMTP.connect_calls += 1
+            self._connected = True
+
+        async def starttls(self):
+            return None
+
+        async def ehlo(self, host=None):
+            return None
+
+        async def sendmail(self, sender, receivers, message):
+            FakeSMTP.attempts += 1
+            if FakeSMTP.attempts == 1:
+                raise RuntimeError("transient failure")
+
+        async def quit(self):
+            self._connected = False
+
+        @property
+        def is_connected(self):
+            return self._connected
+
+    async def immediate_throttle(*args, **kwargs):
+        return None
+
+    sleep_calls: list[float] = []
+
+    async def record_sleep(delay, *_args):
+        sleep_calls.append(delay)
+
+    monkeypatch.setitem(sys.modules, "aiosmtplib", types.SimpleNamespace(SMTP=FakeSMTP))
+    monkeypatch.setattr(native, "async_throttle", immediate_throttle)
+    monkeypatch.setattr(native, "append_message", lambda cfg, attachments=None: b"msg")
+    monkeypatch.setattr(native.random, "uniform", lambda a, b: 0.05)
+    monkeypatch.setattr(native.asyncio, "sleep", record_sleep)
+
+    cfg = Config()
+    cfg.SB_SGEMAILS = 1
+    cfg.SB_BURSTS = 1
+    cfg.SB_SGEMAILSPSEC = 0
+    cfg.SB_BURSTSPSEC = 0
+    cfg.SB_ASYNC_POOL_SIZE = 1
+    cfg.SB_ASYNC_COLD_START = True
+    cfg.SB_RETRY_COUNT = 1
+
+    asyncio.run(send.async_bombing_mode(cfg))
+
+    assert sleep_calls == [pytest.approx(0.25)]
+    assert FakeSMTP.connect_calls == 2
+    assert FakeSMTP.attempts == 2

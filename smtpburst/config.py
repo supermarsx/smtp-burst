@@ -74,9 +74,12 @@ class Config:
 
     # Async sending options
     SB_ASYNC_NATIVE: bool = False
+    SB_ASYNC_THREAD_OFFLOAD: bool = False
     SB_ASYNC_CONCURRENCY: int = 100
     SB_ASYNC_REUSE: bool = True
     SB_ASYNC_POOL_SIZE: int = 10
+    SB_ASYNC_WARM_START: bool = False
+    SB_ASYNC_COLD_START: bool = False
 
     # Trace header for deliverability workflows
     SB_TRACE_ID: str = ""

@@ -59,6 +59,23 @@ This will install the `smtp-burst` console entry point.
 An optional `--config` flag can load settings from a JSON or YAML file.
 See `examples/config.yaml` for a reference.
 
+## Async sending profiles
+
+`async_bombing_mode` now uses the native `aiosmtplib` transport by default.
+Connections are pooled per host/port with concurrency capped by
+`SB_ASYNC_POOL_SIZE`, while `SB_ASYNC_REUSE` controls whether the pool is
+enabled. The following configuration flags shape async behaviour:
+
+- `SB_ASYNC_THREAD_OFFLOAD` — fall back to the legacy thread executor for
+  environments without `aiosmtplib`.
+- `SB_ASYNC_WARM_START` — pre-connect to fill the host pool, avoiding TLS/HELO
+  setup on the first send.
+- `SB_ASYNC_COLD_START` — reset pools before starting a burst to measure true
+  cold-connect performance.
+
+Per-host semaphores enforce the pool limit even when overall concurrency is
+higher, allowing precise throttling of upstream servers.
+
 ### Subcommands (optional shim)
 
 You can prefix commands with a subcommand to clarify intent. This is backward
