@@ -85,11 +85,15 @@ async def _safe_quit(client) -> None:
         pass
 
 
-async def _create_client(cfg: Config, host: str, port: int):
+def _require_aiosmtplib() -> None:
     try:
-        import aiosmtplib
+        import aiosmtplib  # noqa: F401
     except Exception as exc:  # pragma: no cover - import guard
         raise RuntimeError("aiosmtplib is required for async sending") from exc
+
+
+async def _create_client(cfg: Config, host: str, port: int):
+    import aiosmtplib
 
     client_kwargs = {
         "hostname": host,
@@ -194,6 +198,8 @@ async def _async_sendmail_native(
 async def _async_bombing_mode_native(
     cfg: Config, attachments: Optional[list[str]] = None
 ) -> None:
+    _require_aiosmtplib()
+
     host, port = parse_server(cfg.SB_SERVER)
     if getattr(cfg, "SB_ASYNC_REUSE", True):
         if getattr(cfg, "SB_ASYNC_COLD_START", False):
