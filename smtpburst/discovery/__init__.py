@@ -127,8 +127,22 @@ def check_certificate(host: str, port: int = 443) -> dict[str, Any]:
         return {"error": str(exc)}
 
 
+def _validate_ports(ports: list[int]) -> None:
+    """Ensure all ``ports`` fall within the valid TCP/UDP range."""
+
+    invalid = [p for p in ports if not 0 <= p <= 65535]
+    if invalid:
+        numbers = ", ".join(str(p) for p in invalid)
+        raise ValueError(f"Invalid port numbers: {numbers}")
+
+
 def port_scan(host: str, ports: list[int], timeout: float = 1.0) -> dict[int, bool]:
-    """Return mapping of ports to open status for ``host``."""
+    """Return mapping of ports to open status for ``host``.
+
+    Raises ``ValueError`` if any ports are outside the range ``0``-``65535``.
+    """
+
+    _validate_ports(ports)
     results: dict[int, bool] = {}
     for p in ports:
         sock = socket.socket()
@@ -149,7 +163,12 @@ async def async_port_scan(
     timeout: float = 1.0,
     limit: int = 100,
 ) -> dict[int, bool]:
-    """Return mapping of ports to open status for ``host`` asynchronously."""
+    """Return mapping of ports to open status for ``host`` asynchronously.
+
+    Raises ``ValueError`` if any ports are outside the range ``0``-``65535``.
+    """
+
+    _validate_ports(ports)
     results: dict[int, bool] = {}
     sem = asyncio.Semaphore(limit)
 

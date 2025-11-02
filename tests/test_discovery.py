@@ -270,6 +270,14 @@ def test_port_scan(monkeypatch):
     assert res == {25: True, 26: False}
 
 
+def test_port_scan_invalid_ports():
+    with pytest.raises(ValueError, match="Invalid port numbers: -1"):
+        discovery.port_scan("h", [-1])
+
+    with pytest.raises(ValueError, match="Invalid port numbers: 70000"):
+        discovery.port_scan("h", [70000])
+
+
 def test_async_port_scan(monkeypatch):
     class DummyWriter:
         def close(self):
@@ -286,6 +294,14 @@ def test_async_port_scan(monkeypatch):
     monkeypatch.setattr(asyncio, "open_connection", fake_open_connection)
     res = asyncio.run(discovery.async_port_scan("h", [25, 26]))
     assert res == {25: True, 26: False}
+
+
+def test_async_port_scan_invalid_ports():
+    with pytest.raises(ValueError, match="Invalid port numbers: -1"):
+        asyncio.run(discovery.async_port_scan("h", [-1]))
+
+    with pytest.raises(ValueError, match="Invalid port numbers: 70000"):
+        asyncio.run(discovery.async_port_scan("h", [70000]))
 
 
 def test_probe_honeypot(monkeypatch):
