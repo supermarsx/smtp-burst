@@ -10,7 +10,7 @@ import asyncio
 import smtplib
 import socket
 import ssl
-from typing import Any
+from typing import Any, Iterable, Sequence
 
 from dns import resolver
 
@@ -127,7 +127,7 @@ def check_certificate(host: str, port: int = 443) -> dict[str, Any]:
         return {"error": str(exc)}
 
 
-def _validate_ports(ports: list[int]) -> None:
+def _validate_ports(ports: Sequence[int]) -> None:
     """Ensure all ``ports`` fall within the valid TCP/UDP range."""
 
     invalid = [p for p in ports if not 0 <= p <= 65535]
@@ -136,15 +136,17 @@ def _validate_ports(ports: list[int]) -> None:
         raise ValueError(f"Invalid port numbers: {numbers}")
 
 
-def port_scan(host: str, ports: list[int], timeout: float = 1.0) -> dict[int, bool]:
+def port_scan(host: str, ports: Iterable[int], timeout: float = 1.0) -> dict[int, bool]:
     """Return mapping of ports to open status for ``host``.
 
     Raises ``ValueError`` if any ports are outside the range ``0``-``65535``.
+    ``ports`` may be any iterable of integers.
     """
 
-    _validate_ports(ports)
+    materialised_ports = list(ports)
+    _validate_ports(materialised_ports)
     results: dict[int, bool] = {}
-    for p in ports:
+    for p in materialised_ports:
         sock = socket.socket()
         sock.settimeout(timeout)
         try:
@@ -159,16 +161,18 @@ def port_scan(host: str, ports: list[int], timeout: float = 1.0) -> dict[int, bo
 
 async def async_port_scan(
     host: str,
-    ports: list[int],
+    ports: Iterable[int],
     timeout: float = 1.0,
     limit: int = 100,
 ) -> dict[int, bool]:
     """Return mapping of ports to open status for ``host`` asynchronously.
 
     Raises ``ValueError`` if any ports are outside the range ``0``-``65535``.
+    ``ports`` may be any iterable of integers.
     """
 
-    _validate_ports(ports)
+    materialised_ports = list(ports)
+    _validate_ports(materialised_ports)
     results: dict[int, bool] = {}
     sem = asyncio.Semaphore(limit)
 
@@ -188,7 +192,7 @@ async def async_port_scan(
             except Exception:
                 results[p] = False
 
-    await asyncio.gather(*(probe(p) for p in ports))
+    await asyncio.gather(*(probe(p) for p in materialised_ports))
     return results
 
 
