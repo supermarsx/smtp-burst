@@ -156,6 +156,8 @@ async def _async_sendmail_native(
     host: str,
     port: int,
     pool: _HostPool | None,
+    throttle_lock: asyncio.Lock | None = None,
+    concurrency_sem: asyncio.Semaphore | None = None,
 ) -> None:
     if SB_FAILCOUNT.value >= cfg.SB_STOPFQNT and cfg.SB_STOPFAIL:
         return
@@ -165,21 +167,35 @@ async def _async_sendmail_native(
     for attempt in range(attempts):
         client = None
         try:
-            await async_throttle(cfg, cfg.SB_SGEMAILSPSEC)
-            client = (
-                await pool.acquire(cfg)
-                if pool
-                else await _create_client(cfg, host, port)
-            )
-            start_t = time.monotonic()
-            await client.sendmail(cfg.SB_SENDER, cfg.SB_RECEIVERS, SB_MESSAGE)
-            latency = time.monotonic() - start_t
-            if latency > cfg.SB_TARPIT_THRESHOLD:
-                logger.warning("Possible tarpit detected: %.2fs latency", latency)
-            if pool:
-                await pool.release(client)
+            if throttle_lock is not None:
+                async with throttle_lock:
+                    await async_throttle(cfg, cfg.SB_SGEMAILSPSEC)
             else:
-                await _safe_quit(client)
+                await async_throttle(cfg, cfg.SB_SGEMAILSPSEC)
+
+            async def _perform_send() -> None:
+                nonlocal client
+                client = (
+                    await pool.acquire(cfg)
+                    if pool
+                    else await _create_client(cfg, host, port)
+                )
+                start_t = time.monotonic()
+                await client.sendmail(cfg.SB_SENDER, cfg.SB_RECEIVERS, SB_MESSAGE)
+                latency = time.monotonic() - start_t
+                if latency > cfg.SB_TARPIT_THRESHOLD:
+                    logger.warning("Possible tarpit detected: %.2fs latency", latency)
+                if pool:
+                    await pool.release(client)
+                else:
+                    await _safe_quit(client)
+                client = None
+
+            if concurrency_sem is not None:
+                async with concurrency_sem:
+                    await _perform_send()
+            else:
+                await _perform_send()
             logger.info("%s/%s, Burst %s : Email Sent", number, cfg.SB_TOTAL, burst)
             return
         except Exception:
@@ -214,7 +230,10 @@ async def _async_bombing_mode_native(
     fail_count = type("C", (), {"value": 0})()
 
     concurrency = max(1, int(getattr(cfg, "SB_ASYNC_CONCURRENCY", 100)))
-    sem = asyncio.Semaphore(concurrency)
+    concurrency_sem = asyncio.Semaphore(concurrency)
+    throttle_lock: asyncio.Lock | None = None
+    if cfg.SB_GLOBAL_DELAY or cfg.SB_SGEMAILSPSEC:
+        throttle_lock = asyncio.Lock()
 
     start_budget = time.monotonic()
     budget_reached = False
@@ -228,17 +247,18 @@ async def _async_bombing_mode_native(
     async def worker(number: int, burst: int) -> None:
         if fail_count.value >= cfg.SB_STOPFQNT and cfg.SB_STOPFAIL:
             return
-        async with sem:
-            await _async_sendmail_native(
-                number,
-                burst,
-                fail_count,
-                message,
-                cfg,
-                host=host,
-                port=port,
-                pool=pool,
-            )
+        await _async_sendmail_native(
+            number,
+            burst,
+            fail_count,
+            message,
+            cfg,
+            host=host,
+            port=port,
+            pool=pool,
+            throttle_lock=throttle_lock,
+            concurrency_sem=concurrency_sem,
+        )
 
     for b in range(cfg.SB_BURSTS):
         if budget_reached or _budget_exhausted():
@@ -264,9 +284,7 @@ async def _async_bombing_mode_native(
                     budget_reached = True
                 break
             tasks.append(
-                asyncio.create_task(
-                    worker(number + (b * cfg.SB_SGEMAILS), b + 1)
-                )
+                asyncio.create_task(worker(number + (b * cfg.SB_SGEMAILS), b + 1))
             )
 
         if tasks:
