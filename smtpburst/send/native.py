@@ -216,6 +216,15 @@ async def _async_bombing_mode_native(
     concurrency = max(1, int(getattr(cfg, "SB_ASYNC_CONCURRENCY", 100)))
     sem = asyncio.Semaphore(concurrency)
 
+    start_budget = time.monotonic()
+    budget_reached = False
+
+    def _budget_exhausted() -> bool:
+        return (
+            bool(cfg.SB_BUDGET_SECONDS)
+            and (time.monotonic() - start_budget) >= cfg.SB_BUDGET_SECONDS
+        )
+
     async def worker(number: int, burst: int) -> None:
         if fail_count.value >= cfg.SB_STOPFQNT and cfg.SB_STOPFAIL:
             return
@@ -232,11 +241,41 @@ async def _async_bombing_mode_native(
             )
 
     for b in range(cfg.SB_BURSTS):
+        if budget_reached or _budget_exhausted():
+            if not budget_reached:
+                logger.info("Time budget reached; stopping sends")
+                budget_reached = True
+            break
+
+        if cfg.SB_PER_BURST_DATA:
+            message = append_message(cfg, attachments)
+
+        if fail_count.value >= cfg.SB_STOPFQNT and cfg.SB_STOPFAIL:
+            break
+
         numbers = range(1, cfg.SB_SGEMAILS + 1)
-        tasks = [
-            asyncio.create_task(worker(number + (b * cfg.SB_SGEMAILS), b + 1))
-            for number in numbers
-        ]
+        tasks = []
+        for number in numbers:
+            if fail_count.value >= cfg.SB_STOPFQNT and cfg.SB_STOPFAIL:
+                break
+            if budget_reached or _budget_exhausted():
+                if not budget_reached:
+                    logger.info("Time budget reached; stopping sends")
+                    budget_reached = True
+                break
+            tasks.append(
+                asyncio.create_task(
+                    worker(number + (b * cfg.SB_SGEMAILS), b + 1)
+                )
+            )
+
         if tasks:
             await asyncio.gather(*tasks)
+
+        if budget_reached or _budget_exhausted():
+            if not budget_reached:
+                logger.info("Time budget reached; stopping sends")
+                budget_reached = True
+            break
+
         await async_throttle(cfg, cfg.SB_BURSTSPSEC)
