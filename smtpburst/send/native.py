@@ -165,7 +165,7 @@ async def _async_sendmail_native(
     for attempt in range(attempts):
         client = None
         try:
-            await async_throttle(cfg)
+            await async_throttle(cfg, cfg.SB_SGEMAILSPSEC)
             client = (
                 await pool.acquire(cfg)
                 if pool
